@@ -9,9 +9,9 @@
 
 <style>
 :root {
-    --green: #28a745;
-    --green-dark: #1e7e34;
-    --light-green: #e9f5ed;
+    --yellow: #FFDE21;
+    --yellow-dark: #a7a745;
+    --light-yellow: #e9f5ed;
     --border: #ced4da;
 }
 
@@ -28,8 +28,8 @@ body {
 }
 
 .section-header {
-    background: var(--green);
-    color: white;
+    background: var(--yellow);
+    color: #1A1A19;
     padding: 12px 20px;
     margin: -20px -20px 20px -20px;
     border-radius: 16px 16px 0 0;
@@ -68,29 +68,73 @@ body {
 }
 
 .toggle-box input:checked + span {
-    background: var(--light-green);
-    color: var(--green);
+    background: var(--light-yellow);
+    color: var(--yellow);
     font-weight: 700;
     border-radius: 6px;
     display: block;
 }
 
 .btn-submit {
-    background: var(--green);
-    color: #fff;
+    background: var(--yellow);
+    color: #1A1A19;
     font-weight: 600;
     border-radius: 8px;
 }
 
 .btn-submit:hover {
-    background: var(--green-dark);
+    background: var(--yellow-dark);
 }
+
+.app-header {
+                background: linear-gradient(to left, var(--yellow), #4CAF50);
+                color: white;
+                padding: 15px 30px;
+                border-radius: 12px;
+                margin-bottom: 25px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .app-header h1 {
+                font-size: 1.6rem;
+                font-weight: 700;
+                margin-bottom: 0;
+            }
+            .app-header .subtitle {
+                font-size: 0.95rem;
+                opacity: 0.9;
+                margin-top: 5px;
+            }
+            .mho-logo {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                object-fit: cover;
+                margin-right: 15px;
+            }
+             .app-header .header-icon-right {
+                font-size: 2rem;
+                color: rgba(255, 255, 255, 0.8);
+             }
 </style>
 </head>
 
 <body>
 <div class="container py-4" style="max-width: 900px;">
-
+<div class="app-header">
+                <div class="d-flex align-items-center">
+                    <img src="{{ url_for('static', filename='img/MHO_Logo.jpg') }}"
+                         alt="MHO Burauen Logo Placeholder"
+                         class="mho-logo" />
+                    <div>
+                        <h1 class="mb-0">eKonsultaForms</h1>
+                        <div class="subtitle">Electronic Konsulta Forms Processing System</div>
+                    </div>
+                </div>
+                <i class="fa-solid fa-dog header-icon-right"></i>
+            </div>
 <div class="form-card">
 <div class="section-header">
     MHO Burauen – Patient Registration
