@@ -1,137 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EKonsulta Forms</title>
-    <style>
-        table, th, td {
-            border: 1.5px solid black;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 5px;
-            text-align: left;
-        }
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            color: tomato;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MHO Burauen Registration</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+:root {
+    --green: #28a745;
+    --green-dark: #1e7e34;
+    --light-green: #e9f5ed;
+    --border: #ced4da;
+}
+
+body {
+    background: #f8f9fa;
+    font-family: Inter, sans-serif;
+}
+
+.form-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+.section-header {
+    background: var(--green);
+    color: white;
+    padding: 12px 20px;
+    margin: -20px -20px 20px -20px;
+    border-radius: 16px 16px 0 0;
+    font-weight: 700;
+}
+
+.form-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+
+.form-control, .form-select {
+    height: 38px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+}
+
+.toggle-box {
+    display: flex;
+    gap: 10px;
+}
+
+.toggle-box label {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.toggle-box input {
+    display: none;
+}
+
+.toggle-box input:checked + span {
+    background: var(--light-green);
+    color: var(--green);
+    font-weight: 700;
+    border-radius: 6px;
+    display: block;
+}
+
+.btn-submit {
+    background: var(--green);
+    color: #fff;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+.btn-submit:hover {
+    background: var(--green-dark);
+}
+</style>
 </head>
+
 <body>
-    <table>
-        <tr>
-        <td colspan="4">ELECTORNIC KONSULTA AVAILMENT SLIP (EKAS)<br>
-        To be filled-out by the facility(Papunan ng Pasilidad)
-        </td>
-        <tr>
-        <tr>
-            <td>HCI Name: </td>
-            <td>Case No:</td>
-            <td>HCI Accreditation No.</td>
-            <td>Transaction No:</td>
-        </tr>
-        <tr>
-            <td colspan="2">PIN (Philhealth Indentification Number)</td>
-            <td colspan="2">Membership Category</td>
-        </tr>
-        <tr>
-            <td colspan="3">Patient's Name (Pangalan)</td>
-            <td>Age and Contat #:</td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                Membership Type<br>
-                <input type="checkbox" name="" id=""> MEMBER
-                <input type="checkbox" name="" id=""> DEPENDENT
-            </td>
-            <td colspan="2">Authentication Transaction Code (ATC) :</td>
-        </tr>
-        <tr>
-            <td colspan="2">KONSULTA SERVICES</td>
-            <td>PERFORMED</td>
-            <td>Date Performed/<br>Performed by</td>
-        </tr>
-        <tr>
-            <td colspan="2">Consultation</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td colspan="2">Complete Blood Count (CBC)<br>w/ platelet count</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td colspan="2">Lipid Profile <span>(Total <br>Cholesterol, 
-                Triglycerieds, HDL<br> Choledterol, LDL Choledterol)</span></td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td colspan="2">Fasting Blood Sugar (FBS)</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-           <td colspan="2">Oral Glucose Tolerance Test</td>
-           <td></td>
-           <td></td>
-        </tr>
-        <tr>
-            <td colspan="2">(HbA1c)</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td colspan="2">Creatinine</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td colspan="2">Chest X-Ray</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td colspan="2">Sputum Microscopy</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td colspan="2">Electrocardiogram (ECG)</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td colspan="2">Urinalysis</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td colspan="2">Pap Smear</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td colspan="2">Fecalysis</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td colspan="2">Fecal Occult Blood Test</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td colspan="4">Pupunan ng Pasyente <br>
-            Natanggap mo ba ang mga pangunahing serbisyo ng nabanggit? ___OO ___HINDI<br>
-            Gaano ka nasiyahan sa matanggap na serbisyo? ___________________________<br>
-            <br>
-            Para sa inyong komento, mungkahi or reklamo: ___________________________<br>
-            </td>
-        </tr>
-    </table>
+<div class="container py-4" style="max-width: 900px;">
+
+<div class="form-card">
+<div class="section-header">
+    MHO Burauen – Patient Registration
+</div>
+
+<form>
+
+<!-- OPTION -->
+<label class="form-label fw-bold">Option</label>
+<div class="toggle-box mb-3">
+    <label>
+        <input type="radio" name="option" checked>
+        <span>Member</span>
+    </label>
+    <label>
+        <input type="radio" name="option">
+        <span>Dependent</span>
+    </label>
+</div>
+
+<div class="row g-2">
+    <div class="col-md-4">
+        <label class="form-label">PIN</label>
+        <input type="text" class="form-control">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Date Today</label>
+        <input type="date" class="form-control" value="<?= date('Y-m-d') ?>">
+    </div>
+</div>
+
+<hr>
+
+<!-- FULL NAME -->
+<div class="row g-2">
+    <div class="col-md-4">
+        <label class="form-label">Last Name</label>
+        <input type="text" class="form-control">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">First Name</label>
+        <input type="text" class="form-control">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Middle Name</label>
+        <input type="text" class="form-control">
+    </div>
+    <div class="col-md-1">
+        <label class="form-label">Ext</label>
+        <input type="text" class="form-control">
+    </div>
+</div>
+
+<hr>
+
+<!-- ADDRESS -->
+<div class="row g-2">
+    <div class="col-md-4">
+        <label class="form-label">Barangay</label>
+        <input type="text" class="form-control">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Municipality</label>
+        <input type="text" class="form-control">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Province</label>
+        <input type="text" class="form-control" value="LEYTE">
+    </div>
+</div>
+
+<hr>
+
+<!-- OTHER DETAILS -->
+<div class="row g-2">
+    <div class="col-md-4">
+        <label class="form-label">Date of Birth</label>
+        <input type="date" class="form-control">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Contact Number</label>
+        <input type="text" class="form-control">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Gender</label>
+        <select class="form-select">
+            <option value="">Select</option>
+            <option>Male</option>
+            <option>Female</option>
+        </select>
+    </div>
+</div>
+
+<button type="submit" class="btn btn-submit w-100 mt-4 py-3">
+    SUBMIT
+</button>
+
+</form>
+</div>
+</div>
+
 </body>
 </html>
