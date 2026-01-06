@@ -186,12 +186,16 @@ body {
                     <!-- ADDRESS -->
                     <div class="row g-2">
                         <div class="col-md-4">
-                            <label class="form-label">Barangay</label>
-                            <input type="text" class="form-control">
+                            <label class="form-label">Municipality</label>
+                            <select class="form-select" id="municipality" name="municipality" required>
+                                <option value="">Choose Municipality...</option>
+                            </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Municipality</label>
-                            <input type="text" class="form-control">
+                            <label class="form-label">Barangay</label>
+                            <select class="form-select" name="barangay" id="barangay" required>
+                                <option value="">Choose barangay...</option>
+                            </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Province</label>
@@ -230,6 +234,56 @@ body {
                     dependentPINDiv.classList.toggle('d-none');
                 })
             });
+        </script>
+        <script>
+            let leyteData = {};
+            let leyteBrgy = {};
+
+            fetch("{{ url_for('static', filename='data/municipalities.json') }}")
+                .then(response => response.json())
+                .then(data => {
+                    leyteData = data;
+                    populateMunicipalities();
+                })
+                .catch(error => console.error("Error loading JSON:",error))
+
+            fetch("{{ url_for('static', filename='data/barangays.json') }}")
+                .then(response => response.json())
+                .then(data => {
+                    leyteBrgy = data;
+                })
+                .catch(error => console.error("Error loading JSON:",error))
+            
+            function populateMunicipalities(){
+                const municipalitySelect = document.getElementById("municipality");
+
+                for(let iteration in leyteData){
+                    const option = document.createElement('option');
+                    option.value = leyteData[iteration].name
+                    option.text = leyteData[iteration].name
+                    municipalitySelect.appendChild(option);
+                }
+      
+            }
+
+            document.getElementById('municipality').addEventListener("change", function () {
+                const barangaySelect = document.getElementById("barangay");
+                barangaySelect.innerHTML = '<option value="">-- Select Barangay --</option>';
+                const selectedMunicipality = this.value;
+                const filterBrgy = leyteBrgy.filter(
+                    item => item.citymun === selectedMunicipality
+                )
+
+                filterBrgy.forEach( brgy => {
+                    const option = document.createElement("option");
+                    option.value = brgy.name
+                    option.text = brgy.name
+                    barangaySelect.appendChild(option)
+                })
+
+            })
+            
+
         </script>
     </body>
 </html>

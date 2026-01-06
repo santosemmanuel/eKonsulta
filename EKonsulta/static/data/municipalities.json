@@ -1,0 +1,217 @@
+[
+    {
+        "name": "Abuyog",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Alangalang",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Albuera",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Babatngon",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Barugo",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Bato",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Baybay",
+        "province": "Leyte",
+        "city": true
+    },
+    {
+        "name": "Burauen",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Calubian",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Capoocan",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Carigara",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Dagami",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Dulag",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Hilongos",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Hindang",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Inopacan",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Isabel",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Jaro",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Javier",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Julita",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Kananga",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "La Paz",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Leyte",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "MacArthur",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Mahaplag",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Matag-Ob",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Matalom",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Mayorga",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Merida",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Ormoc",
+        "province": "Leyte",
+        "city": true
+    },
+    {
+        "name": "Palo",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Palompon",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Pastrana",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "San Isidro",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "San Miguel",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Santa Fe",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Tabango",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Tabontabon",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Tacloban",
+        "province": "Leyte",
+        "city": true
+    },
+    {
+        "name": "Tanauan",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Tolosa",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Tunga",
+        "province": "Leyte",
+        "city": false
+    },
+    {
+        "name": "Villaba",
+        "province": "Leyte",
+        "city": false
+    }
+]
