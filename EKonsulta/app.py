@@ -30,10 +30,8 @@ def fill_PKRF_CHS(data):
 @app.route("/view_print")
 def view_print_pdf():
     pdf_files = [
-        {"name": "CF-1 Form", "url": "/static/pdfs/output_cf1.pdf"},
-        {"name": "CF-2 Form", "url": "/static/pdfs/output_cf2.pdf"},
-        {"name": "CSF Form", "url": "/static/pdfs/output_csf.pdf"},
-        {"name": "Statement of Account", "url": "/static/pdfs/output_soa.pdf"},
+        {"name": "EKAS EPRESS MCA", "url": "/static/pdfs/output_cf1.pdf"},
+        {"name": "PKRF CONSENT HEALTH SCREENING", "url": "/static/pdfs/output_cf2.pdf"},
     ]
     return render_template('viewPrintPDF.html', pdf_files=pdf_files)
 
