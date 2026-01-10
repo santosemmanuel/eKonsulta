@@ -1,0 +1,160 @@
+:root {
+    --green: #1f7a5a;        /* primary cool green */
+    --green-dark: #166447;  /* hover / emphasis */
+    --green-soft: #e6f4ef;  /* light background tint */
+    --border: #d1d5db;
+
+}
+
+        body {
+            background: #f8f9fa;
+            font-family: Inter, sans-serif;
+            background: #f4f8f6;
+        }
+
+        /* NAVBAR */
+        .navbar-mho {
+            background: var(--green);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: #fff !important;
+        }
+
+        .navbar-brand small {
+            display: block;
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+
+        .mho-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+
+        /* CARDS */
+        .form-card,
+        .pdf-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            height: 100%;
+        }
+
+        .section-header {
+            background: linear-gradient(to left, #FFD500, var(--green));
+            color: #fff;
+            padding: 12px 20px;
+            margin: -20px -20px 20px -20px;
+            border-radius: 16px 16px 0 0;
+            font-weight: 700;
+        }
+
+        .form-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        .form-control, .form-select {
+            height: 38px;
+            font-size: 0.85rem;
+            border-radius: 8px;
+        }
+
+        .btn-submit {
+    background: var(--green);
+    color: #ffffff;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+.btn-submit:hover {
+    background: var(--green-dark);
+    color: #ffffff;
+}
+
+        /* TOGGLE */
+        .toggle-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        .toggle-box label {
+            flex: 1;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .toggle-box input {
+            display: none;
+        }
+
+        .toggle-box span {
+            display: flex;
+            justify-content: center;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+    .toggle-box input:checked + span {
+    background: var(--green);
+    color: #ffffff;
+    font-weight: 700;
+}
+        /* PDF VIEWER */
+        .pdf-viewer {
+            width: 100%;
+            height: 70vh;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+           .pdf-frame {
+            width: 100%;
+            height: 75vh;
+            border: 1px solid #ced4da;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .nav-pills .nav-link {
+    background: #f0f7f4;
+    color: var(--green);
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.nav-pills .nav-link i {
+    font-size: 0.9rem;
+}
+
+.nav-pills .nav-link:hover {
+    background: var(--green-soft);
+}
+
+.nav-pills .nav-link.active {
+    background: var(--green);
+    color: #ffffff;
+}
+
+.pdf-loader {
+    height: 75vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: var(--green);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.pdf-loader i {
+    font-size: 2.5rem;
+}

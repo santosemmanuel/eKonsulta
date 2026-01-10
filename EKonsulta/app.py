@@ -11,7 +11,11 @@ today = date.today()
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    pdf_files = [
+        {"name": "EKAS EPRESS MCA", "url": "/static/pdfs/EKAS,EPRESS,MCA.pdf"},
+        {"name": "PKRF CONSENT HEALTH SCREENING", "url": "/static/pdfs/output_cf2.pdf"},
+    ]
+    return render_template("index.html", pdf_files=pdf_files)
 
 @app.route("/submit_form", methods=["POST"])
 def submit_form():
@@ -33,7 +37,7 @@ def view_print_pdf():
         {"name": "EKAS EPRESS MCA", "url": "/static/pdfs/output_cf1.pdf"},
         {"name": "PKRF CONSENT HEALTH SCREENING", "url": "/static/pdfs/output_cf2.pdf"},
     ]
-    return render_template('viewPrintPDF.html', pdf_files=pdf_files)
+    return render_template('index.html', pdf_files=pdf_files)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
