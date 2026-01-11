@@ -57,7 +57,7 @@
              let leyteData = {};
             let leyteBrgy = {};
 
-            fetch("{{ url_for('static', filename='data/municipalities.json') }}")
+            fetch("static/data/municipalities.json")
                 .then(response => response.json())
                 .then(data => {
                     leyteData = data;
@@ -65,7 +65,7 @@
                 })
                 .catch(error => console.error("Error loading JSON:",error))
 
-            fetch("{{ url_for('static', filename='data/barangays.json') }}")
+            fetch("static/data/barangays.json")
                 .then(response => response.json())
                 .then(data => {
                     leyteBrgy = data;
@@ -100,93 +100,222 @@
                 })
 
             })
-
             const form = document.getElementById('philhealthForm')
 
-            form.addEventListener('submit', async function (event) {
-                // Prevent default submission behavior
-                event.preventDefault()
-                event.stopPropagation()
+function isVisible(el) {
+    return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+}
 
-                // // Check if the form is valid according to HTML5/Bootstrap validation
-                if (!form.checkValidity()) {
-                    form.classList.add('was-validated');
-                    return; // Stop if validation fails
-                }
-                
-                // // --- Form is valid, proceed with data collection and submission ---
+function clearErrors(form) {
+    form.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+}
 
-                const patientIsMemberValue = document.querySelector('input[name="patientIsMember"]:checked').value;
+function invalidate(field, message) {
+    field.classList.add("is-invalid");
 
-                const data = {
-                    pin: form.pin.value,
-                    lastName: form.lastName.value,
-                    firstName: form.firstName.value,
-                    nameExt: form.nameExt.value,
-                    middleName: form.middleName.value,
-                    dob: form.dob.value,
-                    sex: form.sex.value,
-                    street: form.street.value,
-                    barangay: form.barangay.value,
-                    municipality: form.municipality.value,
-                    mobile: form.mobile.value,
-                    email: form.email.value,
-                    patientIsMember: patientIsMemberValue,
-                    dependent: patientIsMemberValue === "no" ? {
-                        depPin: form.depPin.value,
-                        depLname: form.depLname.value,
-                        depFname: form.depFname.value,
-                        depMname: form.depMname.value,
-                        depDob: form.depDob.value,
-                        depSex: form.depSex.value,
-                        depExt: form.depExt.value,
-                        relationship: form.relationship.value
-                    } : null,
-                    signee: form.signee.value,
-                    representative: form.signee.value === "representative" ? {
-                        repName: form.repName.value,
-                        repRelationship: form.repRelationship.value,
-                        repReason: form.repReason.value
-                    } : null,
-                    patientDisposition: form.querySelector("select[name='patientDisposition']")?.value || ""
-                };
-                
-                // // ** NEW SUBMISSION VIA FETCH API TO /submit_form **
-                // try {
-                //     console.log("Attempting to submit data to /submit_form:", data);
+    let feedback = field.parentElement.querySelector(".invalid-feedback");
+    if (!feedback) {
+        feedback = document.createElement("div");
+        feedback.className = "invalid-feedback";
+        field.parentElement.appendChild(feedback);
+    }
+    feedback.innerText = message;
+
+    field.focus();
+}
+
+
+function buildFormData(form) {
+    const memberType = document.querySelector(
+        "input[name='patientIsMember']:checked"
+    ).value;
+
+    return {
+        patientIsMember: memberType,
+
+        pin: form.pin.value.trim(),
+        dependentPin:
+            memberType === "dependent"
+                ? form.dependentPin.value.trim()
+                : null,
+
+        personalInfo: {
+            lastName: form.lastName.value.trim(),
+            firstName: form.firstName.value.trim(),
+            middleName: form.middleName.value.trim(),
+            nameExt: form.nameExt.value.trim()
+        },
+
+        address: {
+            municipality: form.municipality.value,
+            barangay: form.barangay.value
+        },
+
+        otherDetails: {
+            dob: form.dob.value,
+            sex: form.sex.value,
+            mobile: form.mobile.value
+        }
+    };
+}
+
+
+function validateForm(form) {
+    clearErrors(form);
+
+    const fields = form.querySelectorAll("input, select, textarea");
+
+    for (let field of fields) {
+
+        // Skip personal info section
+        if (field.closest(".personal-info")) continue;
+
+        // Skip hidden or disabled
+        if (field.disabled || !isVisible(field)) continue;
+
+        // Required check
+        if (!field.value || field.value.trim() === "") {
+            invalidate(field, "This field is required.");
+            return false;
+        }
+
+        // PIN validation
+        if (["pin", "dependentPin"].includes(field.name)) {
+            if (!/^\d{4,}$/.test(field.value)) {
+                invalidate(field, "PIN must be at least 4 digits.");
+                return false;
+            }
+        }
+
+        // Mobile number validation
+        if (field.name === "mobile") {
+            if (!/^09\d{9}$/.test(field.value)) {
+                invalidate(field, "Mobile must start with 09 and be 11 digits.");
+                return false;
+            }
+        }
+
+        // Date validation
+        if (field.type === "date") {
+            const date = new Date(field.value);
+            if (date > new Date()) {
+                invalidate(field, "Date cannot be in the future.");
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+async function loadPdfViewer() {
+    const tabNav = document.getElementById("pdfTabNav");
+    const tabContent = document.getElementById("pdfTabContent");
+
+    tabNav.innerHTML = "";
+    tabContent.innerHTML = "";
+
+    try {
+        const response = await fetch("/get_pdfs");
+        const pdfs = await response.json();
+
+        pdfs.forEach((pdf, index) => {
+            const tabId = `pdf-${index}`;
+            const isActive = index === 0 ? "active" : "";
+
+            // TAB BUTTON
+            tabNav.insertAdjacentHTML(
+                "beforeend",
+                `
+                <li class="nav-item">
+                    <button class="nav-link ${isActive}"
+                        data-bs-toggle="pill"
+                        data-bs-target="#${tabId}">
+                        ${pdf.name}
+                    </button>
+                </li>
+                `
+            );
+
+            // TAB CONTENT + LOADER + IFRAME
+            tabContent.insertAdjacentHTML(
+                "beforeend",
+                `
+                <div class="tab-pane fade show ${isActive}" id="${tabId}">
                     
-                //     const response = await fetch('/submit_form', {
-                //         method: 'POST',
-                //         headers: {
-                //             'Content-Type': 'application/json'
-                //         },
-                //         // Convert the JavaScript object to a JSON string
-                //         body: JSON.stringify(data)
-                //     });
+                    <!-- Loader -->
+                    <div id="loader-${tabId}" class="text-center my-4">
+                        <div class="spinner-border text-primary"></div>
+                        <p class="mt-2">Loading PDF...</p>
+                    </div>
 
-                //     if (response.ok) {
-                //         // Submission was successful (e.g., status 200-299)
-                //         alert("✅ MHO Burauen Form submitted successfully!");
-                //         window.location.href = '/view_print';
-                //         form.reset(); // Clear the form fields
-                //         form.classList.remove('was-validated'); // Remove validation state
-                //     } else {
-                //         // Submission failed on the server side (e.g., status 400 or 500)
-                //         const errorText = await response.text();
-                //         console.error("Submission failed:", errorText);
-                //         alert(`⚠️ Submission failed. Server responded with status: ${response.status}`);
-                //     }
-                // } catch (error) {
-                //     // Network error (e.g., server offline)
-                //     console.error("Network or unexpected error during submission:", error);
-                //     alert("❌ An error occurred. Could not connect to the submission server.");
-                // }
-                console.log("Test");
-            });
+                    <!-- PDF -->
+                    <iframe
+                        src="${pdf.url}?t=${Date.now()}"
+                        class="w-100 d-none"
+                        height="600"
+                        frameborder="0"
+                        onload="hideLoader('${tabId}')">
+                    </iframe>
+
+                </div>
+                `
+            );
+        });
+
+    } catch (err) {
+        console.error("Failed to load PDFs:", err);
+    }
+}
+
+
+          form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!validateForm(form)) 
+    {
+    
+         return;
+    }
+
+    const data = buildFormData(form);
+
+    try {
+        const response = await fetch("/submit_form", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            throw new Error("Server error");
+        } else {
+            await loadPdfViewer();
+        }
+
+        // const result = await response.json();
+        // console.log("✅ Server response:", result);
+
+        // alert("Form submitted successfully!");
+        form.reset();
+
+    } catch (err) {
+        console.error("❌ Submission failed:", err);
+        alert("Failed to submit form.");
+    }
+});
+
+
+
                 function hideLoader(tabId) {
     const loader = document.getElementById(`loader-${tabId}`);
     const iframe = loader.nextElementSibling;
 
     loader.style.display = "none";
     iframe.classList.remove("d-none");
+
+    
 }

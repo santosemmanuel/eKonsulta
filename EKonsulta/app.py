@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, current_app
+from flask import Flask, render_template, request, jsonify, current_app, url_for
 from fillpdf import fillpdfs
 from pdfrw import PdfReader as PdfRwReader, PdfWriter as PdfRwWriter, PageMerge, PdfDict, PdfName
 from datetime import datetime, date
@@ -21,7 +21,9 @@ def index():
 def submit_form():
     data = request.get_json()
     fill_EKAS_EPRESS_MCA(data)
-    fill_PKRF_CHS()
+    # fill_PKRF_CHS()
+
+    return jsonify({"status": "success", "message": "Form received"})
 
 def fill_EKAS_EPRESS_MCA(data):
     pdf_path = os.path.join(current_app.root_path,"EKAS,EPRESS,MCA.pdf")
@@ -31,13 +33,14 @@ def fill_EKAS_EPRESS_MCA(data):
 def fill_PKRF_CHS(data):
     pass
 
-@app.route("/view_print")
-def view_print_pdf():
-    pdf_files = [
-        {"name": "EKAS EPRESS MCA", "url": "/static/pdfs/output_cf1.pdf"},
-        {"name": "PKRF CONSENT HEALTH SCREENING", "url": "/static/pdfs/output_cf2.pdf"},
-    ]
-    return render_template('index.html', pdf_files=pdf_files)
+@app.route("/get_pdfs")
+def get_pdfs():
+    return jsonify([
+        {
+            "name": "PhilHealth Form",
+            "url": url_for("static", filename="pdfs/philhealth.pdf")
+        }
+    ])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)

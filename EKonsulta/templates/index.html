@@ -31,7 +31,7 @@
                 <!-- LEFT: FORM -->
                 <div class="col-lg-6">
                     <div class="form-card">
-                        <form id="philhealthForm">
+                        <form id="philhealthForm" novalidate>
                             <!-- OPTION -->
                             <div class="toggle-box mb-3">
                                 <label>
@@ -62,7 +62,7 @@
                                 <i class="fa-solid fa-user me-2"></i>Personal Information
                             </h6>
                             <!-- FULL NAME -->
-                            <div class="row g-2">
+                            <div class="row g-2 personal-info">
                                 <div class="col-md-4">
                                     <label class="form-label">Last Name</label>
                                     <input type="text" class="form-control" name="lastName">
@@ -88,13 +88,13 @@
                             <div class="row g-2">
                                 <div class="col-md-6">
                                     <label class="form-label">Municipality</label>
-                                    <select class="form-select" id="municipality" name="municipality" required>
+                                    <select class="form-select" id="municipality" name="municipality">
                                         <option value="">Choose Municipality...</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Barangay</label>
-                                    <select class="form-select" name="barangay" id="barangay" required>
+                                    <select class="form-select" name="barangay" id="barangay">
                                         <option value="">Choose barangay...</option>
                                     </select>
                                 </div>
