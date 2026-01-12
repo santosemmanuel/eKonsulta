@@ -50,7 +50,14 @@
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <label class="form-label">Member's PIN</label>
-                                    <input type="text" class="form-control" name="pin">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="pin">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-outline-secondary" type="button">
+                                                <li class="fa-solid fa-magnifying-glass"></li>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div id="DependentPIN" class="col-md-4 d-none">
                                     <label class="form-label" id="DependentPINText">Dependent's PIN</label>

@@ -227,10 +227,11 @@ async function loadPdfViewer() {
             tabNav.insertAdjacentHTML(
                 "beforeend",
                 `
-                <li class="nav-item">
+                <li class="nav-item" role="presentation">
                     <button class="nav-link ${isActive}"
                         data-bs-toggle="pill"
                         data-bs-target="#${tabId}">
+                        <i class="fa-solid fa-file-pdf"></i>
                         ${pdf.name}
                     </button>
                 </li>
@@ -241,7 +242,7 @@ async function loadPdfViewer() {
             tabContent.insertAdjacentHTML(
                 "beforeend",
                 `
-                <div class="tab-pane fade show ${isActive}" id="${tabId}">
+                <div class="tab-pane fade show ${isActive}" id="${tabId}" role="tabpanel">
                     
                     <!-- Loader -->
                     <div id="loader-${tabId}" class="text-center my-4">
@@ -252,7 +253,7 @@ async function loadPdfViewer() {
                     <!-- PDF -->
                     <iframe
                         src="${pdf.url}?t=${Date.now()}"
-                        class="w-100 d-none"
+                        class="w-100 d-none pdf-frame"
                         height="600"
                         frameborder="0"
                         onload="hideLoader('${tabId}')">
