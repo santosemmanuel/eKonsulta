@@ -93,6 +93,7 @@ def fill_PKRF_CHS(data):
 
         member = "Yes" if data["patientIsMember"] == "member" else ""
         dependent = "Yes" if data["patientIsMember"] == "dependent" else ""
+        barangay = data["address"]["barangay"]
 
         data_PKRF_CHS = {
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Member")]: member,
@@ -102,7 +103,7 @@ def fill_PKRF_CHS(data):
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("LastName")]: data["personalInfo"]["lastName"],
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("FirstName")]: data["personalInfo"]["firstName"],
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("MiddleName")]: data["personalInfo"]["middleName"],
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Barangay")]: data["address"]["barangay"],
+            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Barangay")]: barangay.upper(),
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Municipality")]: data["address"]["municipality"],
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Province")]: "LEYTE",
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("DOB")]: formatted_date,
@@ -112,7 +113,7 @@ def fill_PKRF_CHS(data):
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("DepMiddleName")]: data["personalInfo"]["middleName"],
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("PatientSignature")]: patientFullName,
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("PatientFullName")]: patientFullName,
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("FullAddress")]: f"{data['address']['barangay']}, {data['address']['municipality']}, LEYTE",
+            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("FullAddress")]: f"{barangay.upper()}, {data['address']['municipality']}, LEYTE",
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("MemberPIN")]: data.get('pin',''),
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("DependentPIN")]: data.get('dependentPin',''),
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("NameExt")]: data["personalInfo"]["nameExt"],

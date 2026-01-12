@@ -269,6 +269,23 @@ async function loadPdfViewer() {
     }
 }
 
+toastr.options = {
+  "closeButton": false,
+  "debug": false,
+  "newestOnTop": false,
+  "progressBar": true,
+  "positionClass": "toast-top-right",
+  "preventDuplicates": false,
+  "onclick": null,
+  "showDuration": "500",
+  "hideDuration": "1000",
+  "timeOut": "5000",
+  "extendedTimeOut": "1000",
+  "showEasing": "swing",
+  "hideEasing": "linear",
+  "showMethod": "fadeIn",
+  "hideMethod": "fadeOut"
+}
 
           form.addEventListener("submit", async function (event) {
     event.preventDefault();
@@ -295,6 +312,7 @@ async function loadPdfViewer() {
             throw new Error("Server error");
         } else {
             await loadPdfViewer();
+            toastr.success("Data generated and saved successfully.")
         }
 
         // const result = await response.json();
@@ -305,7 +323,7 @@ async function loadPdfViewer() {
 
     } catch (err) {
         console.error("❌ Submission failed:", err);
-        alert("Failed to submit form.");
+        toastr.error("Failed to submit form.")
     }
 });
 
