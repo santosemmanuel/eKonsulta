@@ -4,10 +4,14 @@ from pdfrw import PdfReader as PdfRwReader, PdfWriter as PdfRwWriter, PageMerge,
 from datetime import datetime, date
 import os
 import json
+import mysql.connector
+from dotenv import load_dotenv
+from db import get_db_connection
 
 app = Flask(__name__)
-
+load_dotenv()
 today = date.today()
+
 
 @app.route("/")
 def index():
@@ -25,6 +29,76 @@ def submit_form():
     print(pretty_json_string)
     fill_EKAS_EPRESS_MCA(patient_data)
     fill_PKRF_CHS(patient_data)
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        # 🔍 CHECK IF dependent_pin EXISTS
+        cursor.execute(
+            "SELECT id FROM patients WHERE dependent_pin = %s or pin = %s",
+            (patient_data["dependentPin"],patient_data["pin"])
+        )
+
+        existing_patient = cursor.fetchone()
+
+        if not existing_patient:
+            # 🆕 INSERT NEW RECORD
+            insert_query = """
+                INSERT INTO patients (patient_is_member, pin, dependent_pin, created_at)
+                VALUES (%s, %s, %s, %s)
+            """
+            cursor.execute(
+                insert_query,
+                (
+                    patient_data["patientIsMember"],
+                    patient_data["pin"],
+                    patient_data["dependentPin"],
+                    datetime.now()
+                )
+            )
+
+            patient_id = cursor.lastrowid
+
+            # 🧍 INSERT personal_info
+            cursor.execute("""
+                INSERT INTO personal_info
+                (patient_id, last_name, first_name, middle_name, name_ext,
+                date_of_birth, sex, mobile)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                patient_id,
+                patient_data["personalInfo"]["lastName"],
+                patient_data["personalInfo"]["firstName"],
+                patient_data["personalInfo"]["middleName"],
+                patient_data["personalInfo"]["nameExt"],
+                patient_data["otherDetails"]["dob"],
+                patient_data["otherDetails"]["sex"],
+                patient_data["otherDetails"]["mobile"]
+            ))
+
+            # 🏠 INSERT address
+            cursor.execute("""
+                INSERT INTO addresses
+                (patient_id, municipality, barangay)
+                VALUES (%s, %s, %s)
+            """, (
+                patient_id,
+                patient_data["address"]["municipality"],
+                patient_data["address"]["barangay"]
+            ))
+
+
+            conn.commit()
+
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"status": "error", "message": "Database query failed"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
 
     return jsonify({"status": "success", "message": "Form received"})
 
@@ -147,6 +221,60 @@ def get_pdfs():
             "url": url_for("static", filename="pdfs/PKRF,Consent, Health Screening_OUTPUT.pdf")
         },
     ])
+
+@app.route("/gen_reports")
+def gen_reports():
+    return render_template("reports.html")
+
+@app.route('/get_patient/<pin>')
+def get_patient(pin):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT p.pin, pi.last_name, pi.first_name, pi.middle_name, pi.name_ext,
+               pi.date_of_birth, pi.sex, pi.mobile,
+               a.municipality, a.barangay
+        FROM patients p
+        LEFT JOIN personal_info pi ON pi.patient_id = p.id
+        LEFT JOIN addresses a ON a.patient_id = p.id
+        WHERE p.pin = %s
+    """, (pin,))
+    
+    patient = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    if patient:
+        return jsonify({"exists": True, **patient})
+    else:
+        return jsonify({"exists": False})
+    
+def dataTable():
+#     SELECT COUNT(*) AS NumberOfMale
+# FROM patients p
+# LEFT JOIN personal_info pi ON pi.patient_id = p.id
+# WHERE pi.sex = 'Male';
+
+# SELECT COUNT(*) AS NumberOfFemale
+# FROM patients p
+# LEFT JOIN personal_info pi ON pi.patient_id = p.id
+# WHERE pi.sex = 'Female';
+
+# SELECT 
+#     p.pin AS MemberPIN,
+#     p.dependent_pin AS DependentPIN,
+#     CONCAT(pi.last_name, ', ', pi.middle_name, ' ', pi.first_name, ' ', IFNULL(pi.name_ext, '')) AS Name,
+#     a.municipality AS Municipality,
+#     a.barangay AS Barangay,
+#     pi.sex AS Sex
+# FROM patients p
+# LEFT JOIN personal_info pi ON pi.patient_id = p.id
+# LEFT JOIN addresses a ON a.patient_id = p.id
+# ORDER BY pi.last_name, pi.first_name;
+
+
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)

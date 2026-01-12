@@ -10,7 +10,7 @@
               rel="stylesheet">
         <link href="{{ url_for('static', filename='css/styles.css') }}"
               rel="stylesheet">
-              <link href="{{ url_for('static', filename='css/toastr.css') }}"
+        <link href="{{ url_for('static', filename='css/toastr.css') }}"
               rel="stylesheet">
     </head>
     <body>
@@ -53,9 +53,9 @@
                                 <div class="col-md-4">
                                     <label class="form-label">Member's PIN</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control" name="pin">
+                                        <input type="text" class="form-control" name="pin" id="pinInput">
                                         <div class="input-group-append">
-                                            <button class="btn btn-outline-secondary" type="button">
+                                            <button class="btn btn-outline-secondary" type="button"  id="checkPinBtn">
                                                 <li class="fa-solid fa-magnifying-glass"></li>
                                             </button>
                                         </div>
@@ -156,6 +156,5 @@
         <script> const pdfFiles = {{ pdf_files | tojson }}; </script>
         <script src="{{ url_for('static', filename='js/main.js')}}"></script>
         <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
-
     </body>
 </html>

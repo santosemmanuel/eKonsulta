@@ -338,3 +338,53 @@ toastr.options = {
 
     
 }
+
+function formatDateForInput(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // months are 0-based
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+document.getElementById('checkPinBtn').addEventListener('click', function() {
+    const pin = document.getElementById('pinInput').value.trim();
+    if (!pin) {
+        toastr.error("Please enter a PIN")
+        return;
+    }
+
+    fetch(`/get_patient/${pin}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.exists) {
+                // Fill personal info
+                document.querySelector('input[name="lastName"]').value = data.last_name || '';
+                document.querySelector('input[name="firstName"]').value = data.first_name || '';
+                document.querySelector('input[name="middleName"]').value = data.middle_name || '';
+                document.querySelector('input[name="nameExt"]').value = data.name_ext || '';
+                // Fill other details
+                document.querySelector('input[name="dob"]').value = formatDateForInput(data.date_of_birth);
+                document.querySelector('input[name="mobile"]').value = data.mobile || '';
+                document.querySelector('select[name="sex"]').value = data.sex || '';
+
+                // ✅ Set Municipality
+                const municipalitySelect = document.getElementById("municipality");
+                municipalitySelect.value = data.municipality || '';
+
+                // ✅ Trigger change so barangays are populated
+                const event = new Event('change');
+                municipalitySelect.dispatchEvent(event);
+
+                // ✅ Set Barangay after population
+                const barangaySelect = document.getElementById("barangay");
+                barangaySelect.value = data.barangay || '';
+
+            } else {
+                toastr.error("PIN not found")
+            }
+        })
+        .catch(err => console.error(err));
+});
+
