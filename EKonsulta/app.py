@@ -142,7 +142,7 @@ def fill_EKAS_EPRESS_MCA(data):
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("ContactNum")]: cellphoneNum,
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Age")]: age,
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Performed")]: "Yes",
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("DatePerformed")]: "TODAY"
+            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("DatePerformed")]: f"{today.month:02}/{today.day:02}/{today.year}"
         }
 
         fillpdfs.write_fillable_pdf(pdf_path, output_pdf, data_EKAS_EPRESS_MCA)
@@ -365,4 +365,4 @@ def logout():
 if __name__ == '__main__':
     from waitress import serve
     serve(app, host="0.0.0.0", port=8080)
-    # app.run(host='0.0.0.0', port=8080, debug=True)
+    # app.run(host='0.0.0.0', port=8080, debug=True)    
