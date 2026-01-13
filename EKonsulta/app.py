@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, current_app, url_for
+from flask import Flask, render_template, request, jsonify, current_app, url_for, session, redirect, flash
 from fillpdf import fillpdfs
 from pdfrw import PdfReader as PdfRwReader, PdfWriter as PdfRwWriter, PageMerge, PdfDict, PdfName
 from datetime import datetime, date
@@ -9,18 +9,23 @@ from dotenv import load_dotenv
 from db import get_db_connection
 
 app = Flask(__name__)
+app.secret_key = "MHOBurauen"
 load_dotenv()
 today = date.today()
 
 
-@app.route("/")
+@app.route("/") 
 def index():
-    pdf_files = [
-        {"name": "EKAS EPRESS MCA", "url": "/static/pdfs/EKAS,EPRESS,MCA_OUTPUT.pdf"},
-        {"name": "PKRF CONSENT HEALTH SCREENING", "url": "/static/pdfs/PKRF,Consent, Health Screening_OUTPUT.pdf"},
-    ]
-    return render_template("index.html", pdf_files=pdf_files)
-
+    if "user" in session:
+        pdf_files = [
+            {"name": "EKAS EPRESS MCA", "url": "/static/pdfs/EKAS,EPRESS,MCA_OUTPUT.pdf"},
+            {"name": "PKRF CONSENT HEALTH SCREENING", "url": "/static/pdfs/PKRF,Consent, Health Screening_OUTPUT.pdf"},
+        ]
+        return render_template("index.html", pdf_files=pdf_files)
+    else:
+        flash("Please login first", "warning")
+        return redirect(url_for("login"))
+    
 @app.route("/submit_form", methods=["POST"])
 def submit_form():
     data = request.get_json()
@@ -289,7 +294,6 @@ ORDER BY pi.last_name, pi.first_name;
 
     return patients
 
-
 def getMaleCount():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -331,5 +335,34 @@ def getFemaleCount():
 
     return result
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("SELECT * FROM users WHERE username=%s AND password=%s", (username,password))
+        user = cursor.fetchone()
+
+        if user:
+            session["user"] = username
+            flash("Login successful!", "success")
+            return redirect(url_for("index"))
+        else:
+            flash("Invalid username or password", "danger")
+            return redirect(url_for("login"))
+
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    from waitress import serve
+    serve(app, host="0.0.0.0", port=8080)
+    # app.run(host='0.0.0.0', port=8080, debug=True)

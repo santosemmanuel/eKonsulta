@@ -15,7 +15,7 @@
     </head>
     <body>
         <!-- NAVBAR -->
-        <nav class="navbar navbar-expand-lg navbar-mho shadow-sm">
+         <nav class="navbar navbar-expand-lg navbar-mho shadow-sm">
             <div class="container-fluid px-4">
                 <a class="navbar-brand d-flex align-items-center" href="#">
                     <img src="{{ url_for('static', filename='img/MHO_Logo.jpg') }}"
@@ -25,6 +25,29 @@
                         <small>Electronic Konsulta Forms Processing System</small>
                     </div>
                 </a>
+                
+       <!-- Hamburger button for small screens -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu"
+                aria-controls="navbarMenu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Collapsible menu -->
+        <div class="collapse navbar-collapse" id="navbarMenu">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    {% if session.get('user') %}
+                    <a class="nav-link text-white" href="{{ url_for('logout') }}">
+                        <i class="fa-solid fa-right-to-bracket me-1"></i> Logout
+                    </a>
+                    {% else %}
+                    <a class="nav-link text-white" href="/login">
+                        <i class="fa-solid fa-right-to-bracket me-1"></i> Login
+                    </a>
+                    {% endif %}
+                </li>
+            </ul>
+        </div>
             </div>
         </nav>
         <!-- MAIN CONTENT -->

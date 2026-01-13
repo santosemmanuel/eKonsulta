@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MHO Burauen Registration</title>
+        <link href="{{ url_for('static', filename='css/all.min.css') }}"
+              rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}"
+              rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/styles.css') }}"
+              rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/toastr.css') }}"
+              rel="stylesheet">
+               <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .login-card {
+            max-width: 450px;
+            margin: 50px auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .card-header-custom {
+            background-color: var(--green);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #dee2e6;
+            color: white;
+        }
+        .card-header-custom img {
+            width: 40px;
+            height: 40px;
+        }
+        .card-header-custom .title {
+            font-weight: bold;
+            line-height: 1.2;
+             font-size: 1.3rem; /* slightly bigger title */
+        }
+        .card-header-custom .title small {
+            display: block;
+            font-size: 0.7rem;
+            color: whtie;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .card-header-custom img {
+    background-color: transparent; /* ensure no CSS background */
+    border-radius: 50%; /* optional: make it circular */
+}
+    </style>
+    </head>
+    <body>
+
+        <!-- MAIN CONTENT -->
+        <div class="container-fluid py-4">
+           <!-- Login Card -->
+<div class="login-card card">
+    <!-- Header mimicking navbar -->
+    <div class="card-header-custom">
+        <img src="{{ url_for('static', filename='img/MHO_Logo.jpg') }}" alt="MHO Logo">
+        <div class="title">
+            <i class="fa-solid fa-notes-medical me-1"></i> eKonsultaForms
+            <small>Electronic Konsulta Forms Processing System</small>
+        </div>
+    </div>
+
+    <!-- Card Body -->
+    <div class="card-body">
+          <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form id="loginForm" method="POST" action="{{ url_for('login') }}">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password">
+            </div>
+            <button type="submit" class="btn btn-submit w-100">Login</button>
+        </form>
+        <div id="error-msg" class="text-danger mt-2"></div>
+    </div>
+</div>
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
+        
+        <script src="{{ url_for('static', filename='js/main.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("loginForm");
+    const errorMsg = document.getElementById("error-msg");
+
+   
+});
+        </script>
+    </body>
+</html>
