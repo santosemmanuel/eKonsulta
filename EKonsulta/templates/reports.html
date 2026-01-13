@@ -27,6 +27,20 @@
                         <small>Electronic Konsulta Forms Processing System</small>
                     </div>
                 </a>
+                
+        <!-- Right-side nav link -->
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+                <a class="nav-link text-white" href="/login">
+                    <i class="fa-solid fa fa-history me-1"></i> Activity Log
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="/login">
+                    <i class="fa-solid fa-right-to-bracket me-1"></i> Login
+                </a>
+            </li>
+        </ul>
             </div>
         </nav>
         <!-- MAIN CONTENT -->
@@ -43,7 +57,7 @@
                                 align-items: flex-start;
                                 flex-wrap: nowrap">
                         <div>
-                            <h1 style="color: #166447; margin-bottom: 4px; font-weight: bolder;">23</h1>
+                            <h1 style="color: #166447; margin-bottom: 4px; font-weight: bolder;" id="MaleCount">23</h1>
                             <p style="margin: 0; color: #6c757d; font-size: 14px;">Male Patients</p>
                         </div>
                         <i class="fa-solid fa-male"
@@ -63,7 +77,7 @@
                                 align-items: flex-start;
                                 flex-wrap: nowrap">
                         <div>
-                            <h1 style="color: #166447; margin-bottom: 4px; font-weight: bolder;">12</h1>
+                            <h1 style="color: #166447; margin-bottom: 4px; font-weight: bolder;" id="FemaleCount">12</h1>
                             <p style="margin: 0; color: #6c757d; font-size: 14px;">Female Patients</p>
                         </div>
                         <i class="fa-solid fa-female"
@@ -120,29 +134,19 @@
                     <div class="card mb-4">
                         <div class="card-header fw-semibold">Patient List</div>
                         <div class="card-body">
-                            <table id="patientTable" class="table table-striped table-bordered table-sm">
-                                <thead>
+                            <table id="patientsTable" class="table table-striped table-bordered table-sm">
+                                  <thead>
                                     <tr>
-                                        <th>#</th>
+                                        <td>No.</td>
+                                        <th>Member PIN</th>
+                                        <th>Dependent PIN</th>
                                         <th>Name</th>
-                                        <th>Sex</th>
                                         <th>Municipality</th>
+                                        <th>Barangay</th>
+                                        <th>Sex</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>1</td>
-                                        <td>Juan Dela Cruz</td>
-                                        <td>Male</td>
-                                        <td>Burauen</td>
-                                    </tr>
-                                    <tr>
-                                        <td>2</td>
-                                        <td>Maria Santos</td>
-                                        <td>Female</td>
-                                        <td>Baybay</td>
-                                    </tr>
-                                </tbody>
+                
                             </table>
                         </div>
                     </div>
@@ -156,6 +160,11 @@
                 </div>
             </div>
         </div>
+        <script>
+            const maleCount = {{ male_count }};
+            const femaleCount = {{ female_count }};
+            const patients = {{ patients | tojson }};
+        </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
         <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/main.js')}}"></script>
@@ -169,10 +178,30 @@
         <!-- Chart.js -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
+            document.getElementById("MaleCount").innerHTML = maleCount;
+document.getElementById("FemaleCount").innerHTML = femaleCount;
+
 $(document).ready(function () {
-    $('#patientTable').DataTable();
+    $('#patientsTable').DataTable({
+        data: patients,
+        columns: [
+            { 
+                data: null,
+                render: function (data, type, row, meta) {
+                    return meta.row + meta.settings._iDisplayStart + 1;
+                }
+            },
+            { data: 'MemberPIN' },
+            { data: 'DependentPIN' },
+            { data: 'Name' },
+            { data: 'Municipality' },
+            { data: 'Barangay' },
+            { data: 'Sex' }
+        ],
+        pageLength: 10
+    });
 });
-        </script>
+            </script>
         <script>
 const ctx = document.getElementById('patientChart').getContext('2d');
 

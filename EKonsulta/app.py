@@ -224,7 +224,21 @@ def get_pdfs():
 
 @app.route("/gen_reports")
 def gen_reports():
-    return render_template("reports.html")
+    
+    Maleresult = getMaleCount()
+    male_count = Maleresult["NumberOfMale"]
+
+    Femaleresult = getFemaleCount()
+    female_count = Femaleresult["NumberOfFemale"]
+
+    patients = allPatientTable()
+
+    return render_template(
+        "reports.html",
+        male_count=male_count,
+        female_count=female_count,
+        patients=patients
+    )
 
 @app.route('/get_patient/<pin>')
 def get_patient(pin):
@@ -250,31 +264,72 @@ def get_patient(pin):
     else:
         return jsonify({"exists": False})
     
-def dataTable():
-#     SELECT COUNT(*) AS NumberOfMale
-# FROM patients p
-# LEFT JOIN personal_info pi ON pi.patient_id = p.id
-# WHERE pi.sex = 'Male';
+def allPatientTable():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
 
-# SELECT COUNT(*) AS NumberOfFemale
-# FROM patients p
-# LEFT JOIN personal_info pi ON pi.patient_id = p.id
-# WHERE pi.sex = 'Female';
+    cursor.execute("""
+            SELECT 
+    p.pin AS MemberPIN,
+    p.dependent_pin AS DependentPIN,
+    CONCAT(pi.last_name, ', ', pi.middle_name, ' ', pi.first_name, ' ', IFNULL(pi.name_ext, '')) AS Name,
+    a.municipality AS Municipality,
+    a.barangay AS Barangay,
+    pi.sex AS Sex
+FROM patients p
+LEFT JOIN personal_info pi ON pi.patient_id = p.id
+LEFT JOIN addresses a ON a.patient_id = p.id
+ORDER BY pi.last_name, pi.first_name;
+    """)
 
-# SELECT 
-#     p.pin AS MemberPIN,
-#     p.dependent_pin AS DependentPIN,
-#     CONCAT(pi.last_name, ', ', pi.middle_name, ' ', pi.first_name, ' ', IFNULL(pi.name_ext, '')) AS Name,
-#     a.municipality AS Municipality,
-#     a.barangay AS Barangay,
-#     pi.sex AS Sex
-# FROM patients p
-# LEFT JOIN personal_info pi ON pi.patient_id = p.id
-# LEFT JOIN addresses a ON a.patient_id = p.id
-# ORDER BY pi.last_name, pi.first_name;
+    patients = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return patients
 
 
+def getMaleCount():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
 
+    cursor.execute("""
+            SELECT COUNT(*) AS NumberOfMale
+            FROM patients p
+            LEFT JOIN personal_info pi ON pi.patient_id = p.id
+            WHERE pi.sex = 'Male'
+            AND p.created_at >= CURDATE()
+            AND p.created_at < CURDATE() + INTERVAL 1 DAY;
+    """)
+
+    result = cursor.fetchone()
+    
+    cursor.close()
+    conn.close()
+
+    return result
+
+def getFemaleCount():
+    
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+            SELECT COUNT(*) AS NumberOfFemale
+            FROM patients p
+            LEFT JOIN personal_info pi ON pi.patient_id = p.id
+            WHERE pi.sex = 'Female'
+            AND p.created_at >= CURDATE()
+            AND p.created_at < CURDATE() + INTERVAL 1 DAY;
+    """)
+
+    result = cursor.fetchone()
+    
+    cursor.close()
+    conn.close()
+
+    return result
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)

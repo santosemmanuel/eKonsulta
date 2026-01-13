@@ -1,3 +1,4 @@
+
   // ====== Receive data from backend (DO NOT ALTER) ======
 
 
@@ -387,4 +388,3 @@ document.getElementById('checkPinBtn').addEventListener('click', function() {
         })
         .catch(err => console.error(err));
 });
-

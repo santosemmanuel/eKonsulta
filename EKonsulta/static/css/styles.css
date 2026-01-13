@@ -158,3 +158,9 @@
 .pdf-loader i {
     font-size: 2.5rem;
 }
+
+.page-item.active .page-link {
+    background-color: var(--green);
+    border-color: var(--green);
+    color: #fff;
+}
