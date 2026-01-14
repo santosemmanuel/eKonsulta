@@ -283,7 +283,8 @@ def allPatientTable():
     pi.sex AS Sex
 FROM patients p
 LEFT JOIN personal_info pi ON pi.patient_id = p.id
-LEFT JOIN addresses a ON a.patient_id = p.id
+LEFT JOIN addresses a ON a.patient_id = p.id WHERE p.created_at >= CURDATE()
+            AND p.created_at < CURDATE() + INTERVAL 1 DAY
 ORDER BY pi.last_name, pi.first_name;
     """)
 
