@@ -104,7 +104,7 @@ def submit_form():
                     VALUES (%s, %s, %s)
                 """
             cursor.execute(insert_masterPatient_query, (user_id, patient_id, datetime.now()))
-
+            conn.commit()
         else:
 
             patient_master = """SELECT id 
