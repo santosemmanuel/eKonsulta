@@ -18,8 +18,8 @@ today = date.today()
 def index():
     if "user" in session and session.get("position") == "user":
         pdf_files = [
-            {"name": "EKAS EPRESS MCA", "url": "/static/pdfs/EKAS,EPRESS,MCA_OUTPUT.pdf"},
-            {"name": "PKRF CONSENT HEALTH SCREENING", "url": "/static/pdfs/PKRF,Consent, Health Screening_OUTPUT.pdf"},
+            {"name": "EKAS EPRESS MCA", "url": f"/static/pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}.pdf"},
+            {"name": "PKRF CONSENT HEALTH SCREENING", "url": f"/static/pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}.pdf"},
         ]
         return render_template("index.html", pdf_files=pdf_files, user=session.get("user"))
     elif "position" in session and session.get("position") == "admin":
@@ -34,6 +34,10 @@ def submit_form():
     pretty_json_string = json.dumps(data, indent=4)
     patient_data = dict(data)
     print(pretty_json_string)
+
+    clean_files([f"user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}.pdf", 
+                 f"user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}.pdf"])
+
     fill_EKAS_EPRESS_MCA(patient_data)
     fill_PKRF_CHS(patient_data)
 
@@ -99,7 +103,7 @@ def submit_form():
             insert_masterPatient_query = """INSERT INTO patients_master (user_id, patient_id, date_created)
                     VALUES (%s, %s, %s)
                 """
-            cursor.execute(insert_masterPatient_query, (user_id, existing_patient['id'], datetime.now()))
+            cursor.execute(insert_masterPatient_query, (user_id, patient_id, datetime.now()))
 
         else:
 
@@ -133,8 +137,8 @@ def submit_form():
 
 def fill_EKAS_EPRESS_MCA(data):
     try:
-        pdf_path = os.path.join(current_app.root_path,"EKAS,EPRESS,MCA.pdf")
-        output_pdf = os.path.join(current_app.root_path, "static", "pdfs", "EKAS,EPRESS,MCA_OUTPUT.pdf")
+        pdf_path = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/template/EKAS,EPRESS,MCA_user_{session.get('user_id')}.pdf")
+        output_pdf = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}.pdf")
         form_fields_EKAS_EPRESS_MCA = list(fillpdfs.get_form_fields(pdf_path).keys())
         
         date_object = datetime.strptime(data["otherDetails"]["dob"], "%Y-%m-%d")
@@ -175,8 +179,8 @@ def fill_EKAS_EPRESS_MCA(data):
 
 def fill_PKRF_CHS(data):
     try:
-        pdf_path = os.path.join(current_app.root_path,"PKRF,Consent, Health Screening.pdf")
-        output_pdf = os.path.join(current_app.root_path, "static", "pdfs", "PKRF,Consent, Health Screening_OUTPUT.pdf")
+        pdf_path = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/template/PKRF,Consent, Health Screening_user_{session.get('user_id')}.pdf")
+        output_pdf = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}.pdf")
         form_fields_PKRF_Consent = list(fillpdfs.get_form_fields(pdf_path).keys())
         
         date_object = datetime.strptime(data["otherDetails"]["dob"], "%Y-%m-%d")
@@ -239,15 +243,14 @@ def clean_files(file_list):
 
 @app.route("/get_pdfs")
 def get_pdfs():
-    clean_files(["output_cf1.pdf", "output_cf2.pdf","output_csf.pdf", "output_soa.pdf"])
     return jsonify([
         {
             "name": "EKAS EPRESS MCA",
-            "url": url_for("static", filename="pdfs/EKAS,EPRESS,MCA_OUTPUT.pdf")
+            "url": url_for("static", filename=f"pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}.pdf")
         },
         {
             "name": "PKRF CONSENT HEALTH SCREENING", 
-            "url": url_for("static", filename="pdfs/PKRF,Consent, Health Screening_OUTPUT.pdf")
+            "url": url_for("static", filename=f"pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}.pdf")
         },
     ])
 
