@@ -16,12 +16,14 @@ today = date.today()
 
 @app.route("/") 
 def index():
-    if "user" in session:
+    if "user" in session and session.get("position") == "user":
         pdf_files = [
             {"name": "EKAS EPRESS MCA", "url": "/static/pdfs/EKAS,EPRESS,MCA_OUTPUT.pdf"},
             {"name": "PKRF CONSENT HEALTH SCREENING", "url": "/static/pdfs/PKRF,Consent, Health Screening_OUTPUT.pdf"},
         ]
-        return render_template("index.html", pdf_files=pdf_files)
+        return render_template("index.html", pdf_files=pdf_files, user=session.get("user"))
+    elif "position" in session and session.get("position") == "admin":
+        return redirect(url_for("gen_reports"))
     else:
         flash("Please login first", "warning")
         return redirect(url_for("login"))
@@ -37,6 +39,7 @@ def submit_form():
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
+    user_id = session.get('user_id')
     
     try:
         # 🔍 CHECK IF dependent_pin EXISTS
@@ -93,9 +96,30 @@ def submit_form():
                 patient_data["address"]["barangay"]
             ))
 
+            insert_masterPatient_query = """INSERT INTO patients_master (user_id, patient_id, date_created)
+                    VALUES (%s, %s, %s)
+                """
+            cursor.execute(insert_masterPatient_query, (user_id, existing_patient['id'], datetime.now()))
 
+        else:
+
+            patient_master = """SELECT id 
+                FROM patients_master 
+                WHERE patient_id = %s 
+                AND date_created >= CURDATE() 
+                AND date_created < CURDATE() + INTERVAL 1 DAY"""
+            cursor.execute(patient_master,
+                (existing_patient['id'],)
+            )
+
+            existing_patient_master = cursor.fetchone()
+            
+            if not existing_patient_master:
+                insert_query = """INSERT INTO patients_master (user_id, patient_id, date_created)
+                    VALUES (%s, %s, %s)
+                """
+                cursor.execute(insert_query, (user_id, existing_patient['id'], datetime.now()))
             conn.commit()
-
 
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -349,7 +373,9 @@ def login():
         user = cursor.fetchone()
 
         if user:
-            session["user"] = username
+            session["user_id"] = user['id']
+            session["user"] = user['name']
+            session["position"] = user["position"]
             flash("Login successful!", "success")
             return redirect(url_for("index"))
         else:
@@ -364,6 +390,6 @@ def logout():
     return redirect(url_for("login"))
 
 if __name__ == '__main__':
-    from waitress import serve
-    serve(app, host="0.0.0.0", port=8080)
-    # app.run(host='0.0.0.0', port=8080, debug=True)    
+    # from waitress import serve
+    # serve(app, host="0.0.0.0", port=8080)
+    app.run(host='0.0.0.0', port=8080, debug=True)    
