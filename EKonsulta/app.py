@@ -7,11 +7,12 @@ import json
 import mysql.connector
 from dotenv import load_dotenv
 from db import get_db_connection
+from zoneinfo import ZoneInfo
 
 app = Flask(__name__)
 app.secret_key = "MHOBurauen"
 load_dotenv()
-today = date.today()
+today = datetime.now(ZoneInfo("Asia/Manila")).date()
 
 
 @app.route("/") 

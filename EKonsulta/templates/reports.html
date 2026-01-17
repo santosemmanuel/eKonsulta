@@ -27,34 +27,37 @@
                         <small>Electronic Konsulta Forms Processing System</small>
                     </div>
                 </a>
-                
-       <!-- Hamburger button for small screens -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu"
-                aria-controls="navbarMenu" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <!-- Collapsible menu -->
-        <div class="collapse navbar-collapse" id="navbarMenu">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="/activity-log">
-                        <i class="fa-solid fa-history me-1"></i> Activity Log
-                    </a>
-                </li>
-                <li class="nav-item">
-                    {% if session.get('user') %}
-                    <a class="nav-link text-white" href="/logout">
-                        <i class="fa-solid fa-right-to-bracket me-1"></i> Logout
-                    </a>
-                    {% else %}
-                    <a class="nav-link text-white" href="/login">
-                        <i class="fa-solid fa-right-to-bracket me-1"></i> Login
-                    </a>
-                    {% endif %}
-                </li>
-            </ul>
-        </div>
+                <!-- Hamburger button for small screens -->
+                <button class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#navbarMenu"
+                        aria-controls="navbarMenu"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <!-- Collapsible menu -->
+                <div class="collapse navbar-collapse" id="navbarMenu">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/activity-log">
+                                <i class="fa-solid fa-history me-1"></i> Activity Logs
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            {% if session.get('user') %}
+                                <a class="nav-link text-white" href="/logout">
+                                    <i class="fa-solid fa-right-to-bracket me-1"></i> Logout
+                                </a>
+                            {% else %}
+                                <a class="nav-link text-white" href="/login">
+                                    <i class="fa-solid fa-right-to-bracket me-1"></i> Login
+                                </a>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </div>
             </div>
         </nav>
         <!-- MAIN CONTENT -->
@@ -71,7 +74,10 @@
                                 align-items: flex-start;
                                 flex-wrap: nowrap">
                         <div>
-                            <h1 style="color: #166447; margin-bottom: 4px; font-weight: bolder;" id="MaleCount">23</h1>
+                            <h1 style="color: #166447;
+                                       margin-bottom: 4px;
+                                       font-weight: bolder"
+                                id="MaleCount">23</h1>
                             <p style="margin: 0; color: #6c757d; font-size: 14px;">Male Patients</p>
                         </div>
                         <i class="fa-solid fa-male"
@@ -91,7 +97,10 @@
                                 align-items: flex-start;
                                 flex-wrap: nowrap">
                         <div>
-                            <h1 style="color: #166447; margin-bottom: 4px; font-weight: bolder;" id="FemaleCount">12</h1>
+                            <h1 style="color: #166447;
+                                       margin-bottom: 4px;
+                                       font-weight: bolder"
+                                id="FemaleCount">12</h1>
                             <p style="margin: 0; color: #6c757d; font-size: 14px;">Female Patients</p>
                         </div>
                         <i class="fa-solid fa-female"
@@ -102,26 +111,14 @@
                                   flex-shrink: 0">
                         </i>
                     </div>
-                    <div class="card mb-3"
-                         style="border-left: 10px solid #1f7a5a;
-                                padding: 18px;
-                                display: flex;
-                                flex-direction: row;
-                                justify-content: space-between;
-                                align-items: flex-start;
-                                flex-wrap: nowrap">
+                    <!-- <div class="card mb-3" style="border-left: 10px solid #1f7a5a; padding: 18px; display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start; flex-wrap: nowrap">
                         <div>
                             <h1 style="color: #166447; margin-bottom: 4px; font-weight: bolder;">4</h1>
                             <p style="margin: 0; color: #6c757d; font-size: 14px;">Senior Citizen Patients</p>
                         </div>
-                        <i class="fa-solid fa-person-cane"
-                           style="font-size: 56px;
-                                  color: #6c757d;
-                                  opacity: 0.2;
-                                  line-height: 1;
-                                  flex-shrink: 0">
+                        <i class="fa-solid fa-person-cane" style="font-size: 56px; color: #6c757d; opacity: 0.2; line-height: 1; flex-shrink: 0">
                         </i>
-                    </div>
+                    </div> -->
                     <div class="card mb-3"
                          style="border-left: 10px solid #1f7a5a;
                                 padding: 18px;
@@ -132,7 +129,7 @@
                                 flex-wrap: nowrap">
                         <div>
                             <h1 style="color: #166447; margin-bottom: 4px; font-weight: bolder;">10</h1>
-                            <p style="margin: 0; color: #6c757d; font-size: 14px;">Others</p>
+                            <p style="margin: 0; color: #6c757d; font-size: 14px;">Total Patients</p>
                         </div>
                         <i class="fa-solid fa-people-group"
                            style="font-size: 56px;
@@ -148,8 +145,10 @@
                     <div class="card mb-4">
                         <div class="card-header fw-semibold">Patient List</div>
                         <div class="card-body">
-                            <table id="patientsTable" class="table table-striped table-bordered table-sm" style="width:100%">
-                                  <thead>
+                            <table id="patientsTable"
+                                   class="table table-striped table-bordered table-sm"
+                                   style="width:100%">
+                                <thead>
                                     <tr>
                                         <td>No.</td>
                                         <th>Member PIN</th>
@@ -160,7 +159,6 @@
                                         <th>Sex</th>
                                     </tr>
                                 </thead>
-                
                             </table>
                         </div>
                     </div>
@@ -215,7 +213,7 @@ $(document).ready(function () {
         scrollX: true
     });
 });
-            </script>
+        </script>
         <script>
 const ctx = document.getElementById('patientChart').getContext('2d');
 

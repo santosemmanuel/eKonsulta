@@ -1,4 +1,5 @@
-NOT REQUIRED CONTACT NUMBER
-AGE NOT ACCURATE
-CHEKC IF PIN ALREADY EXIST 
-
+Male and Female Patient Update Counting must be patients_master table with date today
+Table must be patients_master table with date today
+Total
+Activity Logs
+Real Time on Admin side

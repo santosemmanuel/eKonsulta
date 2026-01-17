@@ -169,7 +169,7 @@ function validateForm(form) {
     for (let field of fields) {
 
         // Skip personal info section
-        if (field.closest(".personal-info")) continue;
+        if (field.closest(".personal-info") || field.name === "mobile") continue;
 
         // Skip hidden or disabled
         if (field.disabled || !isVisible(field)) continue;
@@ -188,13 +188,13 @@ function validateForm(form) {
             }
         }
 
-        // Mobile number validation
-        if (field.name === "mobile") {
-            if (!/^09\d{9}$/.test(field.value)) {
-                invalidate(field, "Mobile must start with 09 and be 11 digits.");
-                return false;
-            }
-        }
+        // // Mobile number validation
+        // if (field.name === "mobile") {
+        //     if (!/^09\d{9}$/.test(field.value)) {
+        //         invalidate(field, "Mobile must start with 09 and be 11 digits.");
+        //         return false;
+        //     }
+        // }
 
         // Date validation
         if (field.type === "date") {
@@ -288,7 +288,7 @@ toastr.options = {
   "hideMethod": "fadeOut"
 }
 
-          form.addEventListener("submit", async function (event) {
+form.addEventListener("submit", async function (event) {
     event.preventDefault();
     event.stopPropagation();
 
