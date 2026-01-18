@@ -1,5 +1,3 @@
-Male and Female Patient Update Counting must be patients_master table with date today
-Table must be patients_master table with date today
-Total
-Activity Logs
+Activity Logs (Ongoing)
+    Format: [Date] [username] Add Patient [Patient Name]
 Real Time on Admin side

@@ -273,6 +273,10 @@ def gen_reports():
         patients=patients
     )
 
+@app.route("/ActivityLogs")
+def ActivityLogs():
+    return render_template("activityLog.html")
+
 @app.route('/get_patient/<pin>')
 def get_patient(pin):
     conn = get_db_connection()
@@ -302,19 +306,32 @@ def allPatientTable():
     cursor = conn.cursor(dictionary=True)
 
     cursor.execute("""
-            SELECT 
+           SELECT 
     p.pin AS MemberPIN,
     p.dependent_pin AS DependentPIN,
     CONCAT(pi.last_name, ', ', pi.middle_name, ' ', pi.first_name, ' ', IFNULL(pi.name_ext, '')) AS Name,
     a.municipality AS Municipality,
     a.barangay AS Barangay,
     pi.sex AS Sex
-FROM patients p
+FROM patients_master pm
+LEFT JOIN patients p on pm.patient_id = p.id
 LEFT JOIN personal_info pi ON pi.patient_id = p.id
-LEFT JOIN addresses a ON a.patient_id = p.id WHERE p.created_at >= CURDATE()
-            AND p.created_at < CURDATE() + INTERVAL 1 DAY
-ORDER BY pi.last_name, pi.first_name;
+LEFT JOIN addresses a ON a.patient_id = p.id WHERE pm.date_created >= CURDATE()
+            AND pm.date_created < CURDATE() + INTERVAL 1 DAY;
     """)
+#FOR CUSTOM DATE RANGE
+#     SELECT 
+#     p.pin AS MemberPIN,
+#     p.dependent_pin AS DependentPIN,
+#     CONCAT(pi.last_name, ', ', pi.middle_name, ' ', pi.first_name, ' ', IFNULL(pi.name_ext, '')) AS Name,
+#     a.municipality AS Municipality,
+#     a.barangay AS Barangay,
+#     pi.sex AS Sex
+# FROM patients_master pm
+# LEFT JOIN patients p on pm.patient_id = p.id
+# LEFT JOIN personal_info pi ON pi.patient_id = p.id
+# LEFT JOIN addresses a ON a.patient_id = p.id WHERE pm.date_created >= '2026-01-15 00:00:00'
+#   AND pm.date_created <  '2026-01-16 00:00:00';
 
     patients = cursor.fetchall()
 
@@ -329,11 +346,12 @@ def getMaleCount():
 
     cursor.execute("""
             SELECT COUNT(*) AS NumberOfMale
-            FROM patients p
+            FROM patients_master pm
+            LEFT JOIN patients p ON pm.patient_id = p.id
             LEFT JOIN personal_info pi ON pi.patient_id = p.id
             WHERE pi.sex = 'Male'
-            AND p.created_at >= CURDATE()
-            AND p.created_at < CURDATE() + INTERVAL 1 DAY;
+            AND pm.date_created >= CURDATE()
+            AND pm.date_created < CURDATE() + INTERVAL 1 DAY;
     """)
 
     result = cursor.fetchone()
@@ -349,12 +367,13 @@ def getFemaleCount():
     cursor = conn.cursor(dictionary=True)
 
     cursor.execute("""
-            SELECT COUNT(*) AS NumberOfFemale
-            FROM patients p
+           SELECT COUNT(*) AS NumberOfFemale
+            FROM patients_master pm
+            LEFT JOIN patients p ON pm.patient_id = p.id 
             LEFT JOIN personal_info pi ON pi.patient_id = p.id
             WHERE pi.sex = 'Female'
-            AND p.created_at >= CURDATE()
-            AND p.created_at < CURDATE() + INTERVAL 1 DAY;
+            AND pm.date_created >= CURDATE()
+            AND pm.date_created < CURDATE() + INTERVAL 1 DAY;
     """)
 
     result = cursor.fetchone()

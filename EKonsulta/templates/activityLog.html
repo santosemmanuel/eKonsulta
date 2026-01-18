@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MHO Burauen Registration</title>
+        <link href="{{ url_for('static', filename='css/all.min.css') }}"
+              rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}"
+              rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/styles.css') }}"
+              rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/toastr.css') }}"
+              rel="stylesheet">
+        <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css"
+              rel="stylesheet">
+    </head>
+    <body>
+        <!-- NAVBAR -->
+        <nav class="navbar navbar-expand-lg navbar-mho shadow-sm">
+            <div class="container-fluid px-4">
+                <a class="navbar-brand d-flex align-items-center" href="#">
+                    <img src="{{ url_for('static', filename='img/MHO_Logo.jpg') }}"
+                         class="mho-logo mr-2">
+                    <div>
+                        <i class="fa-solid fa-notes-medical me-1"></i>eKonsultaForms
+                        <small>Electronic Konsulta Forms Processing System</small>
+                    </div>
+                </a>
+                <!-- Hamburger button for small screens -->
+                <button class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#navbarMenu"
+                        aria-controls="navbarMenu"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <!-- Collapsible menu -->
+                <div class="collapse navbar-collapse" id="navbarMenu">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/activity-log">
+                                <i class="fa-solid fa-history me-1"></i> Activity Logs
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            {% if session.get('user') %}
+                                <a class="nav-link text-white" href="/logout">
+                                    <i class="fa-solid fa-right-to-bracket me-1"></i> Logout
+                                </a>
+                            {% else %}
+                                <a class="nav-link text-white" href="/login">
+                                    <i class="fa-solid fa-right-to-bracket me-1"></i> Login
+                                </a>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- MAIN CONTENT -->
+        <div class="container-fluid py-4">
+            <div class="row g-4">
+                <!-- RIGHT: PDF PREVIEW -->
+                <div class="col-lg-10">
+                    <div class="card mb-4">
+                        <div class="card-header fw-semibold">Patient List</div>
+                        <div class="card-body"></div>
+                    </div>
+                    <!-- 📈 CHART CARD -->
+                    <!-- <div class="card">
+                        <div class="card-header fw-semibold">Patient Trend</div>
+                        <div class="card-body">
+                            <canvas id="patientChart" height="120"></canvas>
+                        </div>
+                    </div> -->
+                </div>
+            </div>
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/main.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <!-- DataTables -->
+        <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+        <!-- Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </body>
+</html>

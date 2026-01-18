@@ -41,7 +41,7 @@
                 <div class="collapse navbar-collapse" id="navbarMenu">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link text-white" href="/activity-log">
+                            <a class="nav-link text-white" href="/ActivityLogs">
                                 <i class="fa-solid fa-history me-1"></i> Activity Logs
                             </a>
                         </li>
@@ -77,7 +77,7 @@
                             <h1 style="color: #166447;
                                        margin-bottom: 4px;
                                        font-weight: bolder"
-                                id="MaleCount">23</h1>
+                                id="MaleCount">0</h1>
                             <p style="margin: 0; color: #6c757d; font-size: 14px;">Male Patients</p>
                         </div>
                         <i class="fa-solid fa-male"
@@ -100,7 +100,7 @@
                             <h1 style="color: #166447;
                                        margin-bottom: 4px;
                                        font-weight: bolder"
-                                id="FemaleCount">12</h1>
+                                id="FemaleCount">0</h1>
                             <p style="margin: 0; color: #6c757d; font-size: 14px;">Female Patients</p>
                         </div>
                         <i class="fa-solid fa-female"
@@ -128,7 +128,10 @@
                                 align-items: flex-start;
                                 flex-wrap: nowrap">
                         <div>
-                            <h1 style="color: #166447; margin-bottom: 4px; font-weight: bolder;">10</h1>
+                            <h1 style="color: #166447;
+                                       margin-bottom: 4px;
+                                       font-weight: bolder"
+                                id="totalPatientCount">0</h1>
                             <p style="margin: 0; color: #6c757d; font-size: 14px;">Total Patients</p>
                         </div>
                         <i class="fa-solid fa-people-group"
@@ -189,7 +192,8 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
             document.getElementById("MaleCount").innerHTML = maleCount;
-document.getElementById("FemaleCount").innerHTML = femaleCount;
+            document.getElementById("FemaleCount").innerHTML = femaleCount;
+            document.getElementById("totalPatientCount").innerHTML = maleCount + femaleCount;
 
 $(document).ready(function () {
     $('#patientsTable').DataTable({
