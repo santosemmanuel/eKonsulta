@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>MHO Burauen Registration</title>
+        <title>EKonsulta Forms</title>
         <link href="{{ url_for('static', filename='css/all.min.css') }}"
               rel="stylesheet">
         <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}"
@@ -14,6 +14,7 @@
               rel="stylesheet">
         <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css"
               rel="stylesheet">
+        <link rel="icon" href="{{ url_for('static', filename='img/MHOBurauen.ico') }}">
     </head>
     <body>
         <!-- NAVBAR -->
@@ -41,10 +42,15 @@
                 <div class="collapse navbar-collapse" id="navbarMenu">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
+                            <a class="nav-link text-white" href="/gen_reports">
+                                <i class="fa-solid fa-chart-area me-1"></i> Dashboard
+                            </a>
+                        </li>
+                        <!-- <li class="nav-item">
                             <a class="nav-link text-white" href="/activity-log">
                                 <i class="fa-solid fa-history me-1"></i> Activity Logs
                             </a>
-                        </li>
+                        </li> -->
                         <li class="nav-item">
                             {% if session.get('user') %}
                                 <a class="nav-link text-white" href="/logout">
@@ -61,24 +67,193 @@
             </div>
         </nav>
         <!-- MAIN CONTENT -->
-        <div class="container-fluid py-4">
-            <div class="row g-4">
-                <!-- RIGHT: PDF PREVIEW -->
-                <div class="col-lg-10">
-                    <div class="card mb-4">
-                        <div class="card-header fw-semibold">Patient List</div>
-                        <div class="card-body"></div>
-                    </div>
-                    <!-- 📈 CHART CARD -->
-                    <!-- <div class="card">
-                        <div class="card-header fw-semibold">Patient Trend</div>
-                        <div class="card-body">
-                            <canvas id="patientChart" height="120"></canvas>
-                        </div>
-                    </div> -->
+       <div class="container-fluid py-4">
+    <div class="row g-4">
+
+        <!-- RIGHT SIDEBAR: ACTIVITY LOGS -->
+        <div class="col-lg-2">
+            <div class="card mb-4 h-100">
+                <div class="card-header fw-semibold">
+                    Activity Logs
+                </div>
+
+                <!-- 🔍 FILTERS -->
+                <div class="card-body border-bottom p-2">
+                    <select class="form-select form-select-sm mb-2" id="filterUser">
+                        <option value="">All Users</option>
+                        <option>Admin</option>
+                        <option>Nurse</option>
+                        <option>Clerk</option>
+                    </select>
+
+                    <input type="date" class="form-control form-control-sm mb-2" id="filterDate">
+
+                    <input type="text"
+                           class="form-control form-control-sm"
+                           id="filterPatient"
+                           placeholder="Patient last name">
+
+                           
+                 <button type="submit" class="btn btn-submit w-100 mt-4 py-3">
+                                <i class="fa-solid fa-paper-plane me-2"></i>
+                                SUBMIT
+                            </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="col-lg-10">
+            <div class="card mb-4">
+                <div class="card-header fw-semibold">Activity Logs</div>
+                <div class="card-body">
+                      <!-- 📜 SCROLLABLE LOG LIST -->
+                <div class="card-body p-2" style="max-height: 70vh; overflow-y: auto;">
+                    <ul class="list-group list-group-flush small" id="activityLogList">
+                        <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+
+                        <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+                         <li class="list-group-item">
+                            <strong>[11:30]</strong> <strong>[Clerk]</strong>
+                            Printed Konsulta form: <strong>[Pedro Reyes]</strong>
+                        </li>
+
+                    </ul>
+                </div>
                 </div>
             </div>
         </div>
+
+    </div>
+</div>
+
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
         <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/main.js')}}"></script>

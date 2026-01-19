@@ -1,3 +1,2 @@
 Activity Logs (Ongoing)
-    Format: [Date] [username] Add Patient [Patient Name]
 Real Time on Admin side
