@@ -141,6 +141,8 @@ def fill_EKAS_EPRESS_MCA(data):
         pdf_path = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/template/EKAS,EPRESS,MCA_user_{session.get('user_id')}.pdf")
         output_pdf = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}.pdf")
         form_fields_EKAS_EPRESS_MCA = list(fillpdfs.get_form_fields(pdf_path).keys())
+
+        print(form_fields_EKAS_EPRESS_MCA)
         
         date_object = datetime.strptime(data["otherDetails"]["dob"], "%Y-%m-%d")
         formatted_date = date_object.strftime('%m-%d-%Y')
@@ -157,8 +159,8 @@ def fill_EKAS_EPRESS_MCA(data):
         )
         patientFullName = f"{data['personalInfo']['firstName']} {patientMiddleName} {data['personalInfo']['lastName']} {data['personalInfo']['nameExt']}"
 
-        member = "Yes" if data["patientIsMember"] == "member" else ""
-        dependent = "Yes" if data["patientIsMember"] == "dependent" else ""
+        member = "Yes" if data["patientIsMember"] == "member" else None
+        dependent = "Yes" if data["patientIsMember"] == "dependent" else None
 
         data_EKAS_EPRESS_MCA = {
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("PatientName")]: patientFullName,
@@ -168,13 +170,15 @@ def fill_EKAS_EPRESS_MCA(data):
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("FullnameAndDateBeneficiary")]: f"{patientFullName}\t\t {today.month:02}/{today.day:02}/{today.year}",
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Member")]: member,
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Dependent")]: dependent,
+            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Member1")]: member,
+            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Dependent2")]: dependent,
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("ContactNum")]: cellphoneNum,
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Age")]: age,
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Performed")]: "Yes",
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("DatePerformed")]: f"{today.month:02}/{today.day:02}/{today.year}"
         }
 
-        fillpdfs.write_fillable_pdf(pdf_path, output_pdf, data_EKAS_EPRESS_MCA)
+        fillpdfs.write_fillable_pdf(pdf_path, output_pdf, data_EKAS_EPRESS_MCA, flatten=False)
     except Exception as e: 
         print(f"This is the error {e}")
 
@@ -413,6 +417,6 @@ def logout():
     return redirect(url_for("login"))
 
 if __name__ == '__main__':
-    from waitress import serve
-    serve(app, host="0.0.0.0", port=8080)
-    # app.run(host='0.0.0.0', port=8080, debug=True)    
+    # from waitress import serve
+    # serve(app, host="0.0.0.0", port=8080)
+    app.run(host='0.0.0.0', port=8080, debug=True)    
