@@ -2,9 +2,12 @@ from flask import Flask, render_template, request, jsonify, current_app, url_for
 from fillpdf import fillpdfs
 from pdfrw import PdfReader as PdfRwReader, PdfWriter as PdfRwWriter, PageMerge, PdfDict, PdfName
 from datetime import datetime, date
+from pdf2image import convert_form_path
 import os
 import json
 import mysql.connector
+import cv2
+import numpy as np
 from dotenv import load_dotenv
 from db import get_db_connection
 from zoneinfo import ZoneInfo
@@ -142,8 +145,11 @@ def fill_EKAS_EPRESS_MCA(data):
         output_pdf = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}.pdf")
         form_fields_EKAS_EPRESS_MCA = list(fillpdfs.get_form_fields(pdf_path).keys())
 
-        print(form_fields_EKAS_EPRESS_MCA)
-        
+        # print(form_fields_EKAS_EPRESS_MCA)
+        pin = data['pin']
+        if data['patientIsMember'] == 'dependent':
+            pin = data['dependentPin']
+
         date_object = datetime.strptime(data["otherDetails"]["dob"], "%Y-%m-%d")
         formatted_date = date_object.strftime('%m-%d-%Y')
 
@@ -165,7 +171,7 @@ def fill_EKAS_EPRESS_MCA(data):
         data_EKAS_EPRESS_MCA = {
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("PatientName")]: patientFullName,
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("DOB")]: formatted_date,
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("PIN")]: data.get('pin',''),
+            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("PIN")]: pin,
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("BenefitYear")]: today.year,
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("FullnameAndDateBeneficiary")]: f"{patientFullName}\t\t {today.month:02}/{today.day:02}/{today.year}",
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Member")]: member,
@@ -417,6 +423,6 @@ def logout():
     return redirect(url_for("login"))
 
 if __name__ == '__main__':
-    from waitress import serve
-    serve(app, host="0.0.0.0", port=8080)
-    # app.run(host='0.0.0.0', port=8080, debug=True)
+    # from waitress import serve
+    # serve(app, host="0.0.0.0", port=8080)
+    app.run(host='0.0.0.0', port=8080, debug=True)

@@ -138,7 +138,7 @@ function buildFormData(form) {
         dependentPin:
             memberType === "dependent"
                 ? form.dependentPin.value.trim()
-                : null,
+                : "",
 
         personalInfo: {
             lastName: form.lastName.value.trim(),
