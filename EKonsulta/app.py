@@ -2,12 +2,12 @@ from flask import Flask, render_template, request, jsonify, current_app, url_for
 from fillpdf import fillpdfs
 from pdfrw import PdfReader as PdfRwReader, PdfWriter as PdfRwWriter, PageMerge, PdfDict, PdfName
 from datetime import datetime, date
-from pdf2image import convert_form_path
+from pdf2image import convert_from_path
 import os
 import json
 import mysql.connector
-import cv2
-import numpy as np
+# import cv2
+# import numpy as np
 from dotenv import load_dotenv
 from db import get_db_connection
 from zoneinfo import ZoneInfo
@@ -17,15 +17,18 @@ app.secret_key = "MHOBurauen"
 load_dotenv()
 today = datetime.now(ZoneInfo("Asia/Manila")).date()
 
+def check_form_version(ses):
+    return ".1" if ses else ""
 
 @app.route("/") 
 def index():
     if "user" in session and session.get("position") == "user":
         pdf_files = [
-            {"name": "EKAS EPRESS MCA", "url": f"/static/pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}.pdf"},
-            {"name": "PKRF CONSENT HEALTH SCREENING", "url": f"/static/pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}.pdf"},
+            {"name": "EKAS EPRESS MCA", "url": f"/static/pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"},
+            {"name": "PKRF CONSENT HEALTH SCREENING", "url": f"/static/pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"},
         ]
-        return render_template("index.html", pdf_files=pdf_files, user=session.get("user"))
+        feature_enabled = session.get("feature_enabled", False)
+        return render_template("index.html", pdf_files=pdf_files, user=session.get("user"), feature_enabled=feature_enabled)
     elif "position" in session and session.get("position") == "admin":
         return redirect(url_for("gen_reports"))
     else:
@@ -39,8 +42,8 @@ def submit_form():
     patient_data = dict(data)
     print(pretty_json_string)
 
-    clean_files([f"user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}.pdf", 
-                 f"user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}.pdf"])
+    clean_files([f"user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf", 
+                 f"user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"])
 
     fill_EKAS_EPRESS_MCA(patient_data)
     fill_PKRF_CHS(patient_data)
@@ -141,8 +144,8 @@ def submit_form():
 
 def fill_EKAS_EPRESS_MCA(data):
     try:
-        pdf_path = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/template/EKAS,EPRESS,MCA_user_{session.get('user_id')}.pdf")
-        output_pdf = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}.pdf")
+        pdf_path = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/template/EKAS,EPRESS,MCA_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+        output_pdf = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
         form_fields_EKAS_EPRESS_MCA = list(fillpdfs.get_form_fields(pdf_path).keys())
 
         # print(form_fields_EKAS_EPRESS_MCA)
@@ -190,8 +193,8 @@ def fill_EKAS_EPRESS_MCA(data):
 
 def fill_PKRF_CHS(data):
     try:
-        pdf_path = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/template/PKRF,Consent, Health Screening_user_{session.get('user_id')}.pdf")
-        output_pdf = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}.pdf")
+        pdf_path = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/template/PKRF,Consent, Health Screening_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+        output_pdf = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
         form_fields_PKRF_Consent = list(fillpdfs.get_form_fields(pdf_path).keys())
         
         date_object = datetime.strptime(data["otherDetails"]["dob"], "%Y-%m-%d")
@@ -257,11 +260,11 @@ def get_pdfs():
     return jsonify([
         {
             "name": "EKAS EPRESS MCA",
-            "url": url_for("static", filename=f"pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}.pdf")
+            "url": url_for("static", filename=f"pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
         },
         {
             "name": "PKRF CONSENT HEALTH SCREENING", 
-            "url": url_for("static", filename=f"pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}.pdf")
+            "url": url_for("static", filename=f"pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
         },
     ])
 
@@ -416,6 +419,16 @@ def login():
             return redirect(url_for("login"))
 
     return render_template("login.html")
+
+@app.route("/toggle", methods=["POST"])
+def toggle():
+    enabled = bool(request.json.get("enabled"))
+    session["feature_enabled"] = enabled
+
+    return jsonify({
+        "status": "ok",
+        "feature_enabled": enabled
+    })
 
 @app.route("/logout")
 def logout():

@@ -174,7 +174,14 @@
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <ul class="nav nav-pills" id="pdfTabNav">
                             </ul>
+                            <div class="form-check form-switch">
+    <input class="form-check-input switch-lg" type="checkbox" id="featureToggle" {{ "checked" if feature_enabled else "" }}>
+    <label class="form-check-label ms-3" for="featureToggle">
+      Blue Text
+    </label>
+  </div>
                         </div>
+                        
                         <div class="tab-content mt-3" id="pdfTabContent"></div>
                     </div>
                 </div>

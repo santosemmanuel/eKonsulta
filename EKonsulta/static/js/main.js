@@ -388,3 +388,21 @@ document.getElementById('checkPinBtn').addEventListener('click', function() {
         })
         .catch(err => console.error(err));
 });
+
+const toggle = document.getElementById("featureToggle");
+
+    toggle.addEventListener("change", async () => {
+       
+      try {
+         const res = await fetch("/toggle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled: toggle.checked })
+        });
+
+        const data = await res.json();
+        console.log("Session updated:", data);
+      } catch (err) {
+        console.error("Toggle failed:", err);
+      }
+    });

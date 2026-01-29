@@ -164,3 +164,8 @@
     border-color: var(--green);
     color: #fff;
 }
+
+.switch-lg {
+  transform: scale(1.5);
+  transform-origin: left center;
+}
