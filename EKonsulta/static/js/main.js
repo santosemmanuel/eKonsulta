@@ -185,12 +185,12 @@ function validateForm(form) {
 
         // PIN validation
         if (["pin", "dependentPin"].includes(field.name)) {
-            if (!/^\d{4,}$/.test(field.value)) {
-                invalidate(field, "PIN must be at least 4 digits.");
+            if (!/^\d-\d{10}-\d$/.test(field.value)) {
+                invalidate(field, "PIN format must be X-XXXXXXXXXX-X (e.g. 1-1234567890-1).");
                 return false;
             }
         }
-
+        
         // // Mobile number validation
         // if (field.name === "mobile") {
         //     if (!/^09\d{9}$/.test(field.value)) {
