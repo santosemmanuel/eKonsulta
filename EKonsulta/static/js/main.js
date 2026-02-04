@@ -2,106 +2,109 @@
   // ====== Receive data from backend (DO NOT ALTER) ======
 
 
-        // DOM elements
-        const tabNav = document.getElementById("pdfTabNav");
-        const tabContent = document.getElementById("pdfTabContent");
+// DOM elements
+const tabNav = document.getElementById("pdfTabNav");
+const tabContent = document.getElementById("pdfTabContent");
 
-        // ====== Dynamically render the tabs ======
-        pdfFiles.forEach((file, index) => {
-            const tabId = `tab-${index}`;
-            const isActive = index === 0 ? "active" : "";
-            const isShown = index === 0 ? "show active" : "";
+// ====== Dynamically render the tabs ======
+pdfFiles.forEach((file, index) => {
+    const tabId = `tab-${index}`;
+    const isActive = index === 0 ? "active" : "";
+    const isShown = index === 0 ? "show active" : "";
 
-            // --- Generate Tab Button ---
-            tabNav.innerHTML += `
-                 <li class="nav-item" role="presentation">
-            <button class="nav-link ${isActive} d-flex align-items-center gap-2 px-3 py-2" id="${tabId}-tab" data-bs-toggle="tab" data-bs-target="#${tabId}" type="button" role="tab">
-                <i class="fa-solid fa-file-pdf"></i>
-                ${file.name}
-            </button>
-        </li>
-            `;
+    // --- Generate Tab Button ---
+    tabNav.innerHTML += `
+            <li class="nav-item" role="presentation">
+    <button class="nav-link ${isActive} d-flex align-items-center gap-2 px-3 py-2" id="${tabId}-tab" data-bs-toggle="tab" data-bs-target="#${tabId}" type="button" role="tab">
+        <i class="fa-solid fa-file-pdf"></i>
+        ${file.name}
+    </button>
+</li>
+    `;
 
-            // --- Generate Tab Content ---
-            tabContent.innerHTML += `
-                <div class="tab-pane fade ${isShown}" id="${tabId}" role="tabpanel">
+    // --- Generate Tab Content ---
+    tabContent.innerHTML += `
+        <div class="tab-pane fade ${isShown}" id="${tabId}" role="tabpanel">
 
-            <!-- LOADER -->
-            <div class="pdf-loader" id="loader-${tabId}">
-                <i class="fa-solid fa-spinner fa-spin"></i>
-                <div class="mt-2">Loading PDF...</div>
-            </div>
+    <!-- LOADER -->
+    <div class="pdf-loader" id="loader-${tabId}">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <div class="mt-2">Loading PDF...</div>
+    </div>
 
-            <!-- PDF -->
-            <iframe class="pdf-frame d-none" src="${file.url}" onload="hideLoader('${tabId}')">
-            </iframe>
+    <!-- PDF -->
+    <iframe class="pdf-frame d-none" src="${file.url}" onload="hideLoader('${tabId}')">
+    </iframe>
 
-        </div>
-            `;
-        });
+</div>
+    `;
+});
 
-        // ===== Print Function (DO NOT ALTER) =====
-        function printPDF(filePath) {
-            const printWin = window.open(filePath);
-            printWin.focus();
-            printWin.print();
-        }
+// ===== Print Function (DO NOT ALTER) =====
+function printPDF(filePath) {
+    const printWin = window.open(filePath);
+    printWin.focus();
+    printWin.print();
+}
 
-         const toggleBoxes = document.querySelectorAll('.toggle-box input');
-            const dependentPINDiv = document.getElementById('DependentPIN');
-            toggleBoxes.forEach(box => {
-                box.addEventListener("change", function() {
-                    dependentPINDiv.classList.toggle('d-none');
-                })
-            });
 
-             let leyteData = {};
-            let leyteBrgy = {};
 
-            fetch("static/data/municipalities.json")
-                .then(response => response.json())
-                .then(data => {
-                    leyteData = data;
-                    populateMunicipalities();
-                })
-                .catch(error => console.error("Error loading JSON:",error))
+let leyteData = {};
+let leyteBrgy = {};
 
-            fetch("static/data/barangays.json")
-                .then(response => response.json())
-                .then(data => {
-                    leyteBrgy = data;
-                })
-                .catch(error => console.error("Error loading JSON:",error))
-            
-            function populateMunicipalities(){
-                const municipalitySelect = document.getElementById("municipality");
+fetch("static/data/municipalities.json")
+    .then(response => response.json())
+    .then(data => {
+        leyteData = data;
+        populateMunicipalities();
+    })
+    .catch(error => console.error("Error loading JSON:",error))
 
-                for(let iteration in leyteData){
-                    const option = document.createElement('option');
-                    option.value = leyteData[iteration].name
-                    option.text = leyteData[iteration].name
-                    municipalitySelect.appendChild(option);
-                }
-      
-            }
+fetch("static/data/barangays.json")
+    .then(response => response.json())
+    .then(data => {
+        leyteBrgy = data;
+    })
+    .catch(error => console.error("Error loading JSON:",error))
 
-            document.getElementById('municipality').addEventListener("change", function () {
-                const barangaySelect = document.getElementById("barangay");
-                barangaySelect.innerHTML = '<option value="">-- Select Barangay --</option>';
-                const selectedMunicipality = this.value;
-                const filterBrgy = leyteBrgy.filter(
-                    item => item.citymun === selectedMunicipality
-                )
+function populateMunicipalities(){
+    const municipalitySelect = document.getElementById("municipality");
 
-                filterBrgy.forEach( brgy => {
-                    const option = document.createElement("option");
-                    option.value = brgy.name
-                    option.text = brgy.name
-                    barangaySelect.appendChild(option)
-                })
+    for(let iteration in leyteData){
+        const option = document.createElement('option');
+        option.value = leyteData[iteration].name
+        option.text = leyteData[iteration].name
+        municipalitySelect.appendChild(option);
+    }
 
-            })
-            const form = document.getElementById('philhealthForm')
+}
+
+document.getElementById('municipality').addEventListener("change", function () {
+    const barangaySelect = document.getElementById("barangay");
+    barangaySelect.innerHTML = '<option value="">-- Select Barangay --</option>';
+    const selectedMunicipality = this.value;
+    const filterBrgy = leyteBrgy.filter(
+        item => item.citymun === selectedMunicipality
+    )
+
+    filterBrgy.forEach( brgy => {
+        const option = document.createElement("option");
+        option.value = brgy.name
+        option.text = brgy.name
+        barangaySelect.appendChild(option)
+    })
+
+})
+
+const form = document.getElementById('philhealthForm')
+
+const toggleBoxes = document.querySelectorAll('.toggle-box input');
+const dependentPINDiv = document.getElementById('DependentPIN');
+toggleBoxes.forEach(box => {
+    box.addEventListener("change", function() {
+        dependentPINDiv.classList.toggle('d-none');
+    })
+});
 
 function isVisible(el) {
     return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
@@ -294,7 +297,6 @@ form.addEventListener("submit", async function (event) {
 
     if (!validateForm(form)) 
     {
-    
          return;
     }
 
@@ -320,7 +322,12 @@ form.addEventListener("submit", async function (event) {
         // console.log("✅ Server response:", result);
 
         // alert("Form submitted successfully!");
+        const depPIN = document.getElementById('DependentPIN');
+        if (!depPIN.classList.contains('d-none')) {
+            depPIN.classList.add('d-none');
+        }
         form.reset();
+        
 
     } catch (err) {
         console.error("❌ Submission failed:", err);
@@ -330,7 +337,7 @@ form.addEventListener("submit", async function (event) {
 
 
 
-                function hideLoader(tabId) {
+    function hideLoader(tabId) {
     const loader = document.getElementById(`loader-${tabId}`);
     const iframe = loader.nextElementSibling;
 

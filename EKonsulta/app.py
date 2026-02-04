@@ -216,10 +216,14 @@ def fill_PKRF_CHS(data):
         dependent = "Yes" if data["patientIsMember"] == "dependent" else ""
         barangay = data["address"]["barangay"]
 
+        pin = data["pin"]
+        if(data["patientIsMember"] == "dependent"):
+            pin = data["dependentPin"]
+
         data_PKRF_CHS = {
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Member")]: member,
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Dependent")]: dependent,
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("PIN")]: data.get('pin',''),
+            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("PIN")]: pin,
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("DateToday")]: f"{today.month:02}/{today.day:02}/{today.year}",
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("LastName")]: data["personalInfo"]["lastName"],
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("FirstName")]: data["personalInfo"]["firstName"],

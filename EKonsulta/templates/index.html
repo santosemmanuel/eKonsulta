@@ -142,7 +142,7 @@
                             <h6 class="text-muted mb-2">
                                 <i class="fa-solid fa-id-card me-2"></i>Other Details
                             </h6>
-                            <div class="row g-2">
+                            <div class="row g-2 mb-2">
                                 <div class="col-md-4">
                                     <label class="form-label">Date of Birth</label>
                                     <input type="date" class="form-control" name="dob">
@@ -157,6 +157,22 @@
                                         <option value="">Select</option>
                                         <option>Male</option>
                                         <option>Female</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row g-2">
+                                 <div class="col-md-8">
+                                    <label class="form-label">Representative / Guardian</label>
+                                    <input type="text" class="form-control" name="RepOrGuardian">
+                                </div>
+                                 <div class="col-md-4">
+                                    <label class="form-label">Relationship</label>
+                                    <select class="form-select" name="relationship">
+                                        <option>Spouse</option>
+                                        <option>Child</option>
+                                        <option>Parent</option>
+                                        <option>Sibling</option>
+                                        <option>Others</option>
                                     </select>
                                 </div>
                             </div>
@@ -175,11 +191,11 @@
                             <ul class="nav nav-pills" id="pdfTabNav">
                             </ul>
                             <div class="form-check form-switch">
-    <input class="form-check-input switch-lg" type="checkbox" id="featureToggle" {{ "checked" if feature_enabled else "" }}>
-    <label class="form-check-label ms-3" for="featureToggle">
-      Blue Text
-    </label>
-  </div>
+                                <input class="form-check-input switch-lg" type="checkbox" id="featureToggle" {{ "checked" if feature_enabled else "" }}>
+                                <label class="form-check-label ms-3" for="featureToggle">
+                                Blue Text
+                                </label>
+                        </div>
                         </div>
                         
                         <div class="tab-content mt-3" id="pdfTabContent"></div>
