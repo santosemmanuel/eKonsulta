@@ -333,8 +333,8 @@ def allPatientTable():
 FROM patients_master pm
 LEFT JOIN patients p on pm.patient_id = p.id
 LEFT JOIN personal_info pi ON pi.patient_id = p.id
-LEFT JOIN addresses a ON a.patient_id = p.id WHERE pm.date_created >= CURDATE()
-            AND pm.date_created < CURDATE() + INTERVAL 1 DAY;
+LEFT JOIN addresses a ON a.patient_id = p.id WHERE pm.date_created >= '2026-01-28'
+            AND pm.date_created < '2026-01-28' + INTERVAL 1 DAY;
     """)
 #FOR CUSTOM DATE RANGE
 #     SELECT 
@@ -367,8 +367,8 @@ def getMaleCount():
             LEFT JOIN patients p ON pm.patient_id = p.id
             LEFT JOIN personal_info pi ON pi.patient_id = p.id
             WHERE pi.sex = 'Male'
-            AND pm.date_created >= CURDATE()
-            AND pm.date_created < CURDATE() + INTERVAL 1 DAY;
+            AND pm.date_created >= '2026-01-28'
+            AND pm.date_created < '2026-01-28' + INTERVAL 1 DAY;
     """)
 
     result = cursor.fetchone()
@@ -389,8 +389,8 @@ def getFemaleCount():
             LEFT JOIN patients p ON pm.patient_id = p.id 
             LEFT JOIN personal_info pi ON pi.patient_id = p.id
             WHERE pi.sex = 'Female'
-            AND pm.date_created >= CURDATE()
-            AND pm.date_created < CURDATE() + INTERVAL 1 DAY;
+            AND pm.date_created >= '2026-01-28'
+            AND pm.date_created < '2026-01-28' + INTERVAL 1 DAY;
     """)
 
     result = cursor.fetchone()
@@ -440,6 +440,6 @@ def logout():
     return redirect(url_for("login"))
 
 if __name__ == '__main__':
-    # from waitress import serve
-    # serve(app, host="0.0.0.0", port=8080)
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    from waitress import serve
+    serve(app, host="0.0.0.0", port=8080)
+    # app.run(host='0.0.0.0', port=8080, debug=True)
