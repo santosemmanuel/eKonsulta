@@ -160,22 +160,22 @@
                                     </select>
                                 </div>
                             </div>
-                                <!-- <div class="row g-2">
-                                    <div class="col-md-8">
-                                        <label class="form-label">Representative / Guardian</label>
-                                        <input type="text" class="form-control" name="RepOrGuardian">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Relationship</label>
-                                        <select class="form-select" name="relationship">
-                                            <option>Spouse</option>
-                                            <option>Child</option>
-                                            <option>Parent</option>
-                                            <option>Sibling</option>
-                                            <option>Others</option>
-                                        </select>
-                                    </div>
-                                </div> -->
+                            <div class="row g-2" style="display:none;">
+                                <div class="col-md-8" style="display:none;">
+                                    <label class="form-label">Representative / Guardian</label>
+                                    <input type="text" class="form-control" name="RepOrGuardian">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Relationship</label>
+                                    <select class="form-select" name="relationship">
+                                        <option>Spouse</option>
+                                        <option>Child</option>
+                                        <option>Parent</option>
+                                        <option>Sibling</option>
+                                        <option>Others</option>
+                                    </select>
+                                </div>
+                            </div>
                             <button type="submit" class="btn btn-submit w-100 mt-4 py-3">
                                 <i class="fa-solid fa-paper-plane me-2"></i>
                                 SUBMIT
@@ -203,6 +203,52 @@
                 </div>
             </div>
         </div>
+        <script>
+            const dobInput = document.querySelector('input[name="dob"]');
+    const repInput = document.querySelector('input[name="RepOrGuardian"]').closest('.col-md-8');
+    const relationshipInput = document.querySelector('select[name="relationship"]').closest('.col-md-4');
+    alert(calculateAge(dob))
+
+    function calculateAge(dob) {
+        const today = new Date();
+        const birthDate = new Date(dob);
+
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
+        return age;
+    }
+
+    // function toggleRepresentative() {
+    //     if (!dobInput.value) return;
+
+    //     const age = calculateAge(dobInput.value);
+
+    //     if (age <= 21) {
+    //         repInput.style.display = "";
+    //         relationshipInput.style.display = "";
+    //     } else {
+    //         repInput.style.display = "none";
+    //         relationshipInput.style.display = "none";
+
+    //         // Clear values when hidden
+    //         document.querySelector('input[name="RepOrGuardian"]').value = "";
+    //         document.querySelector('select[name="relationship"]').value = "";
+    //     }
+    //}
+
+    
+
+    // Run when DOB changes
+    dobInput.addEventListener("change",alert(calculateAge(dob)));
+
+    // Run on page load (in case value already exists)
+    toggleRepresentative();
+        </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
         <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
         <script> const pdfFiles = {{ pdf_files | tojson }}; </script>
