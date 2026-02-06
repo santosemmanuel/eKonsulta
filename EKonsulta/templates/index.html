@@ -1,212 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>EKonsulta Forms</title>
-        <link href="{{ url_for('static', filename='css/all.min.css') }}"
-              rel="stylesheet">
-        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}"
-              rel="stylesheet">
-        <link href="{{ url_for('static', filename='css/styles.css') }}"
-              rel="stylesheet">
-        <link href="{{ url_for('static', filename='css/toastr.css') }}"
-              rel="stylesheet">
-        <link rel="icon" href="{{ url_for('static', filename='img/MHOBurauen.ico') }}">
-    </head>
-    <body>
-        <!-- NAVBAR -->
-         <nav class="navbar navbar-expand-lg navbar-mho shadow-sm">
-            <div class="container-fluid px-4">
-                <a class="navbar-brand d-flex align-items-center" href="#">
-                    <img src="{{ url_for('static', filename='img/MHO_Logo.jpg') }}"
-                         class="mho-logo mr-2">
-                    <div>
-                        <i class="fa-solid fa-notes-medical me-1"></i>eKonsultaForms
-                        <small>Electronic Konsulta Forms Processing System</small>
-                    </div>
-                </a>
-                
-       <!-- Hamburger button for small screens -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu"
-                aria-controls="navbarMenu" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EKonsulta Forms</title>
+    <link
+      href="{{ url_for('static', filename='css/all.min.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='css/bootstrap.min.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='css/styles.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='css/toastr.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='img/MHOBurauen.ico') }}"
+    />
+  </head>
+  <body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-mho shadow-sm">
+      <div class="container-fluid px-4">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+          <img
+            src="{{ url_for('static', filename='img/MHO_Logo.jpg') }}"
+            class="mho-logo mr-2"
+          />
+          <div>
+            <i class="fa-solid fa-notes-medical me-1"></i>eKonsultaForms
+            <small>Electronic Konsulta Forms Processing System</small>
+          </div>
+        </a>
+
+        <!-- Hamburger button for small screens -->
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarMenu"
+          aria-controls="navbarMenu"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
         </button>
 
         <!-- Collapsible menu -->
         <div class="collapse navbar-collapse" id="navbarMenu">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="" >
-                        <i class="fa-solid fa-user me-1"></i> Good Day! {{ user }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    {% if session.get('user') %}
-                    <a class="nav-link text-white" href="{{ url_for('logout') }}">
-                        <i class="fa-solid fa-right-to-bracket me-1"></i> Logout
-                    </a>
-                    {% else %}
-                    <a class="nav-link text-white" href="/login">
-                        <i class="fa-solid fa-right-to-bracket me-1"></i> Login
-                    </a>
-                    {% endif %}
-                </li>
-            </ul>
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link text-white" href="">
+                <i class="fa-solid fa-user me-1"></i> Good Day! {{ user }}
+              </a>
+            </li>
+            <li class="nav-item">
+              {% if session.get('user') %}
+              <a class="nav-link text-white" href="{{ url_for('logout') }}">
+                <i class="fa-solid fa-right-to-bracket me-1"></i> Logout
+              </a>
+              {% else %}
+              <a class="nav-link text-white" href="/login">
+                <i class="fa-solid fa-right-to-bracket me-1"></i> Login
+              </a>
+              {% endif %}
+            </li>
+          </ul>
         </div>
-            </div>
-        </nav>
-        <!-- MAIN CONTENT -->
-        <div class="container-fluid py-4">
-            <div class="row g-4">
-                <!-- LEFT: FORM -->
-                <div class="col-lg-6">
-                    <div class="form-card">
-                        <form id="philhealthForm" novalidate>
-                            <!-- OPTION -->
-                            <div class="toggle-box mb-3">
-                                <label>
-                                    <input type="radio" name="patientIsMember" checked value="member">
-                                    <span>
-                                        <i class="fa-solid fa-user me-2" style="font-size: 20px;"></i>Member
-                                    </span>
-                                </label>
-                                <label>
-                                    <input type="radio" name="patientIsMember" value="dependent">
-                                    <span>
-                                        <i class="fa-solid fa-user-group me-2" style="font-size: 20px;"></i>Dependent
-                                    </span>
-                                </label>
-                            </div>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">Member's PIN</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" name="pin" id="pinInput">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-outline-secondary" type="button"  id="checkPinBtn">
-                                                <li class="fa-solid fa-magnifying-glass"></li>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div id="DependentPIN" class="col-md-4 d-none">
-                                    <label class="form-label" id="DependentPINText">Dependent's PIN</label>
-                                    <input type="text" class="form-control" name="dependentPin">
-                                </div>
-                            </div>
-                            <hr>
-                            <h6 class="text-muted mb-2">
-                                <i class="fa-solid fa-user me-2"></i>Personal Information
-                            </h6>
-                            <!-- FULL NAME -->
-                            <div class="row g-2 personal-info">
-                                <div class="col-md-4">
-                                    <label class="form-label">Last Name</label>
-                                    <input type="text" class="form-control" name="lastName">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">First Name</label>
-                                    <input type="text" class="form-control" name="firstName">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Middle Name</label>
-                                    <input type="text" class="form-control" name="middleName">
-                                </div>
-                                <div class="col-md-1">
-                                    <label class="form-label">Ext</label>
-                                    <input type="text" class="form-control" name="nameExt">
-                                </div>
-                            </div>
-                            <hr>
-                            <!-- ADDRESS -->
-                            <h6 class="text-muted mb-2">
-                                <i class="fa-solid fa-location-dot me-2"></i>Address
-                            </h6>
-                            <div class="row g-2">
-                                <div class="col-md-6">
-                                    <label class="form-label">Municipality</label>
-                                    <select class="form-select" id="municipality" name="municipality">
-                                        <option value="">Choose Municipality...</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Barangay</label>
-                                    <select class="form-select" name="barangay" id="barangay">
-                                        <option value="">Choose barangay...</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <hr>
-                            <!-- OTHER DETAILS -->
-                            <h6 class="text-muted mb-2">
-                                <i class="fa-solid fa-id-card me-2"></i>Other Details
-                            </h6>
-                            <div class="row g-2 mb-2">
-                                <div class="col-md-4">
-                                    <label class="form-label">Date of Birth</label>
-                                    <input type="date" class="form-control" name="dob">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Contact Number</label>
-                                    <input type="text" class="form-control" name="mobile">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Gender</label>
-                                    <select class="form-select" name="sex">
-                                        <option value="">Select</option>
-                                        <option>Male</option>
-                                        <option>Female</option>
-                                    </select>
-                                </div>
-                            </div>
-                                <!-- <div class="row g-2">
-                                    <div class="col-md-8">
-                                        <label class="form-label">Representative / Guardian</label>
-                                        <input type="text" class="form-control" name="RepOrGuardian">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Relationship</label>
-                                        <select class="form-select" name="relationship">
-                                            <option>Spouse</option>
-                                            <option>Child</option>
-                                            <option>Parent</option>
-                                            <option>Sibling</option>
-                                            <option>Others</option>
-                                        </select>
-                                    </div>
-                                </div> -->
-                            <button type="submit" class="btn btn-submit w-100 mt-4 py-3">
-                                <i class="fa-solid fa-paper-plane me-2"></i>
-                                SUBMIT
-                            </button>
-                        </form>
+      </div>
+    </nav>
+    <!-- MAIN CONTENT -->
+    <div class="container-fluid py-4">
+      <div class="row g-4">
+        <!-- LEFT: FORM -->
+        <div class="col-lg-6">
+          <div class="form-card">
+            <form id="philhealthForm" novalidate>
+              <!-- OPTION -->
+              <div class="toggle-box mb-3">
+                <label>
+                  <input
+                    type="radio"
+                    name="patientIsMember"
+                    checked
+                    value="member"
+                  />
+                  <span>
+                    <i class="fa-solid fa-user me-2" style="font-size: 20px"></i
+                    >Member
+                  </span>
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="patientIsMember"
+                    value="dependent"
+                  />
+                  <span>
+                    <i
+                      class="fa-solid fa-user-group me-2"
+                      style="font-size: 20px"
+                    ></i
+                    >Dependent
+                  </span>
+                </label>
+              </div>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label">Member's PIN</label>
+                  <div class="input-group">
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="pin"
+                      id="pinInput"
+                    />
+                    <div class="input-group-append">
+                      <button
+                        class="btn btn-outline-secondary"
+                        type="button"
+                        id="checkPinBtn"
+                      >
+                        <li class="fa-solid fa-magnifying-glass"></li>
+                      </button>
                     </div>
+                  </div>
                 </div>
-                <!-- RIGHT: PDF PREVIEW -->
-                <div class="col-lg-6">
-                    <div class="pdf-card">
-                        <!-- TABS -->
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <ul class="nav nav-pills" id="pdfTabNav">
-                            </ul>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input switch-lg" type="checkbox" id="featureToggle" {{ "checked" if feature_enabled else "" }}>
-                                <label class="form-check-label ms-3" for="featureToggle">
-                                Blue Text
-                                </label>
-                        </div>
-                        </div>
-                        
-                        <div class="tab-content mt-3" id="pdfTabContent"></div>
-                    </div>
+                <div id="DependentPIN" class="col-md-4 d-none">
+                  <label class="form-label" id="DependentPINText"
+                    >Dependent's PIN</label
+                  >
+                  <input type="text" class="form-control" name="dependentPin" />
                 </div>
-            </div>
+              </div>
+              <hr />
+              <h6 class="text-muted mb-2">
+                <i class="fa-solid fa-user me-2"></i>Personal Information
+              </h6>
+              <!-- FULL NAME -->
+              <div class="row g-2 personal-info">
+                <div class="col-md-4">
+                  <label class="form-label">Last Name</label>
+                  <input type="text" class="form-control" name="lastName" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">First Name</label>
+                  <input type="text" class="form-control" name="firstName" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Middle Name</label>
+                  <input type="text" class="form-control" name="middleName" />
+                </div>
+                <div class="col-md-1">
+                  <label class="form-label">Ext</label>
+                  <input type="text" class="form-control" name="nameExt" />
+                </div>
+              </div>
+              <hr />
+              <!-- ADDRESS -->
+              <h6 class="text-muted mb-2">
+                <i class="fa-solid fa-location-dot me-2"></i>Address
+              </h6>
+              <div class="row g-2">
+                <div class="col-md-6">
+                  <label class="form-label">Municipality</label>
+                  <select
+                    class="form-select"
+                    id="municipality"
+                    name="municipality"
+                  >
+                    <option value="">Choose Municipality...</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Barangay</label>
+                  <select class="form-select" name="barangay" id="barangay">
+                    <option value="">Choose barangay...</option>
+                  </select>
+                </div>
+              </div>
+              <hr />
+              <!-- OTHER DETAILS -->
+              <h6 class="text-muted mb-2">
+                <i class="fa-solid fa-id-card me-2"></i>Other Details
+              </h6>
+              <div class="row g-2 mb-2">
+                <div class="col-md-4">
+                  <label class="form-label">Date of Birth</label>
+                  <input type="date" class="form-control" name="dob" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Contact Number</label>
+                  <input type="text" class="form-control" name="mobile" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Gender</label>
+                  <select class="form-select" name="sex">
+                    <option value="">Select</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-md-8" style="display: none">
+                  <label class="form-label">Representative / Guardian</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="RepOrGuardian"
+                  />
+                </div>
+                <div class="col-md-4" style="display: none">
+                  <label class="form-label">Relationship</label>
+                  <select class="form-select" name="relationship">
+                    <option>Spouse</option>
+                    <option>Child</option>
+                    <option>Parent</option>
+                    <option>Sibling</option>
+                    <option>Others</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-submit w-100 mt-4 py-3">
+                <i class="fa-solid fa-paper-plane me-2"></i>
+                SUBMIT
+              </button>
+            </form>
+          </div>
         </div>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-        <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
-        <script> const pdfFiles = {{ pdf_files | tojson }}; </script>
-        <script src="{{ url_for('static', filename='js/main.js')}}"></script>
-        <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
-    </body>
+        <!-- RIGHT: PDF PREVIEW -->
+        <div class="col-lg-6">
+          <div class="pdf-card">
+            <!-- TABS -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <ul class="nav nav-pills" id="pdfTabNav"></ul>
+              <div class="form-check form-switch">
+                <input class="form-check-input switch-lg" type="checkbox"
+                id="featureToggle" {{ "checked" if feature_enabled else "" }}>
+                <label class="form-check-label ms-3" for="featureToggle">
+                  Blue Text
+                </label>
+              </div>
+            </div>
+
+            <div class="tab-content mt-3" id="pdfTabContent"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
+    <script>
+      const pdfFiles = {{ pdf_files | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+  </body>
 </html>
