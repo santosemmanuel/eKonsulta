@@ -158,7 +158,9 @@ function buildFormData(form) {
         otherDetails: {
             dob: form.dob.value,
             sex: form.sex.value,
-            mobile: form.mobile.value
+            mobile: form.mobile.value,
+            representative: form.RepOrGuardian.value.trim(),
+            relationship: form.relationship.value,
         }
     };
 }
@@ -435,7 +437,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function toggleRepresentative() {
-        if (!dobInput.value) return;
+        if (!dobInput.value) {
+            repInput.style.display = "none";
+            relationshipInput.style.display = "none";
+            return;
+        }
 
         const age = calculateAge(dobInput.value);
 
