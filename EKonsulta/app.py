@@ -31,7 +31,7 @@ def index():
             {"name": "PKRF CONSENT HEALTH SCREENING",
                 "url": f"/static/pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"},
             {"name": "EMPANELMENT SLIP (MCA)",
-                "url": f"/static/pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"},
+                "url": f"/static/pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"},
         ]
         feature_enabled = session.get("feature_enabled", False)
         return render_template("index.html", pdf_files=pdf_files, user=session.get("user"), feature_enabled=feature_enabled)
@@ -185,6 +185,7 @@ def fill_EKAS_EPRESS_MCA(data):
         member = "Yes" if data["patientIsMember"] == "member" else None
         dependent = "Yes" if data["patientIsMember"] == "dependent" else None
         representative = "" if not data["otherDetails"]["representative"] else data["otherDetails"]["representative"]
+        reprelation = data["otherDetails"]["relationship"] if data["otherDetails"]["relationship"] != "-Select-"  else ""
 
         data_EKAS_EPRESS_MCA = {
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("PatientName")]: patientFullName,
@@ -202,6 +203,7 @@ def fill_EKAS_EPRESS_MCA(data):
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index(
                 "DatePerformed")]: f"{today.month:02}/{today.day:02}/{today.year}",
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Representative")]: representative,
+            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("RepRelation")]: reprelation
         }
 
         fillpdfs.write_fillable_pdf(
@@ -239,6 +241,7 @@ def fill_PKRF_CHS(data):
         dependent = "Yes" if data["patientIsMember"] == "dependent" else ""
         barangay = data["address"]["barangay"]
         representative = "" if not data["otherDetails"]["representative"] else data["otherDetails"]["representative"]
+        reprelation = data["otherDetails"]["relationship"] if data["otherDetails"]["relationship"] != "-Select-"  else ""
 
         pin = data["pin"]
         if (data["patientIsMember"] == "dependent"):
@@ -269,6 +272,7 @@ def fill_PKRF_CHS(data):
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Age")]: age,
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Gender")]: gender,
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Representative")]: representative,
+            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("RepRelation")]: reprelation
         }
 
         fillpdfs.write_fillable_pdf(pdf_path, output_pdf, data_PKRF_CHS)
@@ -281,7 +285,7 @@ def fill_MCA(data):
         pdf_path = os.path.join(
             current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/template/EMPANELMENT_(MCA)_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
         output_pdf = os.path.join(
-            current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+            current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
         form_fields_MCA = list(
             fillpdfs.get_form_fields(pdf_path).keys())
         # print(form_fields_EKAS_EPRESS_MCA)
@@ -307,6 +311,8 @@ def fill_MCA(data):
 
         member = "Yes" if data["patientIsMember"] == "member" else None
         dependent = "Yes" if data["patientIsMember"] == "dependent" else None
+        representative = "" if not data["otherDetails"]["representative"] else data["otherDetails"]["representative"]
+        reprelation = data["otherDetails"]["relationship"] if data["otherDetails"]["relationship"] != "-Select-"  else ""
 
         data_MCA = {
             form_fields_MCA[form_fields_MCA.index("PatientName")]: patientFullName,
@@ -315,8 +321,8 @@ def fill_MCA(data):
             form_fields_MCA[form_fields_MCA.index("BenefitYear")]: today.year,
             form_fields_MCA[form_fields_MCA.index("FullnameAndDateBeneficiary")]: f"{patientFullName}\t\t {today.month:02}/{today.day:02}/{today.year}",
             form_fields_MCA[form_fields_MCA.index("BenefitYear1")]: today.year - 1,
-            form_fields_MCA[form_fields_MCA.index("Representative")]: dependent,
-            form_fields_MCA[form_fields_MCA.index("RepRelation")]: member,
+            form_fields_MCA[form_fields_MCA.index("Representative")]: representative,
+            form_fields_MCA[form_fields_MCA.index("RepRelation")]: reprelation,
         }
 
         fillpdfs.write_fillable_pdf(
@@ -349,7 +355,7 @@ def get_pdfs():
         },
         {
             "name": "EMPANELMENT SLIP (MCA)",
-            "url": url_for("static", filename=f"pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+            "url": url_for("static", filename=f"pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
         },
     ])
 
