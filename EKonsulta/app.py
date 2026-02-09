@@ -540,8 +540,4 @@ def logout():
 if __name__ == '__main__':
     # from waitress import serve
     # serve(app, host="0.0.0.0", port=8080)
-<<<<<<< HEAD
     app.run(host='0.0.0.0', port=8080, debug=True)
-=======
-    app.run(host='0.0.0.0', port=8080, debug=True)
->>>>>>> 7d9092338ac438c14755f9dc0acb23923d046066
