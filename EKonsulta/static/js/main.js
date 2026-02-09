@@ -415,13 +415,7 @@ const toggle = document.getElementById("featureToggle");
         console.error("Toggle failed:", err);
       }
     });
-
-<<<<<<< HEAD
-
-
-
     
-=======
 document.addEventListener("DOMContentLoaded", function () {
 
     const dobInput = document.querySelector('input[name="dob"]');
@@ -471,4 +465,3 @@ document.addEventListener("DOMContentLoaded", function () {
     toggleRepresentative();
 });
 
->>>>>>> 7d9092338ac438c14755f9dc0acb23923d046066

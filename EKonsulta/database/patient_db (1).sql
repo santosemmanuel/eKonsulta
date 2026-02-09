@@ -30,7 +30,7 @@ SET time_zone = "+00:00";
 CREATE TABLE `patients_master` (
   `Id` int(12) NOT NULL,
   `user_id` int(12) NOT NULL,
-  `patient_id` int(12) NOT NULL,
+  `patient_id` int(12) NOT NULL, 
   `date_created` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
@@ -74,9 +74,7 @@ INSERT INTO `users` (`id`, `name`, `username`, `password`, `position`) VALUES
 -- Indexes for table `patients_master`
 --
 ALTER TABLE `patients_master`
-  ADD PRIMARY KEY (`Id`),
-  ADD UNIQUE KEY `user_id` (`user_id`,`patient_id`),
-  ADD KEY `patient_id` (`patient_id`);
+  ADD PRIMARY KEY (`Id`);
 
 --
 -- Indexes for table `users`
@@ -107,10 +105,6 @@ ALTER TABLE `users`
 --
 -- Constraints for table `patients_master`
 --
-ALTER TABLE `patients_master`
-  ADD CONSTRAINT `patients_master_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `patients_master_ibfk_2` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`);
-COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
