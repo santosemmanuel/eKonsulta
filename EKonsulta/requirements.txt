@@ -1,0 +1,8 @@
+Flask
+fillpdf
+pdfrw
+pdf2image
+mysql-connector-python
+python-dotenv
+Pillow
+waitress

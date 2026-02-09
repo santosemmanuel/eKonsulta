@@ -158,7 +158,9 @@ function buildFormData(form) {
         otherDetails: {
             dob: form.dob.value,
             sex: form.sex.value,
-            mobile: form.mobile.value
+            mobile: form.mobile.value,
+            representative: form.RepOrGuardian.value.trim(),
+            relationship: form.relationship.value,
         }
     };
 }
@@ -414,7 +416,59 @@ const toggle = document.getElementById("featureToggle");
       }
     });
 
+<<<<<<< HEAD
 
 
 
     
+=======
+document.addEventListener("DOMContentLoaded", function () {
+
+    const dobInput = document.querySelector('input[name="dob"]');
+    const repInput = document.querySelector('input[name="RepOrGuardian"]').closest('.col-md-8');
+    const relationshipInput = document.querySelector('select[name="relationship"]').closest('.col-md-4');
+
+    function calculateAge(dob) {
+        const today = new Date();
+        const birthDate = new Date(dob);
+
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
+        return age;
+    }
+
+    function toggleRepresentative() {
+        if (!dobInput.value) {
+            repInput.style.display = "none";
+            relationshipInput.style.display = "none";
+            return;
+        }
+
+        const age = calculateAge(dobInput.value);
+
+        if (age <= 21) {
+            repInput.style.display = "";
+            relationshipInput.style.display = "";
+        } else {
+            repInput.style.display = "none";
+            relationshipInput.style.display = "none";
+
+            // Clear values when hidden
+            document.querySelector('input[name="RepOrGuardian"]').value = "";
+            document.querySelector('select[name="relationship"]').value = "";
+        }
+    }
+
+    // Run when DOB changes
+    dobInput.addEventListener("change", toggleRepresentative);
+
+    // Run on page load (in case value already exists)
+    toggleRepresentative();
+});
+
+>>>>>>> 7d9092338ac438c14755f9dc0acb23923d046066

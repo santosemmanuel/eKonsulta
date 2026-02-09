@@ -20,12 +20,17 @@ today = datetime.now(ZoneInfo("Asia/Manila")).date()
 def check_form_version(ses):
     return ".1" if ses else ""
 
-@app.route("/") 
+
+@app.route("/")
 def index():
     if "user" in session and session.get("position") == "user":
         pdf_files = [
-            {"name": "EKAS EPRESS MCA", "url": f"/static/pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"},
-            {"name": "PKRF CONSENT HEALTH SCREENING", "url": f"/static/pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"},
+            {"name": "EKAS EPRESS MCA",
+                "url": f"/static/pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"},
+            {"name": "PKRF CONSENT HEALTH SCREENING",
+                "url": f"/static/pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"},
+            {"name": "EMPANELMENT SLIP (MCA)",
+                "url": f"/static/pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"},
         ]
         feature_enabled = session.get("feature_enabled", False)
         return render_template("index.html", pdf_files=pdf_files, user=session.get("user"), feature_enabled=feature_enabled)
@@ -34,7 +39,8 @@ def index():
     else:
         flash("Please login first", "warning")
         return redirect(url_for("login"))
-    
+
+
 @app.route("/submit_form", methods=["POST"])
 def submit_form():
     data = request.get_json()
@@ -42,21 +48,22 @@ def submit_form():
     patient_data = dict(data)
     print(pretty_json_string)
 
-    clean_files([f"user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf", 
+    clean_files([f"user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf",
                  f"user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"])
 
     fill_EKAS_EPRESS_MCA(patient_data)
     fill_PKRF_CHS(patient_data)
+    fill_MCA(patient_data)
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     user_id = session.get('user_id')
-    
+
     try:
         # 🔍 CHECK IF dependent_pin EXISTS
         cursor.execute(
             "SELECT id FROM patients WHERE dependent_pin = %s or pin = %s",
-            (patient_data["dependentPin"],patient_data["pin"])
+            (patient_data["dependentPin"], patient_data["pin"])
         )
 
         existing_patient = cursor.fetchone()
@@ -110,7 +117,8 @@ def submit_form():
             insert_masterPatient_query = """INSERT INTO patients_master (user_id, patient_id, date_created)
                     VALUES (%s, %s, %s)
                 """
-            cursor.execute(insert_masterPatient_query, (user_id, patient_id, datetime.now()))
+            cursor.execute(insert_masterPatient_query,
+                           (user_id, patient_id, datetime.now()))
             conn.commit()
         else:
 
@@ -120,16 +128,17 @@ def submit_form():
                 AND date_created >= CURDATE() 
                 AND date_created < CURDATE() + INTERVAL 1 DAY"""
             cursor.execute(patient_master,
-                (existing_patient['id'],)
-            )
+                           (existing_patient['id'],)
+                           )
 
             existing_patient_master = cursor.fetchone()
-            
+
             if not existing_patient_master:
                 insert_query = """INSERT INTO patients_master (user_id, patient_id, date_created)
                     VALUES (%s, %s, %s)
                 """
-                cursor.execute(insert_query, (user_id, existing_patient['id'], datetime.now()))
+                cursor.execute(
+                    insert_query, (user_id, existing_patient['id'], datetime.now()))
             conn.commit()
 
     except mysql.connector.Error as err:
@@ -142,18 +151,23 @@ def submit_form():
 
     return jsonify({"status": "success", "message": "Form received"})
 
+
 def fill_EKAS_EPRESS_MCA(data):
     try:
-        pdf_path = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/template/EKAS,EPRESS,MCA_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-        output_pdf = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-        form_fields_EKAS_EPRESS_MCA = list(fillpdfs.get_form_fields(pdf_path).keys())
+        pdf_path = os.path.join(
+            current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/template/EKAS,EPRESS,MCA_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+        output_pdf = os.path.join(
+            current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+        form_fields_EKAS_EPRESS_MCA = list(
+            fillpdfs.get_form_fields(pdf_path).keys())
 
         # print(form_fields_EKAS_EPRESS_MCA)
         pin = data['pin']
         if data['patientIsMember'] == 'dependent':
             pin = data['dependentPin']
 
-        date_object = datetime.strptime(data["otherDetails"]["dob"], "%Y-%m-%d")
+        date_object = datetime.strptime(
+            data["otherDetails"]["dob"], "%Y-%m-%d")
         formatted_date = date_object.strftime('%m-%d-%Y')
 
         age = today.year - date_object.year - (
@@ -170,6 +184,8 @@ def fill_EKAS_EPRESS_MCA(data):
 
         member = "Yes" if data["patientIsMember"] == "member" else None
         dependent = "Yes" if data["patientIsMember"] == "dependent" else None
+        representative = "" if not data["otherDetails"]["representative"] else data["otherDetails"]["representative"]
+        reprelation = data["otherDetails"]["relationship"] if data["otherDetails"]["relationship"] != "-Select-"  else ""
 
         data_EKAS_EPRESS_MCA = {
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("PatientName")]: patientFullName,
@@ -184,20 +200,29 @@ def fill_EKAS_EPRESS_MCA(data):
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("ContactNum")]: cellphoneNum,
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Age")]: age,
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Performed")]: "Yes",
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("DatePerformed")]: f"{today.month:02}/{today.day:02}/{today.year}"
+            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index(
+                "DatePerformed")]: f"{today.month:02}/{today.day:02}/{today.year}",
+            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Representative")]: representative,
+            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("RepRelation")]: reprelation
         }
 
-        fillpdfs.write_fillable_pdf(pdf_path, output_pdf, data_EKAS_EPRESS_MCA, flatten=False)
-    except Exception as e: 
+        fillpdfs.write_fillable_pdf(
+            pdf_path, output_pdf, data_EKAS_EPRESS_MCA, flatten=False)
+    except Exception as e:
         print(f"This is the error {e}")
+
 
 def fill_PKRF_CHS(data):
     try:
-        pdf_path = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/template/PKRF,Consent, Health Screening_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-        output_pdf = os.path.join(current_app.root_path,f"static/pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-        form_fields_PKRF_Consent = list(fillpdfs.get_form_fields(pdf_path).keys())
-        
-        date_object = datetime.strptime(data["otherDetails"]["dob"], "%Y-%m-%d")
+        pdf_path = os.path.join(
+            current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/template/PKRF,Consent, Health Screening_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+        output_pdf = os.path.join(
+            current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+        form_fields_PKRF_Consent = list(
+            fillpdfs.get_form_fields(pdf_path).keys())
+
+        date_object = datetime.strptime(
+            data["otherDetails"]["dob"], "%Y-%m-%d")
         formatted_date = date_object.strftime('%m-%d-%Y')
 
         age = today.year - date_object.year - (
@@ -215,9 +240,11 @@ def fill_PKRF_CHS(data):
         member = "Yes" if data["patientIsMember"] == "member" else ""
         dependent = "Yes" if data["patientIsMember"] == "dependent" else ""
         barangay = data["address"]["barangay"]
+        representative = "" if not data["otherDetails"]["representative"] else data["otherDetails"]["representative"]
+        reprelation = data["otherDetails"]["relationship"] if data["otherDetails"]["relationship"] != "-Select-"  else ""
 
         pin = data["pin"]
-        if(data["patientIsMember"] == "dependent"):
+        if (data["patientIsMember"] == "dependent"):
             pin = data["dependentPin"]
 
         data_PKRF_CHS = {
@@ -239,25 +266,81 @@ def fill_PKRF_CHS(data):
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("PatientSignature")]: patientFullName,
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("PatientFullName")]: patientFullName,
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("FullAddress")]: f"{barangay.upper()}, {data['address']['municipality']}, LEYTE",
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("MemberPIN")]: data.get('pin',''),
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("DependentPIN")]: data.get('dependentPin',''),
+            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("MemberPIN")]: data.get('pin', ''),
+            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("DependentPIN")]: data.get('dependentPin', ''),
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("NameExt")]: data["personalInfo"]["nameExt"],
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Age")]: age,
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Gender")]: gender,
+            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Representative")]: representative,
+            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("RepRelation")]: reprelation
         }
 
         fillpdfs.write_fillable_pdf(pdf_path, output_pdf, data_PKRF_CHS)
     except Exception as e:
         print(f"This is the error{e}")
 
+
+def fill_MCA(data):
+    try:
+        pdf_path = os.path.join(
+            current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/template/EMPANELMENT_(MCA)_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+        output_pdf = os.path.join(
+            current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+        form_fields_MCA = list(
+            fillpdfs.get_form_fields(pdf_path).keys())
+        # print(form_fields_EKAS_EPRESS_MCA)
+        pin = data['pin']
+        if data['patientIsMember'] == 'dependent':
+            pin = data['dependentPin']
+
+        date_object = datetime.strptime(
+            data["otherDetails"]["dob"], "%Y-%m-%d")
+        formatted_date = date_object.strftime('%m-%d-%Y')
+
+        age = today.year - date_object.year - (
+            (today.month, today.day) < (date_object.month, date_object.day)
+        )
+
+        cellphoneNum = data["otherDetails"]["mobile"]
+        patientMiddleName = (
+            data["personalInfo"]["middleName"][0]
+            if data["personalInfo"]["middleName"]
+            else ""
+        )
+        patientFullName = f"{data['personalInfo']['firstName']} {patientMiddleName} {data['personalInfo']['lastName']} {data['personalInfo']['nameExt']}"
+
+        member = "Yes" if data["patientIsMember"] == "member" else None
+        dependent = "Yes" if data["patientIsMember"] == "dependent" else None
+        representative = "" if not data["otherDetails"]["representative"] else data["otherDetails"]["representative"]
+        reprelation = data["otherDetails"]["relationship"] if data["otherDetails"]["relationship"] != "-Select-"  else ""
+
+        data_MCA = {
+            form_fields_MCA[form_fields_MCA.index("PatientName")]: patientFullName,
+            form_fields_MCA[form_fields_MCA.index("DOB")]: formatted_date,
+            form_fields_MCA[form_fields_MCA.index("PIN")]: pin,
+            form_fields_MCA[form_fields_MCA.index("BenefitYear")]: today.year,
+            form_fields_MCA[form_fields_MCA.index("FullnameAndDateBeneficiary")]: f"{patientFullName}\t\t {today.month:02}/{today.day:02}/{today.year}",
+            form_fields_MCA[form_fields_MCA.index("BenefitYear1")]: today.year - 1,
+            form_fields_MCA[form_fields_MCA.index("Representative")]: representative,
+            form_fields_MCA[form_fields_MCA.index("RepRelation")]: reprelation,
+        }
+
+        fillpdfs.write_fillable_pdf(
+            pdf_path, output_pdf, data_MCA, flatten=False)
+    except Exception as e:
+        print(f"This is the error {e}")
+
+
 def clean_files(file_list):
     for f in file_list:
         try:
             if os.path.exists(os.path.join(current_app.root_path, "static", "pdfs", f)):
-                os.remove(os.path.join(current_app.root_path, "static", "pdfs", f))
+                os.remove(os.path.join(
+                    current_app.root_path, "static", "pdfs", f))
                 print(f"Deleted {f}")
         except Exception as e:
             print(f"Error deleting {f}: {e}")
+
 
 @app.route("/get_pdfs")
 def get_pdfs():
@@ -267,14 +350,19 @@ def get_pdfs():
             "url": url_for("static", filename=f"pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
         },
         {
-            "name": "PKRF CONSENT HEALTH SCREENING", 
+            "name": "PKRF CONSENT HEALTH SCREENING",
             "url": url_for("static", filename=f"pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+        },
+        {
+            "name": "EMPANELMENT SLIP (MCA)",
+            "url": url_for("static", filename=f"pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
         },
     ])
 
+
 @app.route("/gen_reports")
 def gen_reports():
-    
+
     Maleresult = getMaleCount()
     male_count = Maleresult["NumberOfMale"]
 
@@ -290,9 +378,11 @@ def gen_reports():
         patients=patients
     )
 
+
 @app.route("/ActivityLogs")
 def ActivityLogs():
     return render_template("activityLog.html")
+
 
 @app.route('/get_patient/<pin>')
 def get_patient(pin):
@@ -308,7 +398,7 @@ def get_patient(pin):
         LEFT JOIN addresses a ON a.patient_id = p.id
         WHERE p.pin = %s
     """, (pin,))
-    
+
     patient = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -317,7 +407,8 @@ def get_patient(pin):
         return jsonify({"exists": True, **patient})
     else:
         return jsonify({"exists": False})
-    
+
+
 def allPatientTable():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -336,8 +427,8 @@ LEFT JOIN personal_info pi ON pi.patient_id = p.id
 LEFT JOIN addresses a ON a.patient_id = p.id WHERE pm.date_created >= '2026-01-28'
             AND pm.date_created < '2026-01-28' + INTERVAL 1 DAY;
     """)
-#FOR CUSTOM DATE RANGE
-#     SELECT 
+# FOR CUSTOM DATE RANGE
+#     SELECT
 #     p.pin AS MemberPIN,
 #     p.dependent_pin AS DependentPIN,
 #     CONCAT(pi.last_name, ', ', pi.middle_name, ' ', pi.first_name, ' ', IFNULL(pi.name_ext, '')) AS Name,
@@ -349,13 +440,14 @@ LEFT JOIN addresses a ON a.patient_id = p.id WHERE pm.date_created >= '2026-01-2
 # LEFT JOIN personal_info pi ON pi.patient_id = p.id
 # LEFT JOIN addresses a ON a.patient_id = p.id WHERE pm.date_created >= '2026-01-15 00:00:00'
 #   AND pm.date_created <  '2026-01-16 00:00:00';
- 
+
     patients = cursor.fetchall()
 
     cursor.close()
     conn.close()
 
     return patients
+
 
 def getMaleCount():
     conn = get_db_connection()
@@ -372,14 +464,15 @@ def getMaleCount():
     """)
 
     result = cursor.fetchone()
-    
+
     cursor.close()
     conn.close()
 
     return result
 
+
 def getFemaleCount():
-    
+
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -394,11 +487,12 @@ def getFemaleCount():
     """)
 
     result = cursor.fetchone()
-    
+
     cursor.close()
     conn.close()
 
     return result
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -409,7 +503,8 @@ def login():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        cursor.execute("SELECT * FROM users WHERE username=%s AND password=%s", (username,password))
+        cursor.execute(
+            "SELECT * FROM users WHERE username=%s AND password=%s", (username, password))
         user = cursor.fetchone()
 
         if user:
@@ -424,6 +519,7 @@ def login():
 
     return render_template("login.html")
 
+
 @app.route("/toggle", methods=["POST"])
 def toggle():
     enabled = bool(request.json.get("enabled"))
@@ -434,12 +530,18 @@ def toggle():
         "feature_enabled": enabled
     })
 
+
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("login"))
 
+
 if __name__ == '__main__':
     # from waitress import serve
     # serve(app, host="0.0.0.0", port=8080)
+<<<<<<< HEAD
     app.run(host='0.0.0.0', port=8080, debug=True)
+=======
+    app.run(host='0.0.0.0', port=8080, debug=True)
+>>>>>>> 7d9092338ac438c14755f9dc0acb23923d046066
