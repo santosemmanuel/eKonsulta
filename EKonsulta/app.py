@@ -185,7 +185,12 @@ def fill_EKAS_EPRESS_MCA(data):
         member = "Yes" if data["patientIsMember"] == "member" else None
         dependent = "Yes" if data["patientIsMember"] == "dependent" else None
         representative = "" if not data["otherDetails"]["representative"] else data["otherDetails"]["representative"]
-        reprelation = data["otherDetails"]["relationship"] if data["otherDetails"]["relationship"] != "-Select-"  else ""
+        reprelation = ""
+        
+        if data["otherDetails"]["relationship"] == "Others":
+            reprelation = data["otherDetails"]["otherRelationship"]
+        elif data["otherDetails"]["relationship"] != "-Select-":
+            reprelation = data["otherDetails"]["relationship"]
 
         data_EKAS_EPRESS_MCA = {
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("PatientName")]: patientFullName,
@@ -241,7 +246,12 @@ def fill_PKRF_CHS(data):
         dependent = "Yes" if data["patientIsMember"] == "dependent" else ""
         barangay = data["address"]["barangay"]
         representative = "" if not data["otherDetails"]["representative"] else data["otherDetails"]["representative"]
-        reprelation = data["otherDetails"]["relationship"] if data["otherDetails"]["relationship"] != "-Select-"  else ""
+        reprelation = ""
+        
+        if data["otherDetails"]["relationship"] == "Others":
+            reprelation = data["otherDetails"]["otherRelationship"]
+        elif data["otherDetails"]["relationship"] != "-Select-":
+            reprelation = data["otherDetails"]["relationship"]
 
         pin = data["pin"]
         if (data["patientIsMember"] == "dependent"):
@@ -312,7 +322,12 @@ def fill_MCA(data):
         member = "Yes" if data["patientIsMember"] == "member" else None
         dependent = "Yes" if data["patientIsMember"] == "dependent" else None
         representative = "" if not data["otherDetails"]["representative"] else data["otherDetails"]["representative"]
-        reprelation = data["otherDetails"]["relationship"] if data["otherDetails"]["relationship"] != "-Select-"  else ""
+        reprelation = ""
+
+        if data["otherDetails"]["relationship"] == "Others":
+            reprelation = data["otherDetails"]["otherRelationship"]
+        elif data["otherDetails"]["relationship"] != "-Select-":
+            reprelation = data["otherDetails"]["relationship"]
 
         data_MCA = {
             form_fields_MCA[form_fields_MCA.index("PatientName")]: patientFullName,

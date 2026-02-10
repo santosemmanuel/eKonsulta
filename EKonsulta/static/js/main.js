@@ -161,6 +161,7 @@ function buildFormData(form) {
             mobile: form.mobile.value,
             representative: form.RepOrGuardian.value.trim(),
             relationship: form.relationship.value,
+            otherRelationship: form.other_relationship.value.trim()
         }
     };
 }
@@ -187,12 +188,11 @@ function validateForm(form) {
 
         // PIN validation
         if (["pin", "dependentPin"].includes(field.name)) {
-            if (!/^\d-\d{10}-\d$/.test(field.value)) {
-                invalidate(field, "PIN format must be X-XXXXXXXXXX-X (e.g. 1-1234567890-1).");
+            if (!/^(\d{1,2}-\d{9,10}-\d|\d{11,13})$/.test(field.value)) {
+                invalidate(field, "PIN format must be XX-XXXXXXXXX-X or without dashes.");
                 return false;
             }
         }
-        
         // // Mobile number validation
         // if (field.name === "mobile") {
         //     if (!/^09\d{9}$/.test(field.value)) {
@@ -463,5 +463,40 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Run on page load (in case value already exists)
     toggleRepresentative();
+
+
+});
+
+const relationshipSelect = document.getElementById("relationshipSelect");
+const otherDiv = document.getElementById("otherRelationshipDiv");
+const repDiv = document.getElementById("repGuardianDiv");
+const relDiv = document.getElementById("relationshipDiv");
+
+relationshipSelect.addEventListener("change", function () {
+
+    if (this.value === "Others") {
+
+        // Show Others input
+        otherDiv.style.display = "block";
+
+        // Adjust column sizes
+        repDiv.classList.remove("col-md-8");
+        repDiv.classList.add("col-md-6");
+
+        relDiv.classList.remove("col-md-4");
+        relDiv.classList.add("col-md-3");
+
+    } else {
+
+        // Hide Others input
+        otherDiv.style.display = "none";
+
+        // Restore original sizes
+        repDiv.classList.remove("col-md-6");
+        repDiv.classList.add("col-md-8");
+
+        relDiv.classList.remove("col-md-3");
+        relDiv.classList.add("col-md-4");
+    }
 });
 

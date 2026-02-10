@@ -165,13 +165,13 @@
                 </div>
               </div>
               <div class="row g-2">
-                <div class="col-md-8" style="display: none">
+                <div class="col-md-8" id="repGuardianDiv" style="display: none">
                   <label class="form-label">Representative / Guardian</label>
                   <input type="text" class="form-control" name="RepOrGuardian" />
                 </div>
-                <div class="col-md-4" style="display: none">
+                <div class="col-md-4" id="relationshipDiv" style="display: none">
                   <label class="form-label">Relationship</label>
-                  <select class="form-select" name="relationship">
+                  <select class="form-select" name="relationship" id="relationshipSelect">
                     <option>-Select-</option>
                     <option>Spouse</option>
                     <option>Child</option>
@@ -179,6 +179,10 @@
                     <option>Sibling</option>
                     <option>Others</option>
                   </select>
+                </div>
+                <div class="col-md-3" id="otherRelationshipDiv" style="display: none">
+                  <label class="form-label">Please Specify</label>
+                  <input type="text" class="form-control" name="other_relationship">
                 </div>
               </div>
               <button type="submit" class="btn btn-submit w-100 mt-4 py-3">
