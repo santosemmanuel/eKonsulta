@@ -7,7 +7,8 @@ import os
 def change_scanned_pdf_color(input_pdf, output_pdf):
     # 1. Convert PDF pages to images
     print("Converting PDF to images...")
-    images = convert_from_path(input_pdf)
+    poppler_path = r'C:\poppler-25.12.0\Library\bin' 
+    images = convert_from_path(input_pdf, poppler_path=poppler_path)
     processed_images = []
 
     for i, image in enumerate(images):
@@ -43,4 +44,4 @@ def change_scanned_pdf_color(input_pdf, output_pdf):
     print("Done!")
 
 # Example usage
-change_scanned_pdf_color("PKRF,Consent, Health Screening_user_1.pdf", "output_red.pdf")
+change_scanned_pdf_color("EMPANELMENT_(MCA)_user_2.pdf", "output_red.pdf")

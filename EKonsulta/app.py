@@ -48,8 +48,8 @@ def submit_form():
     patient_data = dict(data)
     print(pretty_json_string)
 
-    clean_files([f"user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf",
-                 f"user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"])
+    # clean_files([f"user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf",
+    #              f"user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"])
 
     fill_EKAS_EPRESS_MCA(patient_data)
     fill_PKRF_CHS(patient_data)
@@ -161,7 +161,7 @@ def fill_EKAS_EPRESS_MCA(data):
         form_fields_EKAS_EPRESS_MCA = list(
             fillpdfs.get_form_fields(pdf_path).keys())
 
-        # print(form_fields_EKAS_EPRESS_MCA)
+        print(form_fields_EKAS_EPRESS_MCA)
         pin = data['pin']
         if data['patientIsMember'] == 'dependent':
             pin = data['dependentPin']
