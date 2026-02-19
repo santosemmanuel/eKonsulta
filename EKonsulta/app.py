@@ -177,9 +177,7 @@ def fill_EKAS_EPRESS_MCA(data):
             data["otherDetails"]["dob"], "%Y-%m-%d")
         formatted_date = date_object.strftime('%m-%d-%Y')
 
-        age = today.year - date_object.year - (
-            (today.month, today.day) < (date_object.month, date_object.day)
-        )
+        age = get_age_display(data["otherDetails"]["dob"])
 
         cellphoneNum = data["otherDetails"]["mobile"]
         patientMiddleName = (
@@ -237,10 +235,8 @@ def fill_PKRF_CHS(data):
         date_object = datetime.strptime(
             data["otherDetails"]["dob"], "%Y-%m-%d")
         formatted_date = date_object.strftime('%m-%d-%Y')
-
-        age = today.year - date_object.year - (
-            (today.month, today.day) < (date_object.month, date_object.day)
-        )
+        
+        age = get_age_display(data["otherDetails"]["dob"])
 
         gender = data["otherDetails"]['sex']
         patientMiddleName = (
@@ -322,10 +318,6 @@ def fill_MCA(data):
             data["otherDetails"]["dob"], "%Y-%m-%d")
         formatted_date = date_object.strftime('%m-%d-%Y')
 
-        age = today.year - date_object.year - (
-            (today.month, today.day) < (date_object.month, date_object.day)
-        )
-
         cellphoneNum = data["otherDetails"]["mobile"]
         patientMiddleName = (
             data["personalInfo"]["middleName"][0]
@@ -361,6 +353,31 @@ def fill_MCA(data):
     except Exception as e:
         print(f"This is the error {e}")
 
+def get_age_display(dob_string, format="%Y-%m-%d"):
+    """
+    Returns age in days, months, or years+months.
+    Example input: '2025-09-10'
+    """
+
+    dob = datetime.strptime(dob_string, format).date()
+    today = date.today()
+
+    total_months = (today.year - dob.year) * 12 + (today.month - dob.month)
+
+    if today.day < dob.day:
+        total_months -= 1
+
+    years = total_months // 12
+    months = total_months % 12
+
+    # --- Medical-friendly display ---
+    if years == 0 and months == 0:
+        days = (today - dob).days
+        return f"{days} day(s) old"
+    elif years == 0:
+        return f"{months} month(s)"
+    else:
+        return years
 
 def clean_files(file_list):
     for f in file_list:
