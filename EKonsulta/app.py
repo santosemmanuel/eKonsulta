@@ -153,6 +153,13 @@ def submit_form():
 
 
 def fill_EKAS_EPRESS_MCA(data):
+
+    philhealth = "✅" if data['transactionInfo']['philhealth'] == True else "❌"
+    philsys = "✅" if data['transactionInfo']['philsys'] == True else "❌"
+    pcu = "PCU Verification Failed"
+    if data['transactionInfo']['transactionNumber'] != '':
+        pcu = f"PCU Transaction Number: {data['transactionInfo']['transactionNumber']} \t\t PhilHealth: {philhealth} \t PhilSys: {philsys}"
+    
     try:
         pdf_path = os.path.join(
             current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/template/EKAS,EPRESS,MCA_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
@@ -208,7 +215,8 @@ def fill_EKAS_EPRESS_MCA(data):
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index(
                 "DatePerformed")]: f"{today.month:02}/{today.day:02}/{today.year}",
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Representative")]: representative,
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("RepRelation")]: reprelation
+            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("RepRelation")]: reprelation,
+            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("PCU")]: pcu
         }
 
         fillpdfs.write_fillable_pdf(
@@ -292,6 +300,13 @@ def fill_PKRF_CHS(data):
 
 def fill_MCA(data):
     try:
+
+        philhealth = "✅" if data['transactionInfo']['philhealth'] == True else "❌"
+        philsys = "✅" if data['transactionInfo']['philsys'] == True else "❌"
+        pcu = "PCU Verification Failed"
+        if data['transactionInfo']['transactionNumber'] != '':
+            pcu = f"PCU Transaction Number: {data['transactionInfo']['transactionNumber']} \t\t PhilHealth: {philhealth} \t PhilSys: {philsys}"
+
         pdf_path = os.path.join(
             current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/template/EMPANELMENT_(MCA)_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
         output_pdf = os.path.join(
@@ -338,6 +353,7 @@ def fill_MCA(data):
             form_fields_MCA[form_fields_MCA.index("BenefitYear1")]: today.year - 1,
             form_fields_MCA[form_fields_MCA.index("Representative")]: representative,
             form_fields_MCA[form_fields_MCA.index("RepRelation")]: reprelation,
+            form_fields_MCA[form_fields_MCA.index("PCU")]: pcu
         }
 
         fillpdfs.write_fillable_pdf(

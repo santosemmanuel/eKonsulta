@@ -56,6 +56,15 @@
                 </a>
               {% endif %}
             </li>
+            <li class="nav-item">
+              <div class="form-check form-switch mt-2">
+                <input class="form-check-input switch-lg"
+                       type="checkbox"
+                       id="featureToggle"
+                       {{ "checked" if feature_enabled else "" }}>
+                <label class="form-check-label ms-3 text-white" for="featureToggle">Blue Text</label>
+              </div>
+            </li>
           </ul>
         </div>
       </div>
@@ -85,10 +94,12 @@
               <div class="row g-3">
                 <div class="col-md-4">
                   <label class="form-label">Member's PIN</label>
-                  <div class="input-group">
+                  <div class="input-group input-group-sm">
                     <input type="text" class="form-control" name="pin" id="pinInput" />
                     <div class="input-group-append">
-                      <button class="btn btn-outline-secondary" type="button" id="checkPinBtn">
+                      <button class="btn btn-outline-secondary btn-sm"
+                              type="button"
+                              id="checkPinBtn">
                         <li class="fa-solid fa-magnifying-glass"></li>
                       </button>
                     </div>
@@ -96,7 +107,7 @@
                 </div>
                 <div id="DependentPIN" class="col-md-4 d-none">
                   <label class="form-label" id="DependentPINText">Dependent's PIN</label>
-                  <input type="text" class="form-control" name="dependentPin" />
+                  <input type="text" class="form-control form-control-sm" name="dependentPin" />
                 </div>
               </div>
               <hr />
@@ -107,19 +118,19 @@
               <div class="row g-2 personal-info">
                 <div class="col-md-4">
                   <label class="form-label">Last Name</label>
-                  <input type="text" class="form-control" name="lastName" />
+                  <input type="text" class="form-control form-control-sm" name="lastName" />
                 </div>
                 <div class="col-md-4">
                   <label class="form-label">First Name</label>
-                  <input type="text" class="form-control" name="firstName" />
+                  <input type="text" class="form-control form-control-sm" name="firstName" />
                 </div>
                 <div class="col-md-3">
                   <label class="form-label">Middle Name</label>
-                  <input type="text" class="form-control" name="middleName" />
+                  <input type="text" class="form-control form-control-sm" name="middleName" />
                 </div>
                 <div class="col-md-1">
                   <label class="form-label">Ext</label>
-                  <input type="text" class="form-control" name="nameExt" />
+                  <input type="text" class="form-control form-control-sm" name="nameExt" />
                 </div>
               </div>
               <hr />
@@ -130,13 +141,15 @@
               <div class="row g-2">
                 <div class="col-md-6">
                   <label class="form-label">Municipality</label>
-                  <select class="form-select" id="municipality" name="municipality">
+                  <select class="form-select form-select-sm"
+                          id="municipality"
+                          name="municipality">
                     <option value="">Choose Municipality...</option>
                   </select>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Barangay</label>
-                  <select class="form-select" name="barangay" id="barangay">
+                  <select class="form-select form-select-sm" name="barangay" id="barangay">
                     <option value="">Choose barangay...</option>
                   </select>
                 </div>
@@ -149,15 +162,15 @@
               <div class="row g-2 mb-2">
                 <div class="col-md-4">
                   <label class="form-label">Date of Birth</label>
-                  <input type="date" class="form-control" name="dob" />
+                  <input type="date" class="form-control form-control-sm" name="dob" />
                 </div>
                 <div class="col-md-4">
                   <label class="form-label">Contact Number</label>
-                  <input type="text" class="form-control" name="mobile" />
+                  <input type="text" class="form-control form-control-sm" name="mobile" />
                 </div>
                 <div class="col-md-4">
                   <label class="form-label">Gender</label>
-                  <select class="form-select" name="sex">
+                  <select class="form-select form-select-sm" name="sex">
                     <option value="">Select</option>
                     <option>Male</option>
                     <option>Female</option>
@@ -167,11 +180,13 @@
               <div class="row g-2">
                 <div class="col-md-8" id="repGuardianDiv" style="display: none">
                   <label class="form-label">Representative / Guardian</label>
-                  <input type="text" class="form-control" name="RepOrGuardian" />
+                  <input type="text" class="form-control form-control-sm" name="RepOrGuardian" />
                 </div>
                 <div class="col-md-4" id="relationshipDiv" style="display: none">
                   <label class="form-label">Relationship</label>
-                  <select class="form-select" name="relationship" id="relationshipSelect">
+                  <select class="form-select form-select-sm"
+                          name="relationship"
+                          id="relationshipSelect">
                     <option>-Select-</option>
                     <option>Spouse</option>
                     <option>Child</option>
@@ -182,7 +197,39 @@
                 </div>
                 <div class="col-md-3" id="otherRelationshipDiv" style="display: none">
                   <label class="form-label">Please Specify</label>
-                  <input type="text" class="form-control" name="other_relationship">
+                  <input type="text"
+                         class="form-control form-control-sm"
+                         name="other_relationship">
+                </div>
+              </div>
+              <hr />
+              <h6 class="text-muted mb-2">
+                <i class="fa-solid fa-users-viewfinder me-2"></i>Philhealth Check Utility
+              </h6>
+              <div class="row g-2 mb-2">
+                <div class="col-md-8">
+                  <label class="form-label">Transaction Number</label>
+                  <input type="text"
+                         class="form-control form-control-sm"
+                         name="transactionNumber" />
+                </div>
+                <div class="col-md-2">
+                  <div class="form-check mt-4">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           value="hasPhilhealth"
+                           id="checkPhilhealth">
+                    <label class="form-check-label" for="checkDefault">Philhealth</label>
+                  </div>
+                </div>
+                <div class="col-md-1">
+                  <div class="form-check mt-4">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           value="hasPhilhealth"
+                           id="checkPhilsys">
+                    <label class="form-check-label" for="checkDefault">Philsys</label>
+                  </div>
                 </div>
               </div>
               <button type="submit" class="btn btn-submit w-100 mt-4 py-3">
@@ -199,13 +246,6 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
               <ul class="nav nav-pills" id="pdfTabNav">
               </ul>
-              <div class="form-check form-switch">
-                <input class="form-check-input switch-lg"
-                       type="checkbox"
-                       id="featureToggle"
-                       {{ "checked" if feature_enabled else "" }}>
-                <label class="form-check-label ms-3" for="featureToggle">Blue Text</label>
-              </div>
             </div>
             <div class="tab-content mt-3" id="pdfTabContent"></div>
           </div>

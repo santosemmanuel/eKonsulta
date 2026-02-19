@@ -134,6 +134,10 @@ function buildFormData(form) {
         "input[name='patientIsMember']:checked"
     ).value;
 
+    const transactionNumber = form.transactionNumber?.value.trim() || "";
+    const philhealthChecked = document.querySelector("#checkPhilhealth")?.checked || false;
+    const philsysChecked = document.querySelector("#checkPhilsys")?.checked || false;
+
     return {
         patientIsMember: memberType,
 
@@ -162,7 +166,13 @@ function buildFormData(form) {
             representative: form.RepOrGuardian.value.trim(),
             relationship: form.relationship.value,
             otherRelationship: form.other_relationship.value.trim()
-        }
+        },
+        
+        transactionInfo: {
+            transactionNumber: transactionNumber,
+            philhealth: philhealthChecked,
+            philsys: philsysChecked
+        },
     };
 }
 
@@ -171,6 +181,9 @@ function validateForm(form) {
     clearErrors(form);
 
     const fields = form.querySelectorAll("input, select, textarea");
+    const transactionInput = form.querySelector('[name="transactionNumber"]');
+    const philhealthChecked = form.querySelector('#checkPhilhealth')?.checked;
+    const philsysChecked = form.querySelector('#checkPhilsys')?.checked;
 
     for (let field of fields) {
 
@@ -179,6 +192,9 @@ function validateForm(form) {
 
         // Skip hidden or disabled
         if (field.disabled || !isVisible(field)) continue;
+        
+        // ⭐ Skip Transaction Number in normal required check
+        if (field.name === "transactionNumber") continue;
 
         // Required check
         if (!field.value || field.value.trim() === "") {
@@ -209,6 +225,16 @@ function validateForm(form) {
                 return false;
             }
         }
+    }
+
+    if (philhealthChecked || philsysChecked) {
+        if (!transactionInput.value || transactionInput.value.trim() === "") {
+            invalidate(transactionInput,
+                "Transaction Number is required when Philhealth or Philsys is checked."
+            );
+            return false;
+        }
+
     }
 
     return true;
