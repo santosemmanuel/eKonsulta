@@ -6,6 +6,7 @@ from pdf2image import convert_from_path
 import os
 import json
 import mysql.connector
+import sqlite3
 # import cv2
 # import numpy as np
 from dotenv import load_dotenv
@@ -56,13 +57,13 @@ def submit_form():
     fill_MCA(patient_data)
 
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     user_id = session.get('user_id')
 
     try:
         # 🔍 CHECK IF dependent_pin EXISTS
         cursor.execute(
-            "SELECT id FROM patients WHERE dependent_pin = %s or pin = %s",
+            "SELECT id FROM patients WHERE dependent_pin = ? OR pin = ?",
             (patient_data["dependentPin"], patient_data["pin"])
         )
 
@@ -72,8 +73,9 @@ def submit_form():
             # 🆕 INSERT NEW RECORD
             insert_query = """
                 INSERT INTO patients (patient_is_member, pin, dependent_pin, created_at)
-                VALUES (%s, %s, %s, %s)
+                VALUES (?, ?, ?, ?)
             """
+
             cursor.execute(
                 insert_query,
                 (
@@ -91,7 +93,7 @@ def submit_form():
                 INSERT INTO personal_info
                 (patient_id, last_name, first_name, middle_name, name_ext,
                 date_of_birth, sex, mobile)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 patient_id,
                 patient_data["personalInfo"]["lastName"],
@@ -107,47 +109,61 @@ def submit_form():
             cursor.execute("""
                 INSERT INTO addresses
                 (patient_id, municipality, barangay)
-                VALUES (%s, %s, %s)
+                VALUES (?, ?, ?)
             """, (
                 patient_id,
                 patient_data["address"]["municipality"],
                 patient_data["address"]["barangay"]
             ))
 
-            insert_masterPatient_query = """INSERT INTO patients_master (user_id, patient_id, date_created)
-                    VALUES (%s, %s, %s)
-                """
-            cursor.execute(insert_masterPatient_query,
-                           (user_id, patient_id, datetime.now()))
+            insert_masterPatient_query = """
+                INSERT INTO patients_master (user_id, patient_id, date_created)
+                VALUES (?, ?, ?)
+            """
+
+            cursor.execute(
+                insert_masterPatient_query,
+                (user_id, patient_id, datetime.now())
+            )
+
             conn.commit()
+
         else:
 
-            patient_master = """SELECT id 
+            patient_master = """
+                SELECT id 
                 FROM patients_master 
-                WHERE patient_id = %s 
-                AND date_created >= CURDATE() 
-                AND date_created < CURDATE() + INTERVAL 1 DAY"""
-            cursor.execute(patient_master,
-                           (existing_patient['id'],)
-                           )
+                WHERE patient_id = ?
+                AND date(date_created) = date('now')
+            """
+
+            cursor.execute(
+                patient_master,
+                (existing_patient['id'],)
+            )
 
             existing_patient_master = cursor.fetchone()
 
             if not existing_patient_master:
-                insert_query = """INSERT INTO patients_master (user_id, patient_id, date_created)
-                    VALUES (%s, %s, %s)
+                insert_query = """
+                    INSERT INTO patients_master (user_id, patient_id, date_created)
+                    VALUES (?, ?, ?)
                 """
-                cursor.execute(
-                    insert_query, (user_id, existing_patient['id'], datetime.now()))
-            conn.commit()
 
-    except mysql.connector.Error as err:
+                cursor.execute(
+                    insert_query,
+                    (user_id, existing_patient['id'], datetime.now())
+                )
+
+        conn.commit()
+
+    except sqlite3.Error as err:
         print(f"Error: {err}")
         return jsonify({"status": "error", "message": "Database query failed"}), 500
+
     finally:
         cursor.close()
         conn.close()
-
 
     return jsonify({"status": "success", "message": "Form received"})
 
@@ -549,10 +565,13 @@ def login():
         password = request.form.get("password")
 
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
 
-        cursor.execute(
-            "SELECT * FROM users WHERE username=%s AND password=%s", (username, password))
+        query = "SELECT * FROM users WHERE username=? AND password=?"
+        if os.getenv("USE_SQLITE") == 1:
+            query = "SELECT * FROM users WHERE username=%s AND password=%s"
+
+        cursor.execute(query, (username, password))
         user = cursor.fetchone()
 
         if user:
