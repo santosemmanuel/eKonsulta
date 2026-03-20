@@ -18,6 +18,7 @@ app.secret_key = "MHOBurauen"
 load_dotenv()
 today = datetime.now(ZoneInfo("Asia/Manila")).date()
 
+
 def check_form_version(ses):
     return ".1" if ses else ""
 
@@ -170,12 +171,12 @@ def submit_form():
 
 def fill_EKAS_EPRESS_MCA(data):
 
-    philhealth = "✅" if data['transactionInfo']['philhealth'] == True else "❌"
-    philsys = "✅" if data['transactionInfo']['philsys'] == True else "❌"
+    philhealth = "✔" if data['transactionInfo']['philhealth'] == True else "✘"
+    philsys = "✔" if data['transactionInfo']['philsys'] == True else "✘"
     pcu = "PCU Verification Failed"
     if data['transactionInfo']['transactionNumber'] != '':
         pcu = f"PCU Transaction Number: {data['transactionInfo']['transactionNumber']} \t\t PhilHealth: {philhealth} \t PhilSys: {philsys}"
-    
+
     try:
         pdf_path = os.path.join(
             current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/template/EKAS,EPRESS,MCA_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
@@ -185,6 +186,7 @@ def fill_EKAS_EPRESS_MCA(data):
             fillpdfs.get_form_fields(pdf_path).keys())
 
         print(form_fields_EKAS_EPRESS_MCA)
+        initials = session.get("initials")
         pin = data['pin']
         if data['patientIsMember'] == 'dependent':
             pin = data['dependentPin']
@@ -207,7 +209,7 @@ def fill_EKAS_EPRESS_MCA(data):
         dependent = "Yes" if data["patientIsMember"] == "dependent" else None
         representative = "" if not data["otherDetails"]["representative"] else data["otherDetails"]["representative"]
         reprelation = ""
-        
+
         if data["otherDetails"]["relationship"] == "Others":
             reprelation = data["otherDetails"]["otherRelationship"]
         elif data["otherDetails"]["relationship"] != "-Select-":
@@ -230,7 +232,10 @@ def fill_EKAS_EPRESS_MCA(data):
                 "DatePerformed")]: f"{today.month:02}/{today.day:02}/{today.year}",
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Representative")]: representative,
             form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("RepRelation")]: reprelation,
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("PCU")]: pcu
+            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index(
+                "PCU")]: pcu,
+            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index(
+                "UserInitial")]: initials
         }
 
         fillpdfs.write_fillable_pdf(
@@ -251,7 +256,7 @@ def fill_PKRF_CHS(data):
         date_object = datetime.strptime(
             data["otherDetails"]["dob"], "%Y-%m-%d")
         formatted_date = date_object.strftime('%m-%d-%Y')
-        
+        initials = session.get('initials')
         age = get_age_display(data["otherDetails"]["dob"])
 
         gender = data["otherDetails"]['sex']
@@ -267,7 +272,7 @@ def fill_PKRF_CHS(data):
         barangay = data["address"]["barangay"]
         representative = "" if not data["otherDetails"]["representative"] else data["otherDetails"]["representative"]
         reprelation = ""
-        
+
         if data["otherDetails"]["relationship"] == "Others":
             reprelation = data["otherDetails"]["otherRelationship"]
         elif data["otherDetails"]["relationship"] != "-Select-":
@@ -302,7 +307,10 @@ def fill_PKRF_CHS(data):
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Age")]: age,
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Gender")]: gender,
             form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Representative")]: representative,
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("RepRelation")]: reprelation
+            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index(
+                "RepRelation")]: reprelation,
+            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index(
+                "UserInitial")]: initials
         }
 
         fillpdfs.write_fillable_pdf(pdf_path, output_pdf, data_PKRF_CHS)
@@ -313,8 +321,8 @@ def fill_PKRF_CHS(data):
 def fill_MCA(data):
     try:
 
-        philhealth = "✅" if data['transactionInfo']['philhealth'] == True else "❌"
-        philsys = "✅" if data['transactionInfo']['philsys'] == True else "❌"
+        philhealth = "✔" if data['transactionInfo']['philhealth'] == True else "✘"
+        philsys = "✔" if data['transactionInfo']['philsys'] == True else "✘"
         pcu = "PCU Verification Failed"
         if data['transactionInfo']['transactionNumber'] != '':
             pcu = f"PCU Transaction Number: {data['transactionInfo']['transactionNumber']} \t\t PhilHealth: {philhealth} \t PhilSys: {philsys}"
@@ -326,6 +334,8 @@ def fill_MCA(data):
         form_fields_MCA = list(
             fillpdfs.get_form_fields(pdf_path).keys())
         # print(form_fields_EKAS_EPRESS_MCA)
+
+        initials = session.get("initials")
         pin = data['pin']
         if data['patientIsMember'] == 'dependent':
             pin = data['dependentPin']
@@ -361,13 +371,15 @@ def fill_MCA(data):
             form_fields_MCA[form_fields_MCA.index("BenefitYear1")]: today.year - 1,
             form_fields_MCA[form_fields_MCA.index("Representative")]: representative,
             form_fields_MCA[form_fields_MCA.index("RepRelation")]: reprelation,
-            form_fields_MCA[form_fields_MCA.index("PCU")]: pcu
+            form_fields_MCA[form_fields_MCA.index("PCU")]: pcu,
+            form_fields_MCA[form_fields_MCA.index("UserInitial")]: initials
         }
 
         fillpdfs.write_fillable_pdf(
             pdf_path, output_pdf, data_MCA, flatten=False)
     except Exception as e:
         print(f"This is the error {e}")
+
 
 def get_age_display(dob_string, format="%Y-%m-%d"):
     """
@@ -394,6 +406,7 @@ def get_age_display(dob_string, format="%Y-%m-%d"):
         return f"{months} month(s)"
     else:
         return years
+
 
 def clean_files(file_list):
     for f in file_list:
@@ -558,6 +571,12 @@ def getFemaleCount():
     return result
 
 
+def get_initials(full_name):
+    words = full_name.split()
+    initials = [word[0].upper() for word in words if word]
+    return ".".join(initials)
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -574,9 +593,12 @@ def login():
         cursor.execute(query, (username, password))
         user = cursor.fetchone()
 
+        name = user["firstName"] + " " + user["lastName"]
+
         if user:
             session["user_id"] = user['id']
-            session["user"] = user['name']
+            session["user"] = user["firstName"]
+            session["initials"] = get_initials(name)
             session["position"] = user["position"]
             flash("Login successful!", "success")
             return redirect(url_for("index"))
