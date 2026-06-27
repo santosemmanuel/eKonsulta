@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>EKonsulta Forms</title>
+        <link href="{{ url_for('static', filename='css/all.min.css') }}"
+              rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}"
+              rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/styles.css') }}"
+              rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/toastr.css') }}"
+              rel="stylesheet">
+        <link rel="icon" href="{{ url_for('static', filename='img/MHOBurauen.ico') }}">
+               <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .login-card {
+            max-width: 450px;
+            margin: 50px auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .card-header-custom {
+            background-color: var(--green);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #dee2e6;
+            color: white;
+        }
+        .card-header-custom img {
+            width: 40px;
+            height: 40px;
+        }
+        .card-header-custom .title {
+            font-weight: bold;
+            line-height: 1.2;
+             font-size: 1.3rem; /* slightly bigger title */
+        }
+        .card-header-custom .title small {
+            display: block;
+            font-size: 0.7rem;
+            color: whtie;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .card-header-custom img {
+    background-color: transparent; /* ensure no CSS background */
+    border-radius: 50%; /* optional: make it circular */
+}
+    </style>
+    </head>
+    <body>
+
+        <!-- MAIN CONTENT -->
+        <div class="container-fluid py-4">
+            <center>
+              <img src="{{ url_for('static', filename='img/IT Department.png') }}"
+               style="width: 40%; height: 40%"/>
+               <h1> eKonsulta forms web app is under <strong>Maintenance</strong></h1>
+                <p>Please wait for further notice thank you!</p>
+            </center>
+          <div>
+        </div>
+       
+    </body>
+</html>

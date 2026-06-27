@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EKonsulta Forms</title>
+    <link href="{{ url_for('static', filename='css/all.min.css') }}"
+          rel="stylesheet" />
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}"
+          rel="stylesheet" />
+    <link href="{{ url_for('static', filename='css/styles.css') }}"
+          rel="stylesheet" />
+    <link href="{{ url_for('static', filename='css/toastr.css') }}"
+          rel="stylesheet" />
+    <link rel="icon"
+          href="{{ url_for('static', filename='img/MHOBurauen.ico') }}" />
+    <style>
+         video {
+        width: 100%;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+      }
+
+      .id-overlay {
+        position: absolute;
+
+        top: 50%;
+        left: 50%;
+
+        width: 320px;
+        height: 200px;
+
+        transform: translate(-50%, -50%);
+
+        border: 4px dashed #00ff00;
+
+        border-radius: 15px;
+
+        box-sizing: border-box;
+
+        pointer-events: none;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+
+        text-shadow:
+          0 0 5px black,
+          0 0 10px black;
+      }
+      .preview-col {
+        max-width: 200px;
+      }
+      /* smaller modal dialog */
+      .modal-dialog.capture-modal {
+        max-width: 520px;
+      }
+
+      .camera-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: #000;
+    overflow: hidden;
+}
+
+#modalVideo {
+    width: 100%;
+    height: auto;
+
+    max-height: 70vh;
+
+    object-fit: contain;
+
+    display: block;
+}
+    </style>
+  </head>
+  <body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-mho shadow-sm">
+      <div class="container-fluid px-4">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+          <img src="{{ url_for('static', filename='img/MHO_Logo.jpg') }}"
+               class="mho-logo mr-2" />
+          <div>
+            <i class="fa-solid fa-notes-medical me-1"></i>eKonsultaForms
+            <small>Electronic Konsulta Forms Processing System</small>
+          </div>
+        </a>
+        <!-- Hamburger button for small screens -->
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarMenu"
+                aria-controls="navbarMenu"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- Collapsible menu -->
+        <div class="collapse navbar-collapse" id="navbarMenu">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link text-white" href="{{ url_for('index') }}">
+                <i class="fa-solid fa-house me-1"></i>Home  | </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white" href="{{ url_for('registration') }}">
+                <i class="fa-solid fa-file-pen me-1"></i>CEC Registration  | </a>
+            </li>
+            <li class="nav-item">
+              <div class="form-check form-switch mt-2">
+                <input class="form-check-input switch-lg"
+                       type="checkbox"
+                       id="featureToggle"
+                       {{ "checked" if feature_enabled else "" }}>
+                <label class="form-check-label ms-3 text-white" for="featureToggle">Blue Text</label>
+              </div>
+            </li>
+            <li class="nav-item dropdown">
+          <a class="nav-link text-white dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            | <i class="fa-solid fa-user me-1 ms-1"></i> {{ user }}
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ url_for("logout") }}">
+              <i class="fa-solid fa-right-to-bracket me-1"></i> Logout</a>
+            </li>
+            <li><a class="dropdown-item" href="#">Settings</a></li>
+            <li><a class="dropdown-item" href="#">Profile</a></li>
+          </ul>
+        </li>
+            
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <!-- MAIN CONTENT -->
+    <div class="container-fluid py-4">
+        <div class="row g-4">
+            <!-- LEFT: FORM -->
+            <div class="col-lg-6">
+            <div class="form-card">
+                <form id="cecregistrationForm" novalidate>
+                <!-- OPTION -->
+                <div class="toggle-box mb-3">
+                    <label>
+                    <input type="radio" name="patientIsMember" checked value="member" />
+                    <span>
+                        <i class="fa-solid fa-user me-2" style="font-size: 20px"></i>Member
+                    </span>
+                    </label>
+                    <label>
+                    <input type="radio" name="patientIsMember" value="dependent" />
+                    <span>
+                        <i class="fa-solid fa-user-group me-2" style="font-size: 20px"></i>Dependent
+                    </span>
+                    </label>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                    <label class="form-label">Member's PIN</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control" name="pin" id="pinInput" />
+                        <!-- <div class="input-group-append">
+                        <button class="btn btn-outline-secondary btn-sm"
+                                type="button"
+                                id="checkPinBtn">
+                            <li class="fa-solid fa-magnifying-glass"></li>
+                        </button>
+                        </div> -->
+                    </div>
+                    </div>
+                    <div id="DependentPIN" class="col-md-4 d-none">
+                    <label class="form-label" id="DependentPINText">Dependent's PIN</label>
+                    <input type="text" class="form-control form-control-sm" name="dependentPin" />
+                    </div>
+                </div>
+                <hr />
+                <h6 class="text-muted mb-2">
+                    <i class="fa-solid fa-user me-2"></i>Personal Information
+                </h6>
+                <!-- FULL NAME -->
+                <div class="row g-2 personal-info">
+                    <div class="col-md-4">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" class="form-control form-control-sm" name="lastName" />
+                    </div>
+                    <div class="col-md-4">
+                    <label class="form-label">First Name</label>
+                    <input type="text" class="form-control form-control-sm" name="firstName" />
+                    </div>
+                    <div class="col-md-3">
+                    <label class="form-label">Middle Name</label>
+                    <input type="text" class="form-control form-control-sm" name="middleName" />
+                    </div>
+                    <div class="col-md-1">
+                    <label class="form-label">Ext</label>
+                    <input type="text" class="form-control form-control-sm" name="nameExt" />
+                    </div>
+                </div>
+                <hr />
+                <!-- ADDRESS -->
+                <h6 class="text-muted mb-2">
+                    <i class="fa-solid fa-location-dot me-2"></i>Address
+                </h6>
+                <div class="row g-2">
+                    <div class="col-md-6">
+                    <label class="form-label">Municipality</label>
+                    <select class="form-select form-select-sm"
+                            id="municipality"
+                            name="municipality">
+                        <option value="">Choose Municipality...</option>
+                    </select>
+                    </div>
+                    <div class="col-md-6">
+                    <label class="form-label">Barangay</label>
+                    <select class="form-select form-select-sm" name="barangay" id="barangay">
+                        <option value="">Choose barangay...</option>
+                    </select>
+                    </div>
+                </div>
+                <hr />
+                <!-- OTHER DETAILS -->
+                <h6 class="text-muted mb-2">
+                    <i class="fa-solid fa-id-card me-2"></i>Other Details
+                </h6>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-4">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" class="form-control form-control-sm" name="dob" />
+                    </div>
+                    <div class="col-md-4">
+                    <label class="form-label">Contact Number</label>
+                    <input type="text" class="form-control form-control-sm" name="mobile" />
+                    </div>
+                    <div class="col-md-4">
+                    <label class="form-label">Gender</label>
+                    <select class="form-select form-select-sm" name="sex">
+                        <option value="">Select</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                    </select>
+                    </div>
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-8" id="repGuardianDiv" style="display: none">
+                    <label class="form-label">Representative / Guardian</label>
+                    <input type="text" class="form-control form-control-sm" name="RepOrGuardian" />
+                    </div>
+                    <div class="col-md-4" id="relationshipDiv" style="display: none">
+                    <label class="form-label">Relationship</label>
+                    <select class="form-select form-select-sm"
+                            name="relationship"
+                            id="relationshipSelect">
+                        <option>-Select-</option>
+                        <option>Spouse</option>
+                        <option>Child</option>
+                        <option>Parent</option>
+                        <option>Sibling</option>
+                        <option>Others</option>
+                    </select>
+                    </div>
+                    <div class="col-md-3" id="otherRelationshipDiv" style="display: none">
+                    <label class="form-label">Please Specify</label>
+                    <input type="text"
+                            class="form-control form-control-sm"
+                            name="other_relationship">
+                    </div>
+                </div>
+                <hr />
+                <h6 class="text-muted mb-2">
+                    <i class="fa-solid fa-users-viewfinder me-2"></i>Philhealth Check Utility
+                </h6>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                    <label class="form-label">Transaction Number</label>
+                    <input type="text"
+                            class="form-control form-control-sm"
+                            name="transactionNumber" />
+                    </div>
+                    <div class="col-md-6">
+                    <label class="form-label">Attachment</label>
+                        <select class="form-select form-select-sm" id="attachment">
+                            <option value="with_attachment">Valid ID</option>
+                            <option value="without_attachment">Non-ID Identity Documents</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-3">
+                      <div class="form-check mt-4">
+                          <input class="form-check-input"
+                                type="checkbox"
+                                value="forTransfer"
+                                id="checkTransfer">
+                          <label class="form-check-label" for="checkTransfer">
+                              For Transfer
+                          </label>
+                      </div>
+                  </div>
+
+                  <div class="col-md-9 d-none" id="previousPCCContainer">
+                      <label class="form-label">Previous PCC</label>
+                      <input type="text"
+                            class="form-control form-control-sm"
+                            name="PreviousPCC" />
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-submit w-100 mt-4 py-3">
+                    <i class="fa-solid fa-paper-plane me-2"></i>
+                    SUBMIT
+                </button>
+                </form>
+            </div>
+            </div>
+
+            <div class="col-lg-6">
+              
+                <div class="pdf-card p-4">
+                  <button type="button" class="btn btn-secondary" data-bs-toggle="modal" id="pdfButton" >
+                    PDF'S PREVIEW
+                  </button><hr>
+
+                  <div id="idCapture">
+                    <div class="d-flex justify-content-between">
+                        <h5>Front ID Preview</h5>
+                        <button class="btn btn-submit p-3" onclick="openCapture('front')">
+                            Capture Front
+                        </button>
+                    </div>
+                    <img id="frontPreview" class="img-fluid" style="width:70%" />
+                    <div class="d-flex justify-content-between">
+                        <h5 class="mt-3">Back ID Preview</h5>
+                      <button class="btn btn-submit p-3" onclick="openCapture('back')">
+                          Capture Back
+                      </button>
+                    </div>
+                    <img id="backPreview" class="img-fluid" style="width:70%"/>    
+                  </div>
+                  <div id="BCCapture" style="display: none">
+                    <div class="d-flex justify-content-between">
+                        <h5>Birth Certificate Preview</h5>
+                        <button class="btn btn-submit p-3" onclick="openCapture('birthCertificate', 'bith_certificate')">
+                            Capture
+                        </button>
+                    </div>
+                    <img id="birthCertificatePreview" class="img-fluid" style="width:70%" />
+                  </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="captureModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered capture-modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="captureModalLabel">Capture</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="camera-container">
+              <video
+                id="modalVideo"
+                autoplay
+                playsinline
+                muted
+                style="max-height: 360px"
+              ></video>
+              <div class="id-overlay">
+                <span>Place ID Here</span>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button type="button" class="btn btn-primary" id="modalCaptureBtn">
+              Capture
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="captureModal2" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered capture-modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="captureModalLabel2">Capture</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="camera-container">
+              <video
+                id="modalVideo2"
+                autoplay
+                playsinline
+                muted
+              ></video>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button type="button" class="btn btn-primary" id="modalCaptureBtn2">
+              Capture
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDF VIEWER MODAL -->
+    <div class="modal fade" id="pdfViewerModal" tabindex="-1" aria-labelledby="pdfViewerLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl" style="max-height: 90vh;">
+        <div class="modal-content" style="height: 85vh; display: flex; flex-direction: column;">
+
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="pdfViewerLabel">
+                    <i class="fa-solid fa-file-pdf me-2"></i>Generated Forms
+                </h5>
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="px-3 pt-3">
+                <ul class="nav nav-tabs" id="pdfTabs">
+                    <li class="nav-item">
+                        <button class="nav-link active pdf-tab"
+                                data-title="PCSF"
+                                data-pdf="{{ pdf_file }}">
+                            <i class="fa-solid fa-file-pdf"></i> PCSF
+                        </button>
+                    </li>
+
+                    <li class="nav-item">
+                        <button class="nav-link pdf-tab"
+                                data-title="FPE"
+                                data-pdf="{{ fpe_file }}">
+                            <i class="fa-solid fa-file-pdf"></i> FPE
+                        </button>
+                    </li>
+
+                    <li class="nav-item">
+                        <button class="nav-link pdf-tab"
+                                data-title="EKASS, EPRESS"
+                                data-pdf="{{ ekass_epress }}">
+                            <i class="fa-solid fa-file-pdf"></i> EKASS EPRESS
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="modal-body flex-grow-1 p-0">
+
+                <iframe id="pdfFrame"
+                        src=""
+                        style="width:100%; height:100%; border:none; display:none;">
+                </iframe>
+
+                <div id="pdfLoader"
+                     class="d-flex justify-content-center align-items-center"
+                     style="height:100%;">
+                    <div class="spinner-border text-primary"></div>
+                </div>
+
+            </div>
+
+          </div>
+      </div>
+    </div>
+</div>
+
+    <canvas id="canvas" style="display: none"></canvas>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+   
+    <script>
+      let frontImage = null;
+      let backImage = null;
+      let currentTarget = null; // 'front' or 'back'
+      let stream = null;
+      let birthCertificateImage = null; // NEW
+      let bsModal = null;
+      let captureMode = "id";
+      let streamInstance = null;
+
+      const modalEl = document.getElementById("captureModal");
+      const modalEl2 = document.getElementById("captureModal2");
+      const modalVideo = document.getElementById("modalVideo");
+      const modalVideo2 = document.getElementById("modalVideo2");
+      const modalCaptureBtn = document.getElementById("modalCaptureBtn");
+      const modalCaptureBtn2 = document.getElementById("modalCaptureBtn2");
+
+      document.addEventListener("DOMContentLoaded", () => {
+        bsModal = new bootstrap.Modal(modalEl);
+        bsModal2 = new bootstrap.Modal(modalEl2)
+
+        modalEl.addEventListener("hidden.bs.modal", () => {
+          stopStream();
+        });
+
+        modalCaptureBtn.addEventListener("click", () => {
+          captureFromModal();
+        });
+
+         modalEl2.addEventListener("hidden.bs.modal", () => {
+          stopStream();
+        });
+
+        modalCaptureBtn2.addEventListener("click", () => {
+          captureFullDocument();
+        });
+      });
+
+      function openCapture(target, mode="id") {
+        currentTarget = target; // 'front' or 'back'
+        
+        if (target === "front") {
+          document.getElementById("captureModalLabel").textContent = "Capture Front ID";
+          document.querySelector(".id-overlay").style.display = "block";
+          bsModal.show();
+          startCamera();
+        } else if (target === "back") {
+          document.getElementById("captureModalLabel").textContent = "Capture Back ID";
+          document.querySelector(".id-overlay").style.display = "block";
+          bsModal.show();
+          startCamera();
+        } else if (target === "birthCertificate") {
+          document.getElementById("captureModalLabel2").textContent = "Capture Birth Certificate";
+          bsModal2.show();
+          navigator.mediaDevices
+          .getUserMedia({
+            video: {
+              facingMode: "environment",
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+            },
+          })
+          .then((s) => {
+            stream = s;
+
+            modalVideo2.srcObject = s;
+            modalVideo2.play();
+          })
+          .catch((err) => {
+            console.error("Camera error", err);
+            alert("Could not access camera.");
+          });
+        }
+
+      }
+
+      function startCamera() {
+        navigator.mediaDevices
+          .getUserMedia({
+            video: {
+              facingMode: "environment",
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+            },
+          })
+          .then((s) => {
+            stream = s;
+
+            modalVideo.srcObject = s;
+            modalVideo.play();
+          })
+          .catch((err) => {
+            console.error("Camera error", err);
+            alert("Could not access camera.");
+          });
+
+      }
+
+      function stopStream() {
+        if (stream) {
+          stream.getTracks().forEach((t) => t.stop());
+          stream = null;
+        }
+        if (modalVideo) modalVideo.srcObject = null;
+        if (modalVideo2) modalVideo2.srcObject = null;
+      }
+
+      function captureFullDocument() {
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const vw = modalVideo2.videoWidth;
+        const vh = modalVideo2.videoHeight;
+
+        canvas.width = vw;
+        canvas.height = vh;
+
+        ctx.drawImage(
+            modalVideo2,
+            0, 0,
+            vw, vh,
+            0, 0,
+            vw, vh
+        );
+
+        const data = canvas.toDataURL("image/jpeg", 1.0);
+
+        birthCertificateImage = data;
+        document.getElementById("birthCertificatePreview").src = data;
+
+        bsModal2.hide();
+        stopStream();
+      }
+
+      function captureFromModal() {
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const vw = modalVideo.videoWidth || 1280;
+        const vh = modalVideo.videoHeight || 720;
+
+        // Birth Certificate = Capture whole frame
+        if (captureMode === "birth_certificate") {
+
+          const data = captureFullDocument();
+
+          birthCertificateImage = data;
+          document.getElementById("birthCertificatePreview").src = data;
+
+          bsModal.hide();
+          stopStream();
+          return;
+
+        } else {
+
+            // ID Capture = Crop to overlay
+            const overlay = modalEl.querySelector(".id-overlay");
+            const videoRect = modalVideo.getBoundingClientRect();
+            const overlayRect = overlay.getBoundingClientRect();
+
+            if (
+                videoRect.width > 0 &&
+                videoRect.height > 0 &&
+                overlayRect.width > 0 &&
+                overlayRect.height > 0
+            ) {
+                const ox = overlayRect.left - videoRect.left;
+                const oy = overlayRect.top - videoRect.top;
+                const ow = overlayRect.width;
+                const oh = overlayRect.height;
+
+                const scaleX = vw / videoRect.width;
+                const scaleY = vh / videoRect.height;
+
+                const sx = Math.max(0, Math.round(ox * scaleX));
+                const sy = Math.max(0, Math.round(oy * scaleY));
+                const sw = Math.max(1, Math.round(ow * scaleX));
+                const sh = Math.max(1, Math.round(oh * scaleY));
+
+                canvas.width = sw;
+                canvas.height = sh;
+
+                ctx.drawImage(
+                    modalVideo,
+                    sx, sy, sw, sh,
+                    0, 0, sw, sh
+                );
+            } else {
+                const cropW = 320;
+                const cropH = 200;
+                const sx = Math.max(0, Math.floor(vw / 2 - cropW / 2));
+                const sy = Math.max(0, Math.floor(vh / 2 - cropH / 2));
+
+                canvas.width = cropW;
+                canvas.height = cropH;
+
+                ctx.drawImage(
+                    modalVideo,
+                    sx, sy, cropW, cropH,
+                    0, 0, cropW, cropH
+                );
+            }
+        }
+
+        const data = canvas.toDataURL("image/jpeg", 1.0);
+
+        switch (currentTarget) {
+            case "front":
+                frontImage = data;
+                document.getElementById("frontPreview").src = data;
+                break;
+
+            case "back":
+                backImage = data;
+                document.getElementById("backPreview").src = data;
+                break;
+        }
+
+        bsModal.hide();
+        stopStream();
+      }
+
+      function saveImages() {
+
+        fetch("/save-images", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            front: frontImage,
+            back: backImage,
+            birthcertificate: birthCertificateImage,
+            enhance: document.getElementById("enhanceToggle").checked,
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) alert("Images Saved!");
+          })
+          .catch((err) => console.error(err));
+      }
+
+      //Selecting Attachment
+      const attachment = document.getElementById("attachment");
+      attachment.addEventListener("change", function() {
+        if (this.value === "with_attachment") {
+          // Show the valid ID upload option
+          document.getElementById("BCCapture").style.display = "none";
+          document.getElementById("idCapture").style.display = "block";
+        } else {
+          // Hide the valid ID upload option
+          document.getElementById("BCCapture").style.display = "block";
+          document.getElementById("idCapture").style.display = "none";
+        }
+      });
+
+      document.addEventListener("DOMContentLoaded", function () {
+          const transferCheckbox = document.getElementById("checkTransfer");
+          const previousPCCContainer = document.getElementById("previousPCCContainer");
+
+          transferCheckbox.addEventListener("change", function () {
+              previousPCCContainer.classList.toggle("d-none", !this.checked);
+          });
+      });
+
+     function loadPdf(pdfUrl, title) {
+    const iframe = document.getElementById("pdfFrame");
+    const loader = document.getElementById("pdfLoader");
+
+    document.getElementById("pdfViewerLabel").innerHTML =
+        `<i class="fa-solid fa-file-pdf me-2"></i>${title}`;
+
+    loader.style.display = "flex";
+    iframe.style.display = "none";
+
+    iframe.onload = function () {
+        loader.style.display = "none";
+        iframe.style.display = "block";
+    };
+
+    iframe.src = pdfUrl;
+}
+
+// Tab click
+document.querySelectorAll(".pdf-tab").forEach(tab => {
+    tab.addEventListener("click", function () {
+
+        document.querySelectorAll(".pdf-tab")
+            .forEach(t => t.classList.remove("active"));
+
+        this.classList.add("active");
+
+        loadPdf(
+            this.dataset.pdf,
+            this.dataset.title
+        );
+    });
+});
+
+// Load first tab when modal opens
+document.getElementById("pdfViewerModal")
+    .addEventListener("shown.bs.modal", function () {
+
+        const firstTab = document.querySelector(".pdf-tab.active");
+
+        if (firstTab) {
+            loadPdf(
+                firstTab.dataset.pdf,
+                firstTab.dataset.title
+            );
+        }
+    });
+    </script>
+
+    <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
+    <script>const pdfFilePCSF = {{ pdf_file | tojson }}</script>
+    <script src="{{ url_for('static', filename='js/registration.js')}}">alert(1)</script>
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+  </body>
+</html>
