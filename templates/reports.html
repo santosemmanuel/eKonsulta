@@ -195,7 +195,8 @@
         <script>
             const maleCount = {{ male_count }};
             const femaleCount = {{ female_count }};
-            const patients = {{ patients | tojson }};
+            const cecPatients = {{ cecRegistrationPatients | tojson }};
+            const transfereePatients = 0;
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
         <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
@@ -310,7 +311,7 @@
 
 $(document).ready(function () {
     $('#patientsTable').DataTable({
-        data: patients,
+        data: cecPatients,
         columns: [
             { 
                 data: null,

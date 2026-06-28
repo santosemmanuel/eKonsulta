@@ -14,6 +14,7 @@
           rel="stylesheet" />
     <link rel="icon"
           href="{{ url_for('static', filename='img/MHOBurauen.ico') }}" />
+    <script src="{{ url_for('static', filename='js/jsQR.js') }}"></script>
     <style>
         #video-container {
             position: relative;
@@ -80,63 +81,106 @@
     <div class="container py-4">
       <div class="row g-4">
     
+    <h2>Universal QR Code Scanner</h2>
+    <div id="method-badge">Detecting scanning engine...</div>
+    
     <div id="video-container">
         <video id="webcam" autoplay playsinline></video>
     </div>
 
-    <div id="result">Scanning for QR code...</div>
+    <div id="result">Initializing camera...</div>
+
+    <canvas id="hidden-canvas" style="display: none;"></canvas>
 
     <script>
         const video = document.getElementById('webcam');
         const resultDiv = document.getElementById('result');
+        const badge = document.getElementById('method-badge');
+        const canvas = document.getElementById('hidden-canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-        // 1. Check if the BarcodeDetector API is supported by the browser
-        if (!('BarcodeDetector' in window)) {
-            resultDiv.innerText = "Barcode Detector API is not supported in this browser. Try Chrome, Edge, or Safari.";
-        } else {
-            // Create a detector specifically looking for QR codes
-            const detector = new BarcodeDetector({ formats: ['qr_code'] });
-            
-            // 2. Start the camera stream
-            async function startCamera() {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { facingMode: "environment" } // Prefers the rear camera on mobile
-                    });
-                    video.srcObject = stream;
-                    
-                    // Start scanning once the video metadata is loaded
-                    video.addEventListener('loadedmetadata', () => {
-                        scanFrame(detector);
-                    });
-                } catch (err) {
-                    console.error("Camera access denied or failed: ", err);
-                    resultDiv.innerText = "Error: Camera access denied.";
-                }
-            }
-
-            // 3. Continuously grab frames from the video and detect QR codes
-            async function scanFrame(detector) {
-                try {
-                    // Detect barcodes in the video element
-                    const barcodes = await detector.detect(video);
-                    
-                    if (barcodes.length > 0) {
-                        // Found a QR code! Grab the first one detected
-                        const detectedValue = barcodes[0].rawValue;
-                        
-                    }
-                } catch (e) {
-                    console.error("Detection failed: ", e);
-                }
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment" } 
+                });
+                video.srcObject = stream;
                 
-                // Keep the loop going frame-by-frame
-                requestAnimationFrame(() => scanFrame(detector));
+                video.addEventListener('loadedmetadata', () => {
+                    initScanner();
+                });
+            } catch (err) {
+                console.error("Camera access failed: ", err);
+                resultDiv.innerText = "Error: Camera access denied.";
             }
-
-            // Fire it up
-            startCamera();
         }
+
+        function initScanner() {
+            resultDiv.innerText = "Scanning for QR code...";
+
+            // Check if Native API is supported
+            if ('BarcodeDetector' in window) {
+                badge.innerText = "Engine: Native BarcodeDetector API";
+                const detector = new BarcodeDetector({ formats: ['qr_code'] });
+                scanNative(detector);
+            } else {
+                badge.innerText = "Engine: jsQR Library Fallback";
+                scanFallback();
+            }
+        }
+
+        // METHOD 1: Native Scanning
+        async function scanNative(detector) {
+            try {
+                const barcodes = await detector.detect(video);
+                if (barcodes.length > 0) {
+                    showResult(barcodes[0].rawValue);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+            requestAnimationFrame(() => scanNative(detector));
+        }
+
+        // METHOD 2: Canvas + jsQR Fallback 
+        function scanFallback() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                // Match canvas sizes to stream dimensions
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                // Draw current video frame to the hidden canvas
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Extract image pixel data (RGBA array)
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                
+                // Parse pixel data via jsQR
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+
+                if (code) {
+                    showResult(code.data);
+                }
+            }
+            requestAnimationFrame(scanFallback);
+        }
+
+        // UI update helper
+        function showResult(value) {
+            
+            resultDiv.innerHTML = `<strong>Result:</strong> <a href="${value}" target="_blank">${value}</a>`;
+            fetch("/saveScanned", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: value
+                })
+                
+        }
+
+        // Kick off the scanner
+        startCamera();
     </script>
       </div>
     </div>

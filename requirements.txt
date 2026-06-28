@@ -2,11 +2,23 @@ Flask
 fillpdf
 pdfrw
 pdf2image
-mysql-connector-python
-python-dotenv
-Pillow
+PyMySQL
+PyMuPDF
+qrcode
 waitress
-tzdata
-reportlab
+PyPDF2
+python-dotenv
 pypdf
-pypdf2
+reportlab
+opencv-python
+numpy
+tzdata
+
+# if venv is not exist create venv
+# python -m venv venv
+
+# Activation
+# venv\Scripts\activate
+
+# install command for requirements.txt
+# pip install -r requirements.txt

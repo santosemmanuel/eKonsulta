@@ -314,7 +314,8 @@ def fill_EKAS_EPRESS_MCA(data):
             "mN": data["personalInfo"]["middleName"],
             "ext": data["personalInfo"]["nameExt"],
             "bod": data["otherDetails"]["dob"],
-            "MD": memberDependent
+            "MD": memberDependent,
+            "genDate": f"{today.month:02}/{today.day:02}/{today.year}",
         }
 
         qr_patient = generate_qr_code(patient_data_qr)
@@ -534,14 +535,62 @@ def gen_reports():
     # Femaleresult = getFemaleCount()
     # female_count = Femaleresult["NumberOfFemale"]
 
-    patients = allPatientTable()
+    cecRegistrationPatients = allPatientTable()
+    transfereePatients = allTransferPatient()
+
 
     return render_template(
         "reports.html",
         male_count=0,
         female_count=0,
-        patients=patients
+        cecRegistrationPatients=cecRegistrationPatients,
+        transfereepatients=transfereePatients
     )
+
+@app.route("/saveScanned", methods=["POST"])
+def saveScanned():
+    data = request.get_json()
+    patientData = dict(data)
+    conn = get_db_connection()
+
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+
+    cursor.execute(
+            "SELECT id, pin FROM transmittal WHERE pin = %s",
+            (patientData["pin"],)
+        )
+    
+    existing = cursor.fetchone()
+
+    if existing:
+        pass
+    else:
+        cursor.execute("""
+                INSERT INTO transmittal
+                (
+                    pin,
+                    lastName,
+                    firstName,
+                    middleName,
+                    ext,
+                    birthday,
+                    memberDepent,
+                    generatedDate
+                    dateScanned,
+                )
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+            """, (
+                patientData["pin"],
+                patientData["ln"],
+                patientData["fN"],
+                pcsf_data["Barangay"],
+                pcsf_data["PIN"],
+                mem_dep,
+                pcu_transaction,
+                datetime.now()
+            ))
+
+    print(data)
 
 
 @app.route("/ActivityLogs")
@@ -607,6 +656,38 @@ def allPatientTable():
 
     return patients
 
+def allTransferPatient():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # cursor.execute("""
+    #        SELECT * FROM cec_registration WHERE DateTimeProccess >= '2026-06-16'
+    #         AND DateTimeProccess < '2026-06-16' + INTERVAL 1 DAY;
+    # """)
+
+    cursor.execute("""
+           SELECT * FROM cec_transfer
+    """)
+# FOR CUSTOM DATE RANGE
+#     SELECT
+#     p.pin AS MemberPIN,
+#     p.dependent_pin AS DependentPIN,
+#     CONCAT(pi.last_name, ', ', pi.middle_name, ' ', pi.first_name, ' ', IFNULL(pi.name_ext, '')) AS Name,
+#     a.municipality AS Municipality,
+#     a.barangay AS Barangay,
+#     pi.sex AS Sex
+# FROM patients_master pm
+# LEFT JOIN patients p on pm.patient_id = p.id
+# LEFT JOIN personal_info pi ON pi.patient_id = p.id
+# LEFT JOIN addresses a ON a.patient_id = p.id WHERE pm.date_created >= '2026-01-15 00:00:00'
+#   AND pm.date_created <  '2026-01-16 00:00:00';
+
+    patients = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return patients
 
 def getMaleCount():
     conn = get_db_connection()
