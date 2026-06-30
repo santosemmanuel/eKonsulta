@@ -175,7 +175,11 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: value
-                })
+                }).then((res) => res.json())
+                    .then((data) => {
+                        if (data.success) alert("Images Saved!");
+                    })
+            .catch((err) => console.error(err));
                 
         }
 

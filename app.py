@@ -22,11 +22,13 @@ from zoneinfo import ZoneInfo
 from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
+from collections import OrderedDict
 import io
 from io import BytesIO
 import cv2
 import numpy as np
 import tempfile
+
 
 app = Flask(__name__)
 app.secret_key = "MHOBurauen"
@@ -537,60 +539,91 @@ def gen_reports():
 
     cecRegistrationPatients = allPatientTable()
     transfereePatients = allTransferPatient()
-
+    registrationCount = getCECRegistrationCount()
+    transferreeCount = getTransferreeCount()
+    ekassEpressTransmittal = getEkassEpressTransmittal()
 
     return render_template(
         "reports.html",
         male_count=0,
         female_count=0,
         cecRegistrationPatients=cecRegistrationPatients,
-        transfereepatients=transfereePatients
+        transfereepatients=transfereePatients,
+        cecRegCount = registrationCount,
+        transferreeCount = transferreeCount,
+        ekassEpressTransmittal = ekassEpressTransmittal
     )
+
+def convert_to_sql_date(date_str):
+    """
+    Converts MM/DD/YYYY to YYYY-MM-DD.
+
+    Example:
+        06/29/2026 -> 2026-06-29
+    """
+    return datetime.strptime(date_str, "%m/%d/%Y").strftime("%Y-%m-%d")
 
 @app.route("/saveScanned", methods=["POST"])
 def saveScanned():
-    data = request.get_json()
-    patientData = dict(data)
-    conn = get_db_connection()
+    try:
+        data = request.get_json()
+        patientData = dict(data)
+        conn = get_db_connection()
 
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
 
-    cursor.execute(
-            "SELECT id, pin FROM transmittal WHERE pin = %s",
-            (patientData["pin"],)
-        )
-    
-    existing = cursor.fetchone()
+        cursor.execute(
+                "SELECT id, pin FROM transmittal WHERE pin = %s AND DATE(dateScanned) = CURDATE()",
+                (patientData["pin"],)
+            )
+        
+        existing = cursor.fetchone()
 
-    if existing:
-        pass
-    else:
-        cursor.execute("""
-                INSERT INTO transmittal
-                (
-                    pin,
-                    lastName,
-                    firstName,
-                    middleName,
-                    ext,
-                    birthday,
-                    memberDepent,
-                    generatedDate
-                    dateScanned,
-                )
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
-            """, (
-                patientData["pin"],
-                patientData["ln"],
-                patientData["fN"],
-                pcsf_data["Barangay"],
-                pcsf_data["PIN"],
-                mem_dep,
-                pcu_transaction,
-                datetime.now()
-            ))
+        if existing:
+            return jsonify({
+                "success": False,
+                "message": f"MySQL Error: {str(e)}"
+                }), 500 
+            
+        else:
+            cursor.execute("""
+                    INSERT INTO transmittal
+                    (
+                        pin,
+                        lastName,
+                        firstName,
+                        middleName,
+                        ext,
+                        birthday,
+                        memberDepent,
+                        generatedDate,
+                        dateScanned
+                    )
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """, (
+                    patientData["pin"],
+                    patientData["ln"],
+                    patientData["fN"],
+                    patientData["mN"],
+                    patientData["ext"],
+                    patientData["bod"],
+                    patientData["MD"],
+                    convert_to_sql_date(patientData["genDate"]),
+                    datetime.now()
+                ))
 
-    print(data)
+        conn.commit()
+        return jsonify({
+            "success": True,
+            "message": "Record inserted successfully",
+            "inserted_id": patientData,
+        }), 200
+    except Exception as e:
+        print(str(e))
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 500
 
 
 @app.route("/ActivityLogs")
@@ -689,18 +722,30 @@ def allTransferPatient():
 
     return patients
 
-def getMaleCount():
+def getCECRegistrationCount():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
 
     cursor.execute("""
-            SELECT COUNT(*) AS NumberOfMale
-            FROM patients_master pm
-            LEFT JOIN patients p ON pm.patient_id = p.id
-            LEFT JOIN personal_info pi ON pi.patient_id = p.id
-            WHERE pi.sex = 'Male'
-            AND pm.date_created >= '2026-01-28'
-            AND pm.date_created < '2026-01-28' + INTERVAL 1 DAY;
+            SELECT COUNT(*) AS NumberOfPatient
+            FROM cec_registration
+    """)
+
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    return result['NumberOfPatient']
+
+
+def getTransferreeCount():
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+           SELECT COUNT(*) AS NumberOfPatient
+            FROM cec_transfer
     """)
 
     result = cursor.fetchone()
@@ -708,31 +753,61 @@ def getMaleCount():
     cursor.close()
     conn.close()
 
-    return result
+    return result['NumberOfPatient']
 
-
-def getFemaleCount():
-
+def getEkassEpressTransmittal():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
 
     cursor.execute("""
-           SELECT COUNT(*) AS NumberOfFemale
-            FROM patients_master pm
-            LEFT JOIN patients p ON pm.patient_id = p.id
-            LEFT JOIN personal_info pi ON pi.patient_id = p.id
-            WHERE pi.sex = 'Female'
-            AND pm.date_created >= '2026-01-28'
-            AND pm.date_created < '2026-01-28' + INTERVAL 1 DAY;
+        SELECT * FROM transmittal
     """)
 
-    result = cursor.fetchone()
+    result = cursor.fetchall()
 
     cursor.close()
     conn.close()
 
     return result
 
+@app.route('/getTransmittalData')
+def getTransmittalData():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            pin,
+            lastName,
+            firstName,
+            middleName,
+            ext,
+            DATE(dateScanned) AS scanDate
+        FROM transmittal
+        ORDER BY scanDate DESC, lastName, firstName;     
+    """)
+
+    rows = cursor.fetchall()
+
+    grouped = OrderedDict()
+
+    for row in rows:
+
+        date = row["scanDate"].strftime("%d/%m/%Y")
+
+        fullname = " ".join(filter(None, [
+            row["lastName"],
+            row["firstName"],
+            row["middleName"],
+            row["ext"]
+        ])).upper()
+
+        if date not in grouped:
+            grouped[date] = []
+
+        grouped[date].append(fullname)
+
+    return jsonify(grouped)
 
 def get_initials(full_name):
     words = full_name.split()
@@ -1554,6 +1629,7 @@ def submitCECRegistration():
 @app.route("/scanner")
 def scannerPage():
     return render_template("scanner.html")
+
 if __name__ == '__main__':
     # from waitress import serve
     # serve(app, host="0.0.0.0", port=8180)
