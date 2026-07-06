@@ -1,33 +1,36 @@
-from pydoc import doc
 from flask import Flask, render_template, request, jsonify, current_app, url_for, session, redirect, flash
-from fillpdf import fillpdfs
-from pdfrw import PdfReader as PdfRwReader, PdfWriter as PdfRwWriter, PageMerge, PdfDict, PdfName, PdfObject
 from datetime import datetime, date
-from pdf2image import convert_from_path
 import pymysql
 import pymysql.cursors
 import os
 import json
 import traceback
-# import mysql.connector
-# import sqlite3
 import base64
 import fitz
-import qrcode
 from waitress import serve
-from PyPDF2 import PdfReader, PdfWriter
-from dotenv import load_dotenv
-from db import get_db_connection
-from zoneinfo import ZoneInfo
 from pypdf import PdfReader, PdfWriter
+from dotenv import load_dotenv
+from models.db import get_db_connection
+from models.pdf_fillers import fill_EKAS_EPRESS_MCA, fill_PKRF_CHS, fill_MCA, clean_files
+from models.reports import (
+    allPatientTable,
+    allTransferPatient,
+    getCECRegistrationCount,
+    getTransferreeCount,
+    getEkassEpressTransmittal,
+)
+from utils.helper import (
+    check_form_version,
+    get_age_display,
+    get_initials,
+    convert_to_sql_date,
+    process_image,
+)
+from zoneinfo import ZoneInfo
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 from collections import OrderedDict
 import io
-from io import BytesIO
-import cv2
-import numpy as np
-import tempfile
 
 
 app = Flask(__name__)
@@ -52,42 +55,6 @@ BIRTH_CERT_MAX_HEIGHT = 550
 MAX_WIDTH = 280
 
 
-def check_form_version(ses):
-    return ".1" if ses else ""
-
-
-def flatten_pdf(input_pdf_path, output_pdf_path=None):
-    """
-    Flatten a fillable PDF using pdfrw library.
-    Merges form field content with the PDF background, making the form non-editable.
-
-    Args:
-        input_pdf_path: Path to the input PDF file
-        output_pdf_path: Path for output (if None, overwrites input)
-
-    Returns:
-        Path to the flattened PDF
-    """
-    if output_pdf_path is None:
-        output_pdf_path = input_pdf_path
-
-    try:
-        # Read the PDF
-        template = PdfRwReader(input_pdf_path)
-
-        # Flatten the PDF by merging annotations/form fields with the page content
-        for page in template.pages:
-            if page.Annots:
-                # Remove annotations to flatten form fields
-                page.Annots = None
-
-        # Write the flattened PDF
-        PdfRwWriter().write(output_pdf_path, template)
-        print(f"PDF flattened successfully: {output_pdf_path}")
-        return output_pdf_path
-    except Exception as e:
-        print(f"Error flattening PDF: {str(e)}")
-        return None
 
 
 @app.route("/")
@@ -238,278 +205,6 @@ def submit_form():
     return jsonify({"status": "success", "message": "Form received"})
 
 
-def fill_EKAS_EPRESS_MCA(data):
-
-    philhealth = "✔" if data['transactionInfo']['philhealth'] == True else "✘"
-    philsys = "✔" if data['transactionInfo']['philsys'] == True else "✘"
-    pcu = "PCU Verification Failed"
-    if data['transactionInfo']['transactionNumber'] != '':
-        pcu = f"PCU Transaction Number: {data['transactionInfo']['transactionNumber']} \t\t PhilHealth: {philhealth} \t PhilSys: {philsys}"
-
-    try:
-        pdf_path = os.path.join(
-            current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/template/EKAS,EPRESS,MCA_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-        output_pdf = os.path.join(
-            current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-        form_fields_EKAS_EPRESS_MCA = list(
-            fillpdfs.get_form_fields(pdf_path).keys())
-
-        print(form_fields_EKAS_EPRESS_MCA)
-        initials = session.get("initials")
-        pin = data['pin']
-        memberDependent = "Member"
-        if data['patientIsMember'] == 'dependent':
-            memberDependent = "Dependent"
-            pin = data['dependentPin']
-
-        date_object = datetime.strptime(
-            data["otherDetails"]["dob"], "%Y-%m-%d")
-        formatted_date = date_object.strftime('%m-%d-%Y')
-
-        age = get_age_display(data["otherDetails"]["dob"])
-
-        cellphoneNum = data["otherDetails"]["mobile"]
-        patientMiddleName = (
-            data["personalInfo"]["middleName"][0]
-            if data["personalInfo"]["middleName"]
-            else ""
-        )
-        patientFullName = f"{data['personalInfo']['firstName']} {patientMiddleName} {data['personalInfo']['lastName']} {data['personalInfo']['nameExt']}"
-
-        member = "Yes" if data["patientIsMember"] == "member" else None
-        dependent = "Yes" if data["patientIsMember"] == "dependent" else None
-        representative = "" if not data["otherDetails"]["representative"] else data["otherDetails"]["representative"]
-        reprelation = ""
-
-        if data["otherDetails"]["relationship"] == "Others":
-            reprelation = data["otherDetails"]["otherRelationship"]
-        elif data["otherDetails"]["relationship"] != "-Select-":
-            reprelation = data["otherDetails"]["relationship"]
-
-        data_EKAS_EPRESS_MCA = {
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("PatientName")]: patientFullName,
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("DOB")]: formatted_date,
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("PIN")]: pin,
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("BenefitYear")]: today.year,
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("FullnameAndDateBeneficiary")]: f"{patientFullName}\t\t {today.month:02}/{today.day:02}/{today.year}",
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Member")]: member,
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Dependent")]: dependent,
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Member1")]: member,
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Dependent2")]: dependent,
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("ContactNum")]: cellphoneNum,
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Age")]: age,
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Performed")]: "Yes",
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index(
-                "DatePerformed")]: f"{today.month:02}/{today.day:02}/{today.year}",
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("Representative")]: representative,
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index("RepRelation")]: reprelation,
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index(
-                "PCU")]: pcu,
-            form_fields_EKAS_EPRESS_MCA[form_fields_EKAS_EPRESS_MCA.index(
-                "UserInitial")]: initials
-        }
-        
-        patient_data_qr = {
-            "pin": pin,
-            "ln": data["personalInfo"]["lastName"],
-            "fN": data['personalInfo']['firstName'],
-            "mN": data["personalInfo"]["middleName"],
-            "ext": data["personalInfo"]["nameExt"],
-            "bod": data["otherDetails"]["dob"],
-            "MD": memberDependent,
-            "genDate": f"{today.month:02}/{today.day:02}/{today.year}",
-        }
-
-        qr_patient = generate_qr_code(patient_data_qr)
-
-        add_qr_to_pdf(
-            pdf_path,
-            output_pdf,
-            qr_patient
-        )
-
-        fillpdfs.write_fillable_pdf(
-            output_pdf, output_pdf, data_EKAS_EPRESS_MCA, flatten=False)
-
-    except Exception as e:
-        print(f"This is the error {e}")
-
-
-def fill_PKRF_CHS(data):
-    try:
-        pdf_path = os.path.join(
-            current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/template/PKRF,Consent, Health Screening_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-        output_pdf = os.path.join(
-            current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-        form_fields_PKRF_Consent = list(
-            fillpdfs.get_form_fields(pdf_path).keys())
-
-        date_object = datetime.strptime(
-            data["otherDetails"]["dob"], "%Y-%m-%d")
-        formatted_date = date_object.strftime('%m-%d-%Y')
-        initials = session.get('initials')
-        age = get_age_display(data["otherDetails"]["dob"])
-
-        gender = data["otherDetails"]['sex']
-        patientMiddleName = (
-            data["personalInfo"]["middleName"][0]
-            if data["personalInfo"]["middleName"]
-            else ""
-        )
-        patientFullName = f"{data['personalInfo']['firstName']} {patientMiddleName} {data['personalInfo']['lastName']} {data['personalInfo']['nameExt']}"
-
-        member = "Yes" if data["patientIsMember"] == "member" else ""
-        dependent = "Yes" if data["patientIsMember"] == "dependent" else ""
-        barangay = data["address"]["barangay"]
-        representative = "" if not data["otherDetails"]["representative"] else data["otherDetails"]["representative"]
-        reprelation = ""
-
-        if data["otherDetails"]["relationship"] == "Others":
-            reprelation = data["otherDetails"]["otherRelationship"]
-        elif data["otherDetails"]["relationship"] != "-Select-":
-            reprelation = data["otherDetails"]["relationship"]
-
-        pin = data["pin"]
-        if (data["patientIsMember"] == "dependent"):
-            pin = data["dependentPin"]
-
-        data_PKRF_CHS = {
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Member")]: member,
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Dependent")]: dependent,
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("PIN")]: pin,
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("DateToday")]: f"{today.month:02}/{today.day:02}/{today.year}",
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("LastName")]: data["personalInfo"]["lastName"],
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("FirstName")]: data["personalInfo"]["firstName"],
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("MiddleName")]: data["personalInfo"]["middleName"],
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Barangay")]: barangay.upper(),
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Municipality")]: data["address"]["municipality"],
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Province")]: "LEYTE",
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("DOB")]: formatted_date,
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("ContactNum")]: data["otherDetails"]["mobile"],
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("DepLastName")]: data["personalInfo"]["lastName"],
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("DepFirstName")]: data["personalInfo"]["firstName"],
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("DepMiddleName")]: data["personalInfo"]["middleName"],
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("PatientSignature")]: patientFullName,
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("PatientFullName")]: patientFullName,
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("FullAddress")]: f"{barangay.upper()}, {data['address']['municipality']}, LEYTE",
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("MemberPIN")]: data.get('pin', ''),
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("DependentPIN")]: data.get('dependentPin', ''),
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("NameExt")]: data["personalInfo"]["nameExt"],
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Age")]: age,
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Gender")]: gender,
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index("Representative")]: representative,
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index(
-                "RepRelation")]: reprelation,
-            form_fields_PKRF_Consent[form_fields_PKRF_Consent.index(
-                "UserInitial")]: initials
-        }
-
-        fillpdfs.write_fillable_pdf(pdf_path, output_pdf, data_PKRF_CHS)
-    except Exception as e:
-        print(f"This is the error{e}")
-
-
-def fill_MCA(data):
-    try:
-
-        philhealth = "✔" if data['transactionInfo']['philhealth'] == True else "✘"
-        philsys = "✔" if data['transactionInfo']['philsys'] == True else "✘"
-        pcu = "PCU Verification Failed"
-        if data['transactionInfo']['transactionNumber'] != '':
-            pcu = f"PCU Transaction Number: {data['transactionInfo']['transactionNumber']} \t\t PhilHealth: {philhealth} \t PhilSys: {philsys}"
-
-        pdf_path = os.path.join(
-            current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/template/EMPANELMENT_(MCA)_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-        output_pdf = os.path.join(
-            current_app.root_path, f"static/pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-        form_fields_MCA = list(
-            fillpdfs.get_form_fields(pdf_path).keys())
-        # print(form_fields_EKAS_EPRESS_MCA)
-
-        initials = session.get("initials")
-        pin = data['pin']
-        if data['patientIsMember'] == 'dependent':
-            pin = data['dependentPin']
-
-        date_object = datetime.strptime(
-            data["otherDetails"]["dob"], "%Y-%m-%d")
-        formatted_date = date_object.strftime('%m-%d-%Y')
-
-        cellphoneNum = data["otherDetails"]["mobile"]
-        patientMiddleName = (
-            data["personalInfo"]["middleName"][0]
-            if data["personalInfo"]["middleName"]
-            else ""
-        )
-        patientFullName = f"{data['personalInfo']['firstName']} {patientMiddleName} {data['personalInfo']['lastName']} {data['personalInfo']['nameExt']}"
-
-        member = "Yes" if data["patientIsMember"] == "member" else None
-        dependent = "Yes" if data["patientIsMember"] == "dependent" else None
-        representative = "" if not data["otherDetails"]["representative"] else data["otherDetails"]["representative"]
-        reprelation = ""
-
-        if data["otherDetails"]["relationship"] == "Others":
-            reprelation = data["otherDetails"]["otherRelationship"]
-        elif data["otherDetails"]["relationship"] != "-Select-":
-            reprelation = data["otherDetails"]["relationship"]
-
-        data_MCA = {
-            form_fields_MCA[form_fields_MCA.index("PatientName")]: patientFullName,
-            form_fields_MCA[form_fields_MCA.index("DOB")]: formatted_date,
-            form_fields_MCA[form_fields_MCA.index("PIN")]: pin,
-            form_fields_MCA[form_fields_MCA.index("BenefitYear")]: today.year,
-            form_fields_MCA[form_fields_MCA.index("FullnameAndDateBeneficiary")]: f"{patientFullName}\t\t {today.month:02}/{today.day:02}/{today.year}",
-            form_fields_MCA[form_fields_MCA.index("BenefitYear1")]: today.year - 1,
-            form_fields_MCA[form_fields_MCA.index("Representative")]: representative,
-            form_fields_MCA[form_fields_MCA.index("RepRelation")]: reprelation,
-            form_fields_MCA[form_fields_MCA.index("PCU")]: pcu,
-            form_fields_MCA[form_fields_MCA.index("UserInitial")]: initials
-        }
-
-        fillpdfs.write_fillable_pdf(
-            pdf_path, output_pdf, data_MCA, flatten=False)
-    except Exception as e:
-        print(f"This is the error {e}")
-
-
-def get_age_display(dob_string, format="%Y-%m-%d"):
-    """
-    Returns age in days, months, or years+months.
-    Example input: '2025-09-10'
-    """
-
-    dob = datetime.strptime(dob_string, format).date()
-    today = date.today()
-
-    total_months = (today.year - dob.year) * 12 + (today.month - dob.month)
-
-    if today.day < dob.day:
-        total_months -= 1
-
-    years = total_months // 12
-    months = total_months % 12
-
-    # --- Medical-friendly display ---
-    if years == 0 and months == 0:
-        days = (today - dob).days
-        return f"{days} day(s) old"
-    elif years == 0:
-        return f"{months} month(s)"
-    else:
-        return years
-
-
-def clean_files(file_list):
-    for f in file_list:
-        try:
-            if os.path.exists(os.path.join(current_app.root_path, "static", "pdfs", f)):
-                os.remove(os.path.join(
-                    current_app.root_path, "static", "pdfs", f))
-                print(f"Deleted {f}")
-        except Exception as e:
-            print(f"Error deleting {f}: {e}")
-
-
 @app.route("/get_pdfs")
 def get_pdfs():
     return jsonify([
@@ -553,15 +248,6 @@ def gen_reports():
         transferreeCount = transferreeCount,
         ekassEpressTransmittal = ekassEpressTransmittal
     )
-
-def convert_to_sql_date(date_str):
-    """
-    Converts MM/DD/YYYY to YYYY-MM-DD.
-
-    Example:
-        06/29/2026 -> 2026-06-29
-    """
-    return datetime.strptime(date_str, "%m/%d/%Y").strftime("%Y-%m-%d")
 
 @app.route("/saveScanned", methods=["POST"])
 def saveScanned():
@@ -656,120 +342,6 @@ def get_patient(pin):
         return jsonify({"exists": False})
 
 
-def allPatientTable():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    # cursor.execute("""
-    #        SELECT * FROM cec_registration WHERE DateTimeProccess >= '2026-06-16'
-    #         AND DateTimeProccess < '2026-06-16' + INTERVAL 1 DAY;
-    # """)
-
-    cursor.execute("""
-           SELECT * FROM cec_registration
-    """)
-# FOR CUSTOM DATE RANGE
-#     SELECT
-#     p.pin AS MemberPIN,
-#     p.dependent_pin AS DependentPIN,
-#     CONCAT(pi.last_name, ', ', pi.middle_name, ' ', pi.first_name, ' ', IFNULL(pi.name_ext, '')) AS Name,
-#     a.municipality AS Municipality,
-#     a.barangay AS Barangay,
-#     pi.sex AS Sex
-# FROM patients_master pm
-# LEFT JOIN patients p on pm.patient_id = p.id
-# LEFT JOIN personal_info pi ON pi.patient_id = p.id
-# LEFT JOIN addresses a ON a.patient_id = p.id WHERE pm.date_created >= '2026-01-15 00:00:00'
-#   AND pm.date_created <  '2026-01-16 00:00:00';
-
-    patients = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    return patients
-
-def allTransferPatient():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    # cursor.execute("""
-    #        SELECT * FROM cec_registration WHERE DateTimeProccess >= '2026-06-16'
-    #         AND DateTimeProccess < '2026-06-16' + INTERVAL 1 DAY;
-    # """)
-
-    cursor.execute("""
-           SELECT * FROM cec_transfer
-    """)
-# FOR CUSTOM DATE RANGE
-#     SELECT
-#     p.pin AS MemberPIN,
-#     p.dependent_pin AS DependentPIN,
-#     CONCAT(pi.last_name, ', ', pi.middle_name, ' ', pi.first_name, ' ', IFNULL(pi.name_ext, '')) AS Name,
-#     a.municipality AS Municipality,
-#     a.barangay AS Barangay,
-#     pi.sex AS Sex
-# FROM patients_master pm
-# LEFT JOIN patients p on pm.patient_id = p.id
-# LEFT JOIN personal_info pi ON pi.patient_id = p.id
-# LEFT JOIN addresses a ON a.patient_id = p.id WHERE pm.date_created >= '2026-01-15 00:00:00'
-#   AND pm.date_created <  '2026-01-16 00:00:00';
-
-    patients = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    return patients
-
-def getCECRegistrationCount():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-            SELECT COUNT(*) AS NumberOfPatient
-            FROM cec_registration
-    """)
-
-    result = cursor.fetchone()
-    cursor.close()
-    conn.close()
-
-    return result['NumberOfPatient']
-
-
-def getTransferreeCount():
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-           SELECT COUNT(*) AS NumberOfPatient
-            FROM cec_transfer
-    """)
-
-    result = cursor.fetchone()
-
-    cursor.close()
-    conn.close()
-
-    return result['NumberOfPatient']
-
-def getEkassEpressTransmittal():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT * FROM transmittal
-    """)
-
-    result = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    return result
-
 @app.route('/getTransmittalData')
 def getTransmittalData():
     conn = get_db_connection()
@@ -808,12 +380,6 @@ def getTransmittalData():
         grouped[date].append(fullname)
 
     return jsonify(grouped)
-
-def get_initials(full_name):
-    words = full_name.split()
-    initials = [word[0].upper() for word in words if word]
-    return ".".join(initials)
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -861,12 +427,10 @@ def toggle():
         "feature_enabled": enabled
     })
 
-
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("login"))
-
 
 @app.route("/registration")
 def registration():
@@ -884,134 +448,6 @@ def registration():
                            pdf_file=pdf_url,
                            fpe_file=fpe_pdf,
                            ekass_epress=ekass_epress_pdf)
-
-def process_image(image_bytes, enhance=True):
-    try:
-        arr = np.frombuffer(image_bytes, dtype=np.uint8)
-        img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
-        if img is None:
-            return image_bytes
-
-        if enhance:
-            # basic enhancements: bilateral filter, convert to LAB and apply CLAHE
-            img = cv2.bilateralFilter(img, 9, 75, 75)
-
-            # attempt document detection and perspective transform
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            blur = cv2.GaussianBlur(gray, (5, 5), 0)
-            edged = cv2.Canny(blur, 50, 150)
-
-            contours, _ = cv2.findContours(
-                edged.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-            contours = sorted(
-                contours, key=cv2.contourArea, reverse=True)[:5]
-
-            doc_cnt = None
-            for c in contours:
-                peri = cv2.arcLength(c, True)
-                approx = cv2.approxPolyDP(c, 0.02 * peri, True)
-                if len(approx) == 4:
-                    doc_cnt = approx
-                    break
-
-            if doc_cnt is not None:
-                # obtain a top-down view of the document
-                pts = doc_cnt.reshape(4, 2)
-                rect = np.zeros((4, 2), dtype="float32")
-
-                s = pts.sum(axis=1)
-                rect[0] = pts[np.argmin(s)]
-                rect[2] = pts[np.argmax(s)]
-
-                diff = np.diff(pts, axis=1)
-                rect[1] = pts[np.argmin(diff)]
-                rect[3] = pts[np.argmax(diff)]
-
-                (tl, tr, br, bl) = rect
-                widthA = np.sqrt(
-                    ((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
-                widthB = np.sqrt(
-                    ((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
-                maxWidth = max(int(widthA), int(widthB))
-
-                heightA = np.sqrt(
-                    ((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
-                heightB = np.sqrt(
-                    ((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
-                maxHeight = max(int(heightA), int(heightB))
-
-                dst = np.array([
-                    [0, 0],
-                    [maxWidth - 1, 0],
-                    [maxWidth - 1, maxHeight - 1],
-                    [0, maxHeight - 1]], dtype="float32")
-
-                M = cv2.getPerspectiveTransform(rect, dst)
-                warp = cv2.warpPerspective(
-                    img, M, (maxWidth, maxHeight))
-                img = warp
-
-            # apply CLAHE for contrast
-            lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-            l, a, b = cv2.split(lab)
-            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-            cl = clahe.apply(l)
-            limg = cv2.merge((cl, a, b))
-            img = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
-
-        # encode back to PNG
-        success, encoded = cv2.imencode(
-            '.png', img, [cv2.IMWRITE_PNG_COMPRESSION, 3])
-        if success:
-            return encoded.tobytes()
-        return image_bytes
-    except Exception:
-        return image_bytes
-
-def generate_qr_code(json_data):
-    try:
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_M,
-            box_size=10,
-            border=4
-        )
-
-        qr.add_data(json.dumps(json_data))
-        qr.make(fit=True)
-
-        img = qr.make_image(fill_color="black", back_color="white")
-
-        buffer = BytesIO()
-        img.save(buffer, format="PNG")
-        buffer.seek(0)
-
-        return buffer.getvalue()
-    except Exception as e:
-        print(f"This is the qr error {e}")
-
-def add_qr_to_pdf(input_pdf, output_pdf, qr_image_bytes):
-    try:
-        doc = fitz.open(input_pdf)
-
-        page = doc[0]  # First page
-
-        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
-            tmp.write(qr_image_bytes)
-            qr_path = tmp.name
-
-        rect = fitz.Rect(
-            210, 15,
-            280, 85
-        )
-
-        page.insert_image(rect, filename=qr_path)
-
-        doc.save(output_pdf)
-        doc.close()
-        
-    except Exception as e:
-        print(f"This is the qr error {e}")
 
 @app.route("/submitCECRegistration", methods=["POST"])
 def submitCECRegistration():

@@ -261,22 +261,27 @@ function validateForm(form) {
 //     }
 // }
 
-toastr.options = {
-  "closeButton": false,
-  "debug": false,
-  "newestOnTop": false,
-  "progressBar": true,
-  "positionClass": "toast-top-right",
-  "preventDuplicates": false,
-  "onclick": null,
-  "showDuration": "500",
-  "hideDuration": "1000",
-  "timeOut": "5000",
-  "extendedTimeOut": "1000",
-  "showEasing": "swing",
-  "hideEasing": "linear",
-  "showMethod": "fadeIn",
-  "hideMethod": "fadeOut"
+function showToast(type, message) {
+  Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: type,
+    title: message,
+    showConfirmButton: false,
+    timer: 4000,
+    timerProgressBar: true,
+    customClass: {
+      popup: 'colored-toast'
+    }
+  });
+}
+
+function showSuccess(message) {
+  showToast('success', message);
+}
+
+function showError(message) {
+  showToast('error', message);
 }
 
 const pdfTab = document.getElementById("pdfButton");
@@ -292,7 +297,7 @@ registrationform.addEventListener("submit", async function(event) {
 
     if (!validateForm(registrationform)) 
     {
-        alert("Capture both front and back first.");
+        showError("Capture both front and back first.");
         return;
     }
 
@@ -313,20 +318,19 @@ registrationform.addEventListener("submit", async function(event) {
         });
         
         if (!response.ok) {
-            const result = await response.json();
-            throw new Error("Server error");
-            toastr.error(result.message || "Failed to submit form.")
-        } else {
-            const result = await response.json();
-            console.log(result)
-            if (result.success && result.pdf_url) {
-                // Show PDF viewer modal
-                showPdfModal(result.pdf_url["pcsf"]);
-                document.querySelector('[data-title="PCSF"]').dataset.pdf = result.pdf_url["pcsf"];
-                document.querySelector('[data-title="FPE"]').dataset.pdf = result.pdf_url["fpe"];
-                document.querySelector('[data-title="EKASS, EPRESS"]').dataset.pdf = result.pdf_url["ekass_epress"];
-                toastr.success(result.message || "Form submitted successfully.")
-            }
+            const result = await response.json().catch(() => ({}));
+            showError(result.message || "Failed to submit form.");
+            return;
+        }
+
+        const result = await response.json().catch(() => ({}));
+        console.log(result);
+        if (result.success && result.pdf_url) {
+            showPdfModal(result.pdf_url["pcsf"]);
+            document.querySelector('[data-title="PCSF"]').dataset.pdf = result.pdf_url["pcsf"];
+            document.querySelector('[data-title="FPE"]').dataset.pdf = result.pdf_url["fpe"];
+            document.querySelector('[data-title="EKASS, EPRESS"]').dataset.pdf = result.pdf_url["ekass_epress"];
+            showSuccess(result.message || "Form submitted successfully.");
         }
 
         const depPIN = document.getElementById('DependentPIN');
@@ -341,7 +345,7 @@ registrationform.addEventListener("submit", async function(event) {
 
     } catch (err) {
         console.error("❌ Submission failed:", err);
-        toastr.error("Failed to submit form.")
+        showError("Failed to submit form.");
     }
 });
 
