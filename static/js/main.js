@@ -302,8 +302,6 @@ async function loadPdfViewer() {
     }
 }
 
-Swal.fire("SweetAlert2 is working!");
-
 form.addEventListener("submit", async function (event) {
     event.preventDefault();
     event.stopPropagation();

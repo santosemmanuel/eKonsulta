@@ -69,7 +69,8 @@ def index():
                 "url": f"/static/pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"},
         ]
         feature_enabled = session.get("feature_enabled", False)
-        return render_template("index.html", pdf_files=pdf_files, user=session.get("user"), feature_enabled=feature_enabled)
+        # return render_template("index.html", pdf_files=pdf_files, user=session.get("user"), feature_enabled=feature_enabled)
+        return redirect(url_for("registration"))
     elif "position" in session and session.get("position") == "admin":
         return redirect(url_for("gen_reports"))
     elif "position" in session and session.get("position") == "scanner":

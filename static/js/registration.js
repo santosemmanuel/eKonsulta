@@ -297,9 +297,22 @@ registrationform.addEventListener("submit", async function(event) {
 
     if (!validateForm(registrationform)) 
     {
-        showError("Capture both front and back first.");
+        showError("Please Fill Up All Required Fields Correctly.");
         return;
     }
+    
+    if (attachment.value === "with_attachment"){
+        if (frontImage === null || backImage === null) {
+            showError("Please upload all required images.");
+            return;
+        }
+    } else {
+        if (birthCertificateImage && birthCertificateImage === null) {
+            showError("Please upload the birth certificate.");
+            return;
+        }
+    }
+    
 
     const data = buildFormData(registrationform);
 

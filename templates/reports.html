@@ -10,6 +10,8 @@
               rel="stylesheet">
         <link href="{{ url_for('static', filename='css/styles.css') }}"
               rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/sweetalert2.min.css') }}"
+              rel="stylesheet">
         
         <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css"
               rel="stylesheet">
@@ -327,7 +329,7 @@ EPRESS
             const transfereePatients = 0;
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="{{ url_for('static', filename='js/sweetalert2.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/sweetalert-init.js') }}"></script>
         <script src="{{ url_for('static', filename='js/main.js')}}"></script>
         <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
