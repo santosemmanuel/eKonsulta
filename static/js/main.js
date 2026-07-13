@@ -5,6 +5,23 @@
 // DOM elements
 const tabNav = document.getElementById("pdfTabNav");
 const tabContent = document.getElementById("pdfTabContent");
+const regTransferCard = document.getElementById("RegTransferCard");
+const firstEncounterCard = document.getElementById("FirstEncounterCard");
+const secondEncounterCard = document.getElementById("SecondEncounterCard");
+
+
+regTransferCard.addEventListener("click", function () {
+    console.log("Registration Transfer Card clicked");
+    window.location.href = "/registration?value=registration";
+});
+
+firstEncounterCard.addEventListener("click", function () {
+    window.location.href = "/registration?value=first_encounter";
+});
+
+secondEncounterCard.addEventListener("click", function () {
+    window.location.href = "/registration?value=second_encounter";
+}); 
 
 // ====== Dynamically render the tabs ======
 pdfFiles.forEach((file, index) => {
@@ -550,4 +567,3 @@ relationshipSelect.addEventListener("change", function () {
         relDiv.classList.add("col-md-4");
     }
 });
-

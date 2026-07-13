@@ -3,10 +3,11 @@ import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+import fitz
 from flask import current_app, session
 from fillpdf import fillpdfs
 
-from utils.helper import check_form_version, get_age_display, generate_qr_code, add_qr_to_pdf
+from utils.helper import check_form_version, get_age_display, generate_qr_code, add_qr_to_pdf, get_auto_fontsize
 
 TODAY = datetime.now(ZoneInfo("Asia/Manila")).date()
 
@@ -129,36 +130,143 @@ def fill_PKRF_CHS(data):
         if data["patientIsMember"] == "dependent":
             pin = data["dependentPin"]
 
-        data_map = {
-            form_fields[form_fields.index("Member")]: member,
-            form_fields[form_fields.index("Dependent")]: dependent,
-            form_fields[form_fields.index("PIN")]: pin,
-            form_fields[form_fields.index("DateToday")]: f"{TODAY.month:02}/{TODAY.day:02}/{TODAY.year}",
-            form_fields[form_fields.index("LastName")]: data["personalInfo"]["lastName"],
-            form_fields[form_fields.index("FirstName")]: data["personalInfo"]["firstName"],
-            form_fields[form_fields.index("MiddleName")]: data["personalInfo"]["middleName"],
-            form_fields[form_fields.index("Barangay")]: barangay.upper(),
-            form_fields[form_fields.index("Municipality")]: data["address"]["municipality"],
-            form_fields[form_fields.index("Province")]: "LEYTE",
-            form_fields[form_fields.index("DOB")]: formatted_date,
-            form_fields[form_fields.index("ContactNum")]: data["otherDetails"]["mobile"],
-            form_fields[form_fields.index("DepLastName")]: data["personalInfo"]["lastName"],
-            form_fields[form_fields.index("DepFirstName")]: data["personalInfo"]["firstName"],
-            form_fields[form_fields.index("DepMiddleName")]: data["personalInfo"]["middleName"],
-            form_fields[form_fields.index("PatientSignature")]: patientFullName,
-            form_fields[form_fields.index("PatientFullName")]: patientFullName,
-            form_fields[form_fields.index("FullAddress")]: f"{barangay.upper()}, {data['address']['municipality']}, LEYTE",
-            form_fields[form_fields.index("MemberPIN")]: data.get('pin', ''),
-            form_fields[form_fields.index("DependentPIN")]: data.get('dependentPin', ''),
-            form_fields[form_fields.index("NameExt")]: data["personalInfo"]["nameExt"],
-            form_fields[form_fields.index("Age")]: age,
-            form_fields[form_fields.index("Gender")]: gender,
-            form_fields[form_fields.index("Representative")]: representative,
-            form_fields[form_fields.index("RepRelation")]: reprelation,
-            form_fields[form_fields.index("UserInitial")]: initials,
+        doc = fitz.open(pdf_path)
+
+        chs_data = {
+            "DateToday": f"{TODAY.month:02}/{TODAY.day:02}/{TODAY.year}",
+            "LastName": data["personalInfo"]["lastName"],
+            "FirstName": data["personalInfo"]["firstName"],
+            "MiddleName": data["personalInfo"]["middleName"],
+            "Barangay": barangay.upper(),
+            "DOB": formatted_date,
+            "PatientFullName": patientFullName,
+            "FullAddress": f"{barangay.upper()}, {data['address']['municipality']}, LEYTE",
+            "MemberPIN": data.get('pin', ''),
+            "DependentPIN": data.get('dependentPin', ''),
+            "NameExt": data["personalInfo"]["nameExt"] or "",
+            "Age": age,
+            "Gender": gender,
+            "Representative": representative,
+            "RepRelation": reprelation,
+            "UserInitial": initials,
+            "PatientSignOverPrinted": patientFullName
         }
 
-        fillpdfs.write_fillable_pdf(pdf_path, output_pdf, data_map)
+        for i, page in enumerate(doc):
+            print(
+                "Page:", i + 1,
+                "Rotation:", page.rotation,
+                "Rect:", page.rect
+            )
+
+        for page in doc:
+            widgets = page.widgets()
+        
+        if widgets:
+            for widget in widgets:
+                field_name = widget.field_name
+
+                if field_name in chs_data:
+                    widget.field_value = chs_data[field_name]
+                    widget.update()
+            
+            for page in doc:
+                widgets = list(page.widgets() or [])
+
+            for widget in widgets:
+                rect = widget.rect
+                value = widget.field_value or ""
+
+                # 1. Handle Checkbox Fields
+                if widget.field_type == fitz.PDF_WIDGET_TYPE_CHECKBOX:
+                    if value == "Yes":
+                        check_symbol = "X"
+                        font_name = "helv"
+                        # Dynamic scaling based on box size
+                        font_size = min(rect.width, rect.height) * 0.85
+
+                        # Center the checkmark horizontally and vertically inside the box
+                        symbol_width = fitz.get_text_length(
+                            check_symbol, fontname=font_name, fontsize=font_size)
+                        adjusted_x = rect.x0 + \
+                            ((rect.width - symbol_width) / 2.0)
+                        adjusted_y = rect.y1 - \
+                            ((rect.height - font_size) / 2.0) - \
+                            (font_size * 0.1)
+
+                        page.insert_text(
+                            (adjusted_x, adjusted_y),
+                            check_symbol,
+                            fontsize=font_size,
+                            fontname=font_name,
+                        )
+
+                # 2. Handle the Patient Signature Field (Centered & Auto-Sized)
+                elif widget.field_name == "PatientSignOverPrinted":
+                    if value:
+                        font_name = "helv"
+                        font_size = 50.0  # Your preferred maximum starting font size
+                        min_size = 12.0
+
+                        # Auto-size logic: Reduce font size until the signature fits within the box width
+                        while font_size >= min_size:
+                            text_width = fitz.get_text_length(
+                                str(value), fontname=font_name, fontsize=font_size)
+                            if text_width <= rect.width:
+                                break
+                            font_size -= 0.5
+
+                        # Center the signature text horizontally and vertically inside the box
+                        adjusted_x = rect.x0 + \
+                            ((rect.width - text_width) / 2.0)
+                        adjusted_y = rect.y1 - \
+                            ((rect.height - font_size) / 2.0) - \
+                            (font_size * 0.05)
+
+                        page.insert_text(
+                            (adjusted_x, adjusted_y),
+                            str(value),
+                            fontsize=font_size,
+                            fontname=font_name,
+                            rotate = 90
+                        )
+
+                # 3. Handle Fallback for All Other Text Fields (Left-aligned)
+                else:
+                    #if value:
+                        # Vertically centers the text row within your fallback box height
+                        # font_size = get_auto_fontsize(value, rect)
+                        # adjusted_y = rect.y1 - \
+                        #     ((rect.height - font_size) / 2.0) - \
+                        #     (font_size * 0.05)
+
+                        # page.insert_text(
+                        #     (rect.x0 + 10, adjusted_y - 20),
+                        #     str(value),
+                        #     fontsize=font_size,
+                        #     rotate = -270
+                        # )
+                    if value:
+                        font_size = get_auto_fontsize(value, rect)
+
+                        down_offset = 12   # Increase to move DOWN
+                        left_offset = 10    # Increase to move LEFT
+
+                        x = rect.x0 + down_offset
+                        y = rect.y1 - left_offset
+
+                        page.insert_text(
+                            (x, y),
+                            str(value),
+                            fontsize=font_size,
+                            fontname="helv",
+                            rotate=90
+                        )
+            
+                # Remove interactive form field element from the page layout canvas
+                page.delete_widget(widget)
+            doc.save(output_pdf)
+            doc.close()
     except Exception as e:
         print(f"fill_PKRF_CHS error: {e}")
 
@@ -203,20 +311,111 @@ def fill_MCA(data):
         elif data["otherDetails"]["relationship"] != "-Select-":
             reprelation = data["otherDetails"]["relationship"]
 
-        data_map = {
-            form_fields[form_fields.index("PatientName")]: patientFullName,
-            form_fields[form_fields.index("DOB")]: formatted_date,
-            form_fields[form_fields.index("PIN")]: pin,
-            form_fields[form_fields.index("BenefitYear")]: TODAY.year,
-            form_fields[form_fields.index("FullnameAndDateBeneficiary")]: f"{patientFullName}\t\t {TODAY.month:02}/{TODAY.day:02}/{TODAY.year}",
-            form_fields[form_fields.index("BenefitYear1")]: TODAY.year - 1,
-            form_fields[form_fields.index("Representative")]: representative,
-            form_fields[form_fields.index("RepRelation")]: reprelation,
-            form_fields[form_fields.index("PCU")]: pcu,
-            form_fields[form_fields.index("UserInitial")]: initials,
-        }
+        doc = fitz.open(pdf_path)
 
-        fillpdfs.write_fillable_pdf(pdf_path, output_pdf, data_map, flatten=False)
+        mca_data = {
+            "PatientName": patientFullName,
+            "DOB": formatted_date,
+            "PIN": pin,
+            "FullnameAndDateBeneficiary": f"{patientFullName}\t\t {TODAY.month:02}/{TODAY.day:02}/{TODAY.year}",
+            "Representative": representative,
+            "RepRelation": reprelation,
+            "PCU": pcu,
+            "UserInitial": initials,
+            "PatientSignOverPrinted": patientFullName
+        }
+    
+        for page in doc:
+            widgets = page.widgets()
+
+        if widgets:
+            for widget in widgets:
+                field_name = widget.field_name
+
+                if field_name in mca_data:
+                    widget.field_value = mca_data[field_name]
+                    widget.update()
+
+            for page in doc:
+                widgets = list(page.widgets() or [])
+
+            for widget in widgets:
+                rect = widget.rect
+                value = widget.field_value or ""
+
+                # 1. Handle Checkbox Fields
+                if widget.field_type == fitz.PDF_WIDGET_TYPE_CHECKBOX:
+                    if value == "Yes":
+                        check_symbol = "X"
+                        font_name = "helv"
+                        # Dynamic scaling based on box size
+                        font_size = min(rect.width, rect.height) * 0.85
+
+                        # Center the checkmark horizontally and vertically inside the box
+                        symbol_width = fitz.get_text_length(
+                            check_symbol, fontname=font_name, fontsize=font_size)
+                        adjusted_x = rect.x0 + \
+                            ((rect.width - symbol_width) / 2.0)
+                        adjusted_y = rect.y1 - \
+                            ((rect.height - font_size) / 2.0) - \
+                            (font_size * 0.1)
+
+                        page.insert_text(
+                            (adjusted_x, adjusted_y),
+                            check_symbol,
+                            fontsize=font_size,
+                            fontname=font_name,
+                        )
+
+                # 2. Handle the Patient Signature Field (Centered & Auto-Sized)
+                elif widget.field_name == "PatientSignOverPrinted":
+                    if value:
+                        font_name = "helv"
+                        font_size = 30.0  # Your preferred maximum starting font size
+                        min_size = 12.0
+
+                        # Auto-size logic: Reduce font size until the signature fits within the box width
+                        while font_size >= min_size:
+                            text_width = fitz.get_text_length(
+                                str(value), fontname=font_name, fontsize=font_size)
+                            if text_width <= rect.width:
+                                break
+                            font_size -= 0.5
+
+                        # Center the signature text horizontally and vertically inside the box
+                        adjusted_x = rect.x0 + \
+                            ((rect.width - text_width) / 2.0)
+                        adjusted_y = rect.y1 - \
+                            ((rect.height - font_size) / 2.0) - \
+                            (font_size * 0.05)
+
+                        page.insert_text(
+                            (adjusted_x, adjusted_y),
+                            str(value),
+                            fontsize=font_size,
+                            fontname=font_name,
+                        )
+
+                # 3. Handle Fallback for All Other Text Fields (Left-aligned)
+                else:
+                    if value:
+                        # Vertically centers the text row within your fallback box height
+                        font_size = 20.0
+                        adjusted_y = rect.y1 - \
+                            ((rect.height - font_size) / 2.0) - \
+                            (font_size * 0.05)
+
+                        page.insert_text(
+                            (rect.x0 + 2, adjusted_y),
+                            str(value),
+                            fontsize=font_size,
+                        )
+
+                # Remove interactive form field element from the page layout canvas
+                page.delete_widget(widget)
+        doc.save(output_pdf)
+        doc.close()
+
     except Exception as e:
         print(f"fill_MCA error: {e}")
 

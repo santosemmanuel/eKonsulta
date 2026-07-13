@@ -69,8 +69,8 @@ def index():
                 "url": f"/static/pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"},
         ]
         feature_enabled = session.get("feature_enabled", False)
-        # return render_template("index.html", pdf_files=pdf_files, user=session.get("user"), feature_enabled=feature_enabled)
-        return redirect(url_for("registration"))
+        return render_template("index.html", pdf_files=pdf_files, user=session.get("user"), feature_enabled=feature_enabled)
+        # return redirect(url_for("registration"))
     elif "position" in session and session.get("position") == "admin":
         return redirect(url_for("gen_reports"))
     elif "position" in session and session.get("position") == "scanner":
@@ -203,7 +203,25 @@ def submit_form():
     #     cursor.close()
     #     conn.close()
 
-    return jsonify({"status": "success", "message": "Form received"})
+    fpe_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+    ekass_epress_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+    mca_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+
+    pdf_url = url_for(
+            'static',
+            filename=f"pdfs/user_{user_id}/output/PCSF_OUTPUT_user_{user_id}{check_form_version(session.get('feature_enabled', False))}.pdf"
+        )
+    
+    return jsonify({
+                "success": True,
+                "message": "Form submitted and PDFs generated successfully.",
+                "pdf_url": {
+                    "fpe": fpe_pdf,
+                    "ekass_epress": ekass_epress_pdf,
+                    "pcsf": pdf_url,
+                    "mca_pdf": mca_pdf
+                }
+            }), 200
 
 
 @app.route("/get_pdfs")
@@ -433,8 +451,9 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
-@app.route("/registration")
+@app.route("/registration", methods=["GET"])
 def registration():
+    value = request.args.get('value')
     user_id = session.get('user_id')
     pdf_url = url_for(
             'static',
@@ -442,13 +461,30 @@ def registration():
         )
     ekass_epress_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
     fpe_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+    mca_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
 
 
-    return render_template("registration.html", 
-                           user=session.get("user"),
-                           pdf_file=pdf_url,
-                           fpe_file=fpe_pdf,
-                           ekass_epress=ekass_epress_pdf)
+    match value:
+        case "registration":
+            # Handle registration logic
+            return render_template("registration.html", 
+                        user=session.get("user"),
+                        pdf_file=pdf_url,
+                        fpe_file=fpe_pdf,
+                        mca_file=mca_pdf)
+        case "first_encounter":
+            # Handle first encounter logic
+            return render_template("registration.html", 
+                    user=session.get("user"),
+                    fpe_file=fpe_pdf,
+                    mca_file=mca_pdf)
+        case "second_encounter":
+            # Handle second encounter logic
+            return render_template("secondencounter.html", 
+                    user=session.get("user"),
+                    ekass_epress=ekass_epress_pdf)
+
+    
 
 @app.route("/submitCECRegistration", methods=["POST"])
 def submitCECRegistration():
@@ -466,6 +502,7 @@ def submitCECRegistration():
 
     try:
         data = dict(data)
+        print(f"this data {data}")
     except Exception as e:
         print(f"Invalid JSON payload: {e}")
         return jsonify({"status": "error", "message": "Invalid JSON payload."}), 400
@@ -498,6 +535,8 @@ def submitCECRegistration():
         member = "Yes" if data["data"]["patientIsMember"] == "member" else ""
         dependent = "Yes" if data["data"]["patientIsMember"] == "dependent" else ""
         transfer = "Yes" if data["data"]["transfer"]["transfer"] == True else ""
+
+        initials = session.get("initials")
 
         barangay = data["data"]["address"]["barangay"]
         municipality = data["data"]["address"]["municipality"]
@@ -535,11 +574,13 @@ def submitCECRegistration():
             "PatientSignOverPrinted": patientFullName,
             "PCUTransactionCode": data['data']['transactionInfo']['transactionNumber'],
             "Transfer": transfer,
-            "PreviousPCC": data['data']['transfer']['previousPCC']
+            "PreviousPCC": data['data']['transfer']['previousPCC'],
+            "UserInitial": initials
         }
 
-        fill_PKRF_CHS(data["data"])
+        fill_PKRF_CHS(data["data"], data.get("front"), data.get("back"), data.get("birthCertificate"))
         fill_EKAS_EPRESS_MCA(data["data"])
+        fill_MCA(data["data"], data.get("front"), data.get("back"), data.get("birthCertificate"))
 
         for page in doc:
             widgets = page.widgets()
@@ -1036,12 +1077,13 @@ def submitCECRegistration():
         
         fpe_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
         ekass_epress_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-
+        mca_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+        
         return jsonify({
             "success": True,
             "message": "Record inserted successfully",
             "inserted_id": cursor.lastrowid,
-            "pdf_url": {"pcsf": pdf_url, "fpe": fpe_pdf, "ekass_epress": ekass_epress_pdf}
+            "pdf_url": {"pcsf": pdf_url, "fpe": fpe_pdf, "ekass_epress": ekass_epress_pdf, "mca_pdf": mca_pdf}
         }), 200
 
     except pymysql.MySQLError as e:

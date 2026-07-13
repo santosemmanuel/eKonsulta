@@ -149,3 +149,26 @@ def add_qr_to_pdf(input_pdf, output_pdf, qr_image_bytes):
         doc.close()
     except Exception as e:
         print(f"QR insertion error: {e}")
+
+def get_auto_fontsize(text, rect, fontname="helv",
+                      max_size=30, min_size=10, padding=2):
+    """
+    Returns the largest font size that fits within rect.width.
+    """
+    available_width = rect.width - (padding * 2)
+
+    font_size = max_size
+
+    while font_size >= min_size:
+        text_width = fitz.get_text_length(
+            str(text),
+            fontname=fontname,
+            fontsize=font_size
+        )
+
+        if text_width <= available_width:
+            return font_size
+
+        font_size -= 0.5
+
+    return min_size

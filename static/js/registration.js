@@ -156,6 +156,8 @@ function validateForm(form) {
         // ⭐ Skip Transaction Number in normal required check
         if (field.name === "transactionNumber") continue;
 
+        if (field.name === "isRegistration") continue;
+
         // Required check
         if (!field.value || field.value.trim() === "") {
             invalidate(field, "This field is required.");
@@ -300,34 +302,43 @@ registrationform.addEventListener("submit", async function(event) {
         showError("Please Fill Up All Required Fields Correctly.");
         return;
     }
-    
-    if (attachment.value === "with_attachment"){
-        if (frontImage === null || backImage === null) {
-            showError("Please upload all required images.");
-            return;
-        }
-    } else {
-        if (birthCertificateImage && birthCertificateImage === null) {
-            showError("Please upload the birth certificate.");
-            return;
-        }
-    }
-    
 
     const data = buildFormData(registrationform);
 
+    let submissionType = "/submit_form"; // Default submission type
+    let submissionData = data; // Default submission data
+
+    console.log("isRegistration.checked", isRegistration.checked)
+    if(isRegistration.checked){
+        submissionType = "/submitCECRegistration";
+
+        if (attachment.value === "with_attachment"){
+            if (frontImage === null || backImage === null) {
+                showError("Please upload all required images.");
+                return;
+            }
+        } else {
+            if (birthCertificateImage && birthCertificateImage === null) {
+                showError("Please upload the birth certificate.");
+                return;
+            }
+        }
+
+        submissionData = {
+            data: data,
+            front: frontImage,
+            back: backImage,
+            birthCertificate: birthCertificateImage
+        };
+    }
+
     try {
-        const response = await fetch("/submitCECRegistration", {
+        const response = await fetch(submissionType, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                data: data,
-                front: frontImage,
-                back: backImage,
-                birthCertificate: birthCertificateImage
-            })
+            body: JSON.stringify(submissionData)
         });
         
         if (!response.ok) {
@@ -343,6 +354,7 @@ registrationform.addEventListener("submit", async function(event) {
             document.querySelector('[data-title="PCSF"]').dataset.pdf = result.pdf_url["pcsf"];
             document.querySelector('[data-title="FPE"]').dataset.pdf = result.pdf_url["fpe"];
             document.querySelector('[data-title="EKASS, EPRESS"]').dataset.pdf = result.pdf_url["ekass_epress"];
+            document.querySelector('[data-title="MCA"]').dataset.pdf = result.pdf_url["mca_pdf"];
             showSuccess(result.message || "Form submitted successfully.");
         }
 
