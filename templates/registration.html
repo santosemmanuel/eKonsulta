@@ -171,7 +171,7 @@
     <div class="container-fluid py-4">
         <div class="row g-4 justify-content-center">
             <!-- LEFT: FORM -->
-            <div class="col-lg-7" id="patientDataDiv">
+            <div class="col-lg-6" id="patientDataDiv">
             <div class="form-card">
                 <form id="cecregistrationForm" novalidate>
                 <!-- OPTION -->
@@ -207,15 +207,6 @@
                     <div id="DependentPIN" class="col-md-4 d-none">
                       <label class="form-label" id="DependentPINText">Dependent's PIN</label>
                       <input type="text" class="form-control form-control-sm" name="dependentPin" />
-                    </div>
-                    <div class="col-md-4">
-                      <label class="form-label">&nbsp;</label>
-                        <div class="form-check">
-                          <input class="form-check-input" type="checkbox" value="" name="isRegistration" id="isRegistration">
-                          <label class="form-check-label" for="isRegistration">
-                            For Registration or Transfer
-                          </label>
-                        </div>
                     </div>
                 </div>
                 <hr />
@@ -322,19 +313,7 @@
 
                 <div class="col-md-6">
                   <div class="row g-2 align-items-end">
-                    <div class="col-4" id="philhealthCheckDiv">
-                      <div class="form-check mb-1">
-                        <input class="form-check-input" type="checkbox" value="hasPhilhealth" id="checkPhilhealth">
-                        <label class="form-check-label" for="checkPhilhealth">Philhealth</label>
-                      </div>
-                    </div>
                     
-                    <div class="col-4" id="philsysCheckDiv">
-                      <div class="form-check mb-1">
-                        <input class="form-check-input" type="checkbox" value="hasPhilsys" id="checkPhilsys">
-                        <label class="form-check-label" for="checkPhilsys">Philsys</label>
-                      </div>
-                    </div>
 
                     <div class="col-12" id="attachmentDiv">
                       <label class="form-label">Attachment</label>
@@ -579,35 +558,7 @@
       const modalVideo2 = document.getElementById("modalVideo2");
       const modalCaptureBtn = document.getElementById("modalCaptureBtn");
       const modalCaptureBtn2 = document.getElementById("modalCaptureBtn2");
-
-      const isRegistration = document.getElementById("isRegistration");
-      const checkPhilhealth = document.getElementById("philhealthCheckDiv");
-      const checkPhilsys = document.getElementById("philsysCheckDiv");
-      const attachmentDiv = document.getElementById("attachmentDiv");
-      const transferDiv = document.getElementById("transferDiv");
-      const idPreviewDiv = document.getElementById("idPreviewDiv");
-      const patientDataDiv = document.getElementById("patientDataDiv");
         
-
-      isRegistration.addEventListener("change", function() {
-          if (this.checked) {
-            checkPhilhealth.style.display = "none";
-            checkPhilsys.style.display = "none";
-            attachmentDiv.style.display = "block";
-            transferDiv.style.display = "block";
-            idPreviewDiv.style.display = "block";
-            patientDataDiv.classList.remove("col-lg-7");
-            patientDataDiv.classList.add("col-lg-6");
-          } else {
-            attachmentDiv.style.display = "none";
-            transferDiv.style.display = "none";
-            checkPhilhealth.style.display = "block";
-            checkPhilsys.style.display = "block";
-            idPreviewDiv.style.display = "none";
-            patientDataDiv.classList.remove("col-lg-6");
-            patientDataDiv.classList.add("col-lg-7");
-          }
-      });
 
       document.addEventListener("DOMContentLoaded", () => {
         bsModal = new bootstrap.Modal(modalEl);
@@ -628,11 +579,6 @@
         modalCaptureBtn2.addEventListener("click", () => {
           captureFullDocument();
         });
-
-      
-        attachmentDiv.style.display = "none";
-        transferDiv.style.display = "none";
-        idPreviewDiv.style.display = "none";
 
       });
 
@@ -916,6 +862,7 @@
     <script src="{{ url_for('static', filename='js/sweetalert2.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/sweetalert-init.js') }}"></script>
     <script>const pdfFilePCSF = {{ (pdf_file or fpe_file) | tojson }}</script>
+    <script>const valueToSubmit = {{ valueToSubmit | tojson }}</script>
     <script src="{{ url_for('static', filename='js/registration.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
   </body>

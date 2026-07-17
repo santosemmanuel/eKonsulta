@@ -5,10 +5,8 @@ import pymysql.cursors
 import os
 import json
 import traceback
-import base64
 import fitz
 from waitress import serve
-from pypdf import PdfReader, PdfWriter
 from dotenv import load_dotenv
 from models.db import get_db_connection
 from models.pdf_fillers import fill_EKAS_EPRESS_MCA, fill_PKRF_CHS, fill_MCA, clean_files
@@ -25,12 +23,17 @@ from utils.helper import (
     get_initials,
     convert_to_sql_date,
     process_image,
+    decode_image_data_url,
+    create_pdf_image_overlay,
+    attach_images_to_pdf
 )
+from pypdf import PdfReader, PdfWriter
 from zoneinfo import ZoneInfo
-from reportlab.pdfgen import canvas
-from reportlab.lib.utils import ImageReader
 from collections import OrderedDict
 import io
+import base64
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
 
 
 app = Flask(__name__)
@@ -91,11 +94,11 @@ def submit_form():
     #              f"user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"])
 
     fill_EKAS_EPRESS_MCA(patient_data)
-    fill_PKRF_CHS(patient_data)
-    fill_MCA(patient_data)
+    # fill_PKRF_CHS(patient_data)
+    # fill_MCA(patient_data)
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    # conn = get_db_connection()
+    # cursor = conn.cursor()
     user_id = session.get('user_id')
 
     # try:
@@ -216,10 +219,7 @@ def submit_form():
                 "success": True,
                 "message": "Form submitted and PDFs generated successfully.",
                 "pdf_url": {
-                    "fpe": fpe_pdf,
                     "ekass_epress": ekass_epress_pdf,
-                    "pcsf": pdf_url,
-                    "mca_pdf": mca_pdf
                 }
             }), 200
 
@@ -471,18 +471,21 @@ def registration():
                         user=session.get("user"),
                         pdf_file=pdf_url,
                         fpe_file=fpe_pdf,
-                        mca_file=mca_pdf)
+                        mca_file=mca_pdf,
+                        valueToSubmit=value)
         case "first_encounter":
             # Handle first encounter logic
             return render_template("registration.html", 
                     user=session.get("user"),
                     fpe_file=fpe_pdf,
-                    mca_file=mca_pdf)
+                    mca_file=mca_pdf,
+                    valueToSubmit=value)
         case "second_encounter":
             # Handle second encounter logic
             return render_template("secondencounter.html", 
                     user=session.get("user"),
-                    ekass_epress=ekass_epress_pdf)
+                    ekass_epress=ekass_epress_pdf,
+                    valueToSubmit=value)
 
     
 
@@ -577,10 +580,6 @@ def submitCECRegistration():
             "PreviousPCC": data['data']['transfer']['previousPCC'],
             "UserInitial": initials
         }
-
-        fill_PKRF_CHS(data["data"], data.get("front"), data.get("back"), data.get("birthCertificate"))
-        fill_EKAS_EPRESS_MCA(data["data"])
-        fill_MCA(data["data"], data.get("front"), data.get("back"), data.get("birthCertificate"))
 
         for page in doc:
             widgets = page.widgets()
@@ -715,276 +714,27 @@ def submitCECRegistration():
         # with open(output_pdf, "wb") as output_file:
         #     writer.write(output_file)
 
-        front_image = data.get("front")
-        back_image = data.get("back")
-        birth_certificate = data.get("birthCertificate")
+        attach_images_to_pdf(output_pdf, 
+                             data, 
+                             UPLOAD_FOLDER, 
+                             user_id,
+                             FRONT_X,
+                             FRONT_Y,
+                             BACK_X,
+                             BACK_Y,
+                             BIRTH_CERT_X,
+                             BIRTH_CERT_Y,
+                             MAX_WIDTH,
+                             BIRTH_CERT_MAX_WIDTH,
+                             BIRTH_CERT_MAX_HEIGHT)
 
-        if birth_certificate:
-            #code here
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-            birth_filename = f"{UPLOAD_FOLDER}/birth_certificate_{timestamp}.png"
-
-            # ==========================
-            # DECODE BASE64
-            # ==========================
-            birth_bytes = base64.b64decode(birth_certificate.split(",")[1])
-
-            # Reuse your existing process_image() function
-            processed_birth = process_image(birth_bytes)
-
-            # Save processed image
-            with open(birth_filename, "wb") as f:
-                f.write(processed_birth)
-
-            if not os.path.exists(output_pdf):
-                return jsonify({"status": "error", "message": "PCSF.pdf"}), 500
-
-            reader = PdfReader(output_pdf)
-            writer = PdfWriter()
-
-            writer.append(reader)
-
-            def make_overlay(image_bytes, page_width, page_height, x=None, y=None, max_width=400, max_height=400, rotation=0):
-
-                packet = io.BytesIO()
-                c = canvas.Canvas(packet, pagesize=(page_width, page_height))
-
-                img = ImageReader(io.BytesIO(image_bytes))
-                iw, ih = img.getSize()
-
-                # Scale to fit within max_width and max_height
-                scale = min(
-                    max_width / iw,
-                    max_height / ih
-                )
-
-                draw_w = iw * scale
-                draw_h = ih * scale
-
-                if x is None:
-                    x = (page_width - draw_w) / 2
-
-                if y is None:
-                    y = (page_height - draw_h) / 2
-
-                c.saveState()
-
-                if rotation == -90:  # clockwise
-                    c.translate(x, y + draw_w)
-                elif rotation == 90:  # counter-clockwise
-                    c.translate(x + draw_h, y)
-                elif rotation == 180:
-                    c.translate(x + draw_w, y + draw_h)
-                else:
-                    c.translate(x, y)
-
-                c.rotate(rotation)
-
-                c.drawImage(
-                    img,
-                    0,
-                    0,
-                    width=draw_w,
-                    height=draw_h
-                )
-
-                c.restoreState()
-
-                c.save()
-                packet.seek(0)
-
-                return PdfReader(packet).pages[0]
-
-            out_path = os.path.join(
-                current_app.root_path,
-                f"static/pdfs/user_{user_id}/output/PCSF_temp_birth_{timestamp}.pdf"
-            )
-
-            final_path = output_pdf
-
-            try:
-
-                # ====================================
-                # ADD BIRTH CERTIFICATE TO PAGE 1
-                # ====================================
-                page = reader.pages[0]
-
-                pw = float(page.mediabox.width)
-                ph = float(page.mediabox.height)
-
-                overlay_birth = make_overlay(
-                    birth_bytes,
-                    pw,
-                    ph,
-                    x=BIRTH_CERT_X,      # define these constants
-                    y=BIRTH_CERT_Y,
-                    max_width=BIRTH_CERT_MAX_WIDTH,
-                    max_height=BIRTH_CERT_MAX_HEIGHT,
-                    rotation=-90
-                )
-
-                page.merge_page(overlay_birth)
-
-                writer.add_page(page)
-
-                # Save
-                with open(out_path, "wb") as f:
-                    writer.write(f)
-
-                os.replace(out_path, final_path)
-
-                doc = fitz.open(output_pdf)
-                doc.delete_page(0)
-                doc.saveIncr()
-                doc.close()
-
-                try:
-                    os.remove(birth_filename)
-                except OSError:
-                    pass
-
-            except Exception as e:
-                print(f"PDF processing error: {e}")
-                return jsonify({
-                    "status": "error",
-                    "message": f"PDF processing error: {e}"
-                }), 500
-        else:
-
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-            front_filename = f"{UPLOAD_FOLDER}/front_{timestamp}.png"
-            back_filename = f"{UPLOAD_FOLDER}/back_{timestamp}.png"
-
-            # ==========================
-            # DECODE BASE64
-            # ==========================
-            front_bytes = base64.b64decode(front_image.split(",")[1])
-            back_bytes = base64.b64decode(back_image.split(",")[1])
-
-            processed_front = process_image(front_bytes)
-            processed_back = process_image(back_bytes)
-
-            # Save processed images
-            with open(front_filename, "wb") as f:
-                f.write(processed_front)
-
-            with open(back_filename, "wb") as f:
-                f.write(processed_back)
-
-            if not os.path.exists(output_pdf):
-                return jsonify({"status": "error", "message": "PCSF.pdf"}), 500
-
-            reader = PdfReader(output_pdf)
-            writer = PdfWriter()
-
-            writer.append(reader)
-
-            def make_overlay(image_bytes, page_width, page_height,
-                            x=None, y=None, max_width=250):
-
-                packet = io.BytesIO()
-                c = canvas.Canvas(packet, pagesize=(page_width, page_height))
-
-                img = ImageReader(io.BytesIO(image_bytes))
-                iw, ih = img.getSize()
-
-                # scale image
-                scale = min(
-                    max_width / iw,
-                    page_height / ih
-                )
-
-                draw_w = iw * scale
-                draw_h = ih * scale
-
-                # ==========================
-                # POSITION CONTROL
-                # ==========================
-                if x is None or x == 0:
-                    x = page_width - draw_w - 20  # RIGHT SIDE DEFAULT
-
-                if y is None:
-                    y = (page_height - draw_h) / 2
-
-                c.drawImage(img, x, y, width=draw_w, height=draw_h)
-                c.save()
-
-                packet.seek(0)
-                return PdfReader(packet).pages[0]
-
-            out_path = os.path.join(
-                current_app.root_path, f"static/pdfs/user_{user_id}/output/PCSF_temp_{timestamp}.pdf")
-            final_path = output_pdf
-
-            try:
-
-                # ==========================
-                # PAGE 1 ONLY (IMPORTANT)
-                # ==========================
-                page = reader.pages[0]
-
-                pw = float(page.mediabox.width)
-                ph = float(page.mediabox.height)
-
-                # FRONT ID (TOP RIGHT)
-                overlay_front = make_overlay(
-                    front_bytes,
-                    pw,
-                    ph,
-                    x=FRONT_X,
-                    y=FRONT_Y,
-                    max_width=MAX_WIDTH
-                )
-
-                # BACK ID (BOTTOM RIGHT)
-                overlay_back = make_overlay(
-                    back_bytes,
-                    pw,
-                    ph,
-                    x=BACK_X,
-                    y=BACK_Y,
-                    max_width=MAX_WIDTH
-                )
-
-                page.merge_page(overlay_front)
-                page.merge_page(overlay_back)
-
-                writer.add_page(page)
-
-                # ==========================
-                # SAVE OUTPUT
-                # ==========================
-                with open(out_path, "wb") as f:
-                    writer.write(f)
-
-                # replace original PDF with the updated file
-                os.replace(out_path, final_path)
-
-                doc = fitz.open(output_pdf)
-                doc.delete_page(0)
-                doc.saveIncr()
-                doc.close()
-
-                # delete temporary uploaded files after PDF creation
-                try:
-                    os.remove(front_filename)
-                except OSError:
-                    pass
-                try:
-                    os.remove(back_filename)
-                except OSError:
-                    pass
-
-            except Exception as e:
-                print(f"PDF processing error: {e}")
-                return jsonify({"status": "error", "message": f"PDF processing error: {e}"}), 500
-            
     except Exception as e:
         # return jsonify({"status": "error", "message": str(e)}), 500
         print(f"This is the error{e}")
         traceback.print_exc()
+
+    #fill_PKRF_CHS(data["data"], data.get("front"), data.get("back"), data.get("birthCertificate"))
+    # fill_EKAS_EPRESS_MCA(data)
 
     try:
         conn = get_db_connection()

@@ -1,13 +1,24 @@
 import json
 import os
+import io
 from datetime import datetime
 from zoneinfo import ZoneInfo
-
+from pypdf import PdfReader, PdfWriter
+from reportlab.lib.utils import ImageReader
 import fitz
-from flask import current_app, session
+from flask import current_app, session, jsonify, url_for
+from reportlab.pdfgen import canvas
 from fillpdf import fillpdfs
-
-from utils.helper import check_form_version, get_age_display, generate_qr_code, add_qr_to_pdf, get_auto_fontsize
+from utils.helper import (
+    check_form_version,
+    get_age_display,
+    generate_qr_code,
+    add_qr_to_pdf,
+    get_auto_fontsize,
+    process_image,
+    decode_image_data_url,
+    create_pdf_image_overlay,
+)
 
 TODAY = datetime.now(ZoneInfo("Asia/Manila")).date()
 
@@ -93,7 +104,7 @@ def fill_EKAS_EPRESS_MCA(data):
         print(f"fill_EKAS_EPRESS_MCA error: {e}")
 
 
-def fill_PKRF_CHS(data):
+def fill_PKRF_CHS(data, front_image=None, back_image=None, birth_certificate=None):
     try:
         pdf_path = os.path.join(
             current_app.root_path,
@@ -272,11 +283,26 @@ def fill_PKRF_CHS(data):
 
 
 def fill_MCA(data):
+    user_id = session.get("user_id")
+
+    FRONT_X = 420
+    FRONT_Y = 390
+
+    BIRTH_CERT_X = 420
+    BIRTH_CERT_Y = 100
+
+    BACK_X = 420
+    BACK_Y = 200
+
+    BIRTH_CERT_MAX_WIDTH = 550
+    BIRTH_CERT_MAX_HEIGHT = 550
+    MAX_WIDTH = 280
+    
     try:
         philhealth = "✔" if data['transactionInfo']['philhealth'] == True else "✘"
         philsys = "✔" if data['transactionInfo']['philsys'] == True else "✘"
         pcu = "PCU Verification Failed"
-        if data['transactionInfo']['transactionNumber'] != '':
+        if data['transactionInfo']['transactionNumber'] != '' :
             pcu = f"PCU Transaction Number: {data['transactionInfo']['transactionNumber']} \t\t PhilHealth: {philhealth} \t PhilSys: {philsys}"
 
         pdf_path = os.path.join(
@@ -289,7 +315,11 @@ def fill_MCA(data):
         )
         form_fields = list(fillpdfs.get_form_fields(pdf_path).keys())
 
+        UPLOAD_FOLDER = os.path.join(
+        current_app.root_path, f"static/pdfs/user_{user_id}/uploads")
+
         initials = session.get("initials")
+
         pin = data['pin']
         if data['patientIsMember'] == 'dependent':
             pin = data['dependentPin']
@@ -339,82 +369,82 @@ def fill_MCA(data):
             for page in doc:
                 widgets = list(page.widgets() or [])
 
-            for widget in widgets:
-                rect = widget.rect
-                value = widget.field_value or ""
+                for widget in widgets:
+                    rect = widget.rect
+                    value = widget.field_value or ""
 
-                # 1. Handle Checkbox Fields
-                if widget.field_type == fitz.PDF_WIDGET_TYPE_CHECKBOX:
-                    if value == "Yes":
-                        check_symbol = "X"
-                        font_name = "helv"
-                        # Dynamic scaling based on box size
-                        font_size = min(rect.width, rect.height) * 0.85
+                    # 1. Handle Checkbox Fields
+                    if widget.field_type == fitz.PDF_WIDGET_TYPE_CHECKBOX:
+                        if value == "Yes":
+                            check_symbol = "X"
+                            font_name = "helv"
+                            # Dynamic scaling based on box size
+                            font_size = min(rect.width, rect.height) * 0.85
 
-                        # Center the checkmark horizontally and vertically inside the box
-                        symbol_width = fitz.get_text_length(
-                            check_symbol, fontname=font_name, fontsize=font_size)
-                        adjusted_x = rect.x0 + \
-                            ((rect.width - symbol_width) / 2.0)
-                        adjusted_y = rect.y1 - \
-                            ((rect.height - font_size) / 2.0) - \
-                            (font_size * 0.1)
+                            # Center the checkmark horizontally and vertically inside the box
+                            symbol_width = fitz.get_text_length(
+                                check_symbol, fontname=font_name, fontsize=font_size)
+                            adjusted_x = rect.x0 + \
+                                ((rect.width - symbol_width) / 2.0)
+                            adjusted_y = rect.y1 - \
+                                ((rect.height - font_size) / 2.0) - \
+                                (font_size * 0.1)
 
-                        page.insert_text(
-                            (adjusted_x, adjusted_y),
-                            check_symbol,
-                            fontsize=font_size,
-                            fontname=font_name,
-                        )
+                            page.insert_text(
+                                (adjusted_x, adjusted_y),
+                                check_symbol,
+                                fontsize=font_size,
+                                fontname=font_name,
+                            )
 
-                # 2. Handle the Patient Signature Field (Centered & Auto-Sized)
-                elif widget.field_name == "PatientSignOverPrinted":
-                    if value:
-                        font_name = "helv"
-                        font_size = 30.0  # Your preferred maximum starting font size
-                        min_size = 12.0
+                    # 2. Handle the Patient Signature Field (Centered & Auto-Sized)
+                    elif widget.field_name == "PatientSignOverPrinted":
+                        if value:
+                            font_name = "helv"
+                            font_size = 30.0  # Your preferred maximum starting font size
+                            min_size = 12.0
 
-                        # Auto-size logic: Reduce font size until the signature fits within the box width
-                        while font_size >= min_size:
-                            text_width = fitz.get_text_length(
-                                str(value), fontname=font_name, fontsize=font_size)
-                            if text_width <= rect.width:
-                                break
-                            font_size -= 0.5
+                            # Auto-size logic: Reduce font size until the signature fits within the box width
+                            while font_size >= min_size:
+                                text_width = fitz.get_text_length(
+                                    str(value), fontname=font_name, fontsize=font_size)
+                                if text_width <= rect.width:
+                                    break
+                                font_size -= 0.5
 
-                        # Center the signature text horizontally and vertically inside the box
-                        adjusted_x = rect.x0 + \
-                            ((rect.width - text_width) / 2.0)
-                        adjusted_y = rect.y1 - \
-                            ((rect.height - font_size) / 2.0) - \
-                            (font_size * 0.05)
+                            # Center the signature text horizontally and vertically inside the box
+                            adjusted_x = rect.x0 + \
+                                ((rect.width - text_width) / 2.0)
+                            adjusted_y = rect.y1 - \
+                                ((rect.height - font_size) / 2.0) - \
+                                (font_size * 0.05)
 
-                        page.insert_text(
-                            (adjusted_x, adjusted_y),
-                            str(value),
-                            fontsize=font_size,
-                            fontname=font_name,
-                        )
+                            page.insert_text(
+                                (adjusted_x, adjusted_y),
+                                str(value),
+                                fontsize=font_size,
+                                fontname=font_name,
+                            )
 
-                # 3. Handle Fallback for All Other Text Fields (Left-aligned)
-                else:
-                    if value:
-                        # Vertically centers the text row within your fallback box height
-                        font_size = 20.0
-                        adjusted_y = rect.y1 - \
-                            ((rect.height - font_size) / 2.0) - \
-                            (font_size * 0.05)
+                    # 3. Handle Fallback for All Other Text Fields (Left-aligned)
+                    else:
+                        if value:
+                            # Vertically centers the text row within your fallback box height
+                            font_size = 20.0
+                            adjusted_y = rect.y1 - \
+                                ((rect.height - font_size) / 2.0) - \
+                                (font_size * 0.05)
 
-                        page.insert_text(
-                            (rect.x0 + 2, adjusted_y),
-                            str(value),
-                            fontsize=font_size,
-                        )
+                            page.insert_text(
+                                (rect.x0 + 2, adjusted_y),
+                                str(value),
+                                fontsize=font_size,
+                            )
 
-                # Remove interactive form field element from the page layout canvas
-                page.delete_widget(widget)
-        doc.save(output_pdf)
-        doc.close()
+                    # Remove interactive form field element from the page layout canvas
+                    page.delete_widget(widget)
+            doc.save(output_pdf)
+            doc.close()
 
     except Exception as e:
         print(f"fill_MCA error: {e}")

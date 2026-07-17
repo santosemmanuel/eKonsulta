@@ -92,7 +92,6 @@ function buildFormData(form) {
     const transactionNumber = form.transactionNumber?.value.trim() || "";
     const philhealthChecked = document.querySelector("#checkPhilhealth")?.checked || false;
     const philsysChecked = document.querySelector("#checkPhilsys")?.checked || false;
-    const transferChecked = document.querySelector("#checkTransfer")?.checked || false;
 
     return {
         patientIsMember: memberType,
@@ -128,11 +127,6 @@ function buildFormData(form) {
             philhealth: philhealthChecked,
             philsys: philsysChecked
         },
-
-        transfer: {
-            transfer: transferChecked,
-            previousPCC: form.PreviousPCC.value.trim()
-        }
     };
 }
 
@@ -156,7 +150,6 @@ function validateForm(form) {
         // ⭐ Skip Transaction Number in normal required check
         if (field.name === "transactionNumber") continue;
 
-        if (field.name === "isRegistration") continue;
 
         // Required check
         if (!field.value || field.value.trim() === "") {
@@ -294,6 +287,9 @@ pdfTab.addEventListener("click", function() {
 })
 
 registrationform.addEventListener("submit", async function(event) {
+    const transferChecked = document.querySelector("#checkTransfer")?.checked || false;
+    const PreviousPCC = registrationform.PreviousPCC?.value.trim() || "";
+    
     event.preventDefault();
     event.stopPropagation();
 
@@ -308,8 +304,7 @@ registrationform.addEventListener("submit", async function(event) {
     let submissionType = "/submit_form"; // Default submission type
     let submissionData = data; // Default submission data
 
-    console.log("isRegistration.checked", isRegistration.checked)
-    if(isRegistration.checked){
+    if(valueToSubmit != "second_encounter"){
         submissionType = "/submitCECRegistration";
 
         if (attachment.value === "with_attachment"){
@@ -324,12 +319,18 @@ registrationform.addEventListener("submit", async function(event) {
             }
         }
 
+        data.transfer = {
+            transfer: transferChecked,
+            previousPCC: PreviousPCC
+        };
+
         submissionData = {
             data: data,
             front: frontImage,
             back: backImage,
             birthCertificate: birthCertificateImage
         };
+
     }
 
     try {
@@ -350,11 +351,23 @@ registrationform.addEventListener("submit", async function(event) {
         const result = await response.json().catch(() => ({}));
         console.log(result);
         if (result.success && result.pdf_url) {
-            showPdfModal(result.pdf_url["pcsf"]);
-            document.querySelector('[data-title="PCSF"]').dataset.pdf = result.pdf_url["pcsf"];
-            document.querySelector('[data-title="FPE"]').dataset.pdf = result.pdf_url["fpe"];
-            document.querySelector('[data-title="EKASS, EPRESS"]').dataset.pdf = result.pdf_url["ekass_epress"];
-            document.querySelector('[data-title="MCA"]').dataset.pdf = result.pdf_url["mca_pdf"];
+            
+            if (result.pdf_url["pcsf"]) {
+                document.querySelector('[data-title="PCSF"]').dataset.pdf = result.pdf_url["pcsf"];
+                showPdfModal(result.pdf_url["pcsf"]);
+            }
+            if (result.pdf_url["fpe"]) {
+                document.querySelector('[data-title="FPE"]').dataset.pdf = result.pdf_url["fpe"];
+                showPdfModal(result.pdf_url["fpe"]);
+            }
+            if (result.pdf_url["ekass_epress"]) {
+                document.querySelector('[data-title="EKASS, EPRESS"]').dataset.pdf = result.pdf_url["ekass_epress"];
+                showPdfModal(result.pdf_url["ekass_epress"]);
+            }
+            if (result.pdf_url["mca_pdf"]) {
+                document.querySelector('[data-title="MCA"]').dataset.pdf = result.pdf_url["mca_pdf"];
+                showPdfModal(result.pdf_url["mca_pdf"]);
+            }
             showSuccess(result.message || "Form submitted successfully.");
         }
 

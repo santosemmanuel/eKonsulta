@@ -3,11 +3,14 @@ import io
 import json
 import tempfile
 from datetime import datetime, date
-
+from pypdf import PdfReader, PdfWriter
 import cv2
 import numpy as np
 import fitz
 import qrcode
+import os
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
 
 
 def check_form_version(feature_enabled):
@@ -172,3 +175,230 @@ def get_auto_fontsize(text, rect, fontname="helv",
         font_size -= 0.5
 
     return min_size
+
+
+def decode_image_data_url(image_data):
+    """Decode a base64 data URL or base64 string into raw bytes."""
+    if not image_data:
+        return None
+
+    if isinstance(image_data, bytes):
+        return image_data
+
+    if isinstance(image_data, str):
+        if image_data.startswith("data:"):
+            parts = image_data.split(",", 1)
+            if len(parts) == 2:
+                image_data = parts[1]
+
+        try:
+            return base64.b64decode(image_data)
+        except Exception:
+            return None
+
+    return None
+
+
+def create_pdf_image_overlay(image_bytes, page_width, page_height,
+                             x=None, y=None, max_width=250,
+                             max_height=None, rotation=0):
+    """Create a one-page PDF overlay containing a scaled image."""
+    if not image_bytes:
+        raise ValueError("Image bytes are required for overlay.")
+
+    packet = io.BytesIO()
+    c = canvas.Canvas(packet, pagesize=(page_width, page_height))
+    img = ImageReader(io.BytesIO(image_bytes))
+    iw, ih = img.getSize()
+
+    if max_height is None:
+        max_height = page_height
+
+    scale = min(max_width / iw, max_height / ih, 1.0)
+    draw_w = iw * scale
+    draw_h = ih * scale
+
+    if x is None:
+        x = page_width - draw_w - 20
+
+    if y is None:
+        y = (page_height - draw_h) / 2
+
+    c.saveState()
+    if rotation == -90:
+        c.translate(x, y + draw_w)
+    elif rotation == 90:
+        c.translate(x + draw_h, y)
+    elif rotation == 180:
+        c.translate(x + draw_w, y + draw_h)
+    else:
+        c.translate(x, y)
+
+    c.rotate(rotation)
+    c.drawImage(img, 0, 0, width=draw_w, height=draw_h,    preserveAspectRatio=True,
+    mask='auto')
+    c.restoreState()
+    c.save()
+
+    packet.seek(0)
+    return PdfReader(packet).pages[0]
+
+def attach_images_to_pdf(
+    output_pdf,
+    data,
+    upload_folder,
+    user_id,
+    front_x,
+    front_y,
+    back_x,
+    back_y,
+    birth_x,
+    birth_y,
+    max_width=280,
+    birth_max_width=550,
+    birth_max_height=550,
+):
+    """
+    Attach Front/Back ID or Birth Certificate to an existing PDF.
+    """
+
+    front_image = data.get("front")
+    back_image = data.get("back")
+    birth_certificate = data.get("birthCertificate")
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    if birth_certificate:
+
+        birth_filename = os.path.join(
+            upload_folder,
+            f"birth_certificate_{timestamp}.png"
+        )
+
+        birth_bytes = decode_image_data_url(birth_certificate)
+
+        if not birth_bytes:
+            raise Exception("Invalid birth certificate image.")
+
+        processed_birth = process_image(birth_bytes)
+
+        with open(birth_filename, "wb") as f:
+            f.write(processed_birth)
+
+        reader = PdfReader(output_pdf)
+        writer = PdfWriter()
+
+        page = reader.pages[0]
+
+        pw = float(page.mediabox.width)
+        ph = float(page.mediabox.height)
+
+        overlay = create_pdf_image_overlay(
+            processed_birth,
+            pw,
+            ph,
+            x=birth_x,
+            y=birth_y,
+            max_width=birth_max_width,
+            max_height=birth_max_height,
+            rotation=-90,
+        )
+
+        page.merge_page(overlay)
+        writer.add_page(page)
+
+        for p in reader.pages[1:]:
+            writer.add_page(p)
+
+        temp_pdf = os.path.join(
+            os.path.dirname(output_pdf),
+            f"temp_birth_{timestamp}.pdf"
+        )
+
+        with open(temp_pdf, "wb") as f:
+            writer.write(f)
+
+        os.replace(temp_pdf, output_pdf)
+
+        try:
+            os.remove(birth_filename)
+        except:
+            pass
+
+    else:
+
+        front_filename = os.path.join(
+            upload_folder,
+            f"front_{timestamp}.png"
+        )
+
+        back_filename = os.path.join(
+            upload_folder,
+            f"back_{timestamp}.png"
+        )
+
+        front_bytes = decode_image_data_url(front_image)
+        back_bytes = decode_image_data_url(back_image)
+
+        if not front_bytes or not back_bytes:
+            raise Exception("Invalid front/back image.")
+
+        processed_front = front_bytes
+        processed_back = back_bytes
+
+        with open(front_filename, "wb") as f:
+            f.write(processed_front)
+
+        with open(back_filename, "wb") as f:
+            f.write(processed_back)
+
+        reader = PdfReader(output_pdf)
+        writer = PdfWriter()
+
+        page = reader.pages[0]
+
+        pw = float(page.mediabox.width)
+        ph = float(page.mediabox.height)
+
+        overlay_front = create_pdf_image_overlay(
+            processed_front,
+            pw,
+            ph,
+            x=front_x,
+            y=front_y,
+            max_width=max_width,
+        )
+
+        overlay_back = create_pdf_image_overlay(
+            processed_back,
+            pw,
+            ph,
+            x=back_x,
+            y=back_y,
+            max_width=max_width,
+        )
+
+        page.merge_page(overlay_front)
+        page.merge_page(overlay_back)
+
+        writer.add_page(page)
+
+        for p in reader.pages[1:]:
+            writer.add_page(p)
+
+        temp_pdf = os.path.join(
+            os.path.dirname(output_pdf),
+            f"temp_{timestamp}.pdf"
+        )
+
+        with open(temp_pdf, "wb") as f:
+            writer.write(f)
+
+        os.replace(temp_pdf, output_pdf)
+
+        try:
+            os.remove(front_filename)
+            os.remove(back_filename)
+        except:
+            pass
+

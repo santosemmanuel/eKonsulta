@@ -171,7 +171,7 @@
     <div class="container-fluid py-4">
         <div class="row g-4 justify-content-center">
             <!-- LEFT: FORM -->
-            <div class="col-lg-7" id="patientDataDiv">
+            <div class="col-lg-10" id="patientDataDiv">
             <div class="form-card">
                 <form id="cecregistrationForm" novalidate>
                 <!-- OPTION -->
@@ -208,58 +208,56 @@
                       <label class="form-label" id="DependentPINText">Dependent's PIN</label>
                       <input type="text" class="form-control form-control-sm" name="dependentPin" />
                     </div>
-                    <div class="col-md-4">
-                      <label class="form-label">&nbsp;</label>
-                        <div class="form-check">
-                          <input class="form-check-input" type="checkbox" value="" name="isRegistration" id="isRegistration">
-                          <label class="form-check-label" for="isRegistration">
-                            For Registration or Transfer
-                          </label>
-                        </div>
-                    </div>
                 </div>
                 <hr />
-                <h6 class="text-muted mb-2">
-                    <i class="fa-solid fa-user me-2"></i>Personal Information
-                </h6>
-                <!-- FULL NAME -->
-                <div class="row g-2 personal-info">
-                    <div class="col-md-4">
-                    <label class="form-label">Last Name</label>
-                    <input type="text" class="form-control form-control-sm" name="lastName" />
-                    </div>
-                    <div class="col-md-4">
-                    <label class="form-label">First Name</label>
-                    <input type="text" class="form-control form-control-sm" name="firstName" />
-                    </div>
-                    <div class="col-md-3">
-                    <label class="form-label">Middle Name</label>
-                    <input type="text" class="form-control form-control-sm" name="middleName" />
-                    </div>
-                    <div class="col-md-1">
-                    <label class="form-label">Ext</label>
-                    <input type="text" class="form-control form-control-sm" name="nameExt" />
-                    </div>
-                </div>
-                <hr />
-                <!-- ADDRESS -->
-                <h6 class="text-muted mb-2">
-                    <i class="fa-solid fa-location-dot me-2"></i>Address
-                </h6>
-                <div class="row g-2">
+                <div class="row g-3 mb-3">
+                    
                     <div class="col-md-6">
-                    <label class="form-label">Municipality</label>
-                    <select class="form-select form-select-sm"
-                            id="municipality"
-                            name="municipality">
-                        <option value="">Choose Municipality...</option>
-                    </select>
+                      <h6 class="text-muted mb-2">
+                          <i class="fa-solid fa-user me-2"></i>Personal Information
+                      </h6>
+                      <!-- FULL NAME -->
+                      <div class="row g-2 personal-info">
+                          <div class="col-md-4">
+                          <label class="form-label">Last Name</label>
+                          <input type="text" class="form-control form-control-sm" name="lastName" />
+                          </div>
+                          <div class="col-md-4">
+                          <label class="form-label">First Name</label>
+                          <input type="text" class="form-control form-control-sm" name="firstName" />
+                          </div>
+                          <div class="col-md-3">
+                          <label class="form-label">Middle Name</label>
+                          <input type="text" class="form-control form-control-sm" name="middleName" />
+                          </div>
+                          <div class="col-md-1">
+                          <label class="form-label">Ext</label>
+                          <input type="text" class="form-control form-control-sm" name="nameExt" />
+                          </div>
+                      </div>
                     </div>
+                
+                    <!-- ADDRESS -->
                     <div class="col-md-6">
-                    <label class="form-label">Barangay</label>
-                    <select class="form-select form-select-sm" name="barangay" id="barangay">
-                        <option value="">Choose barangay...</option>
-                    </select>
+                      <h6 class="text-muted mb-2">
+                          <i class="fa-solid fa-location-dot me-2"></i>Address
+                      </h6>
+                      <div class="row g-2">
+                          <div class="col-md-6">
+                          <label class="form-label">Municipality</label>
+                          <select class="form-select form-select-sm"
+                                  id="municipality"
+                                  name="municipality">
+                              <option value="">Choose Municipality...</option>
+                          </select>
+                          </div>
+                          <div class="col-md-6">
+                          <label class="form-label">Barangay</label>
+                          <select class="form-select form-select-sm" name="barangay" id="barangay">
+                              <option value="">Choose barangay...</option>
+                          </select>
+                          </div>
+                      </div>
                     </div>
                 </div>
                 <hr />
@@ -335,30 +333,8 @@
                         <label class="form-check-label" for="checkPhilsys">Philsys</label>
                       </div>
                     </div>
-
-                    <div class="col-12" id="attachmentDiv">
-                      <label class="form-label">Attachment</label>
-                      <select class="form-select form-select-sm" id="attachment">
-                        <option value="with_attachment">Valid ID</option>
-                        <option value="without_attachment">Non-ID Identity Documents</option>
-                      </select>
-                    </div>
                   </div>
                 </div>
-              </div>
-
-              <div class="row g-2 mb-2 mt-4" id="transferDiv">
-                
-                  <div class="form-check mb-1 ml-5">
-                    <input class="form-check-input" type="checkbox" value="forTransfer" id="checkTransfer">
-                    <label class="form-check-label" for="checkTransfer">For Transfer</label>
-                  </div>
-                
-                  <div class="d-none" id="previousPCCContainer">
-                    <label class="form-label">Previous PCC</label>
-                    <input type="text" class="form-control form-control-sm" name="PreviousPCC" />
-                  </div>
-                
               </div>
                 <button type="submit" class="btn btn-submit w-100 mt-4 py-3">
                     <i class="fa-solid fa-paper-plane me-2"></i>
@@ -369,37 +345,7 @@
             </div>
             </div>
 
-            <div class="col-lg-6" id="idPreviewDiv">
-              
-                <div class="pdf-card p-4">
-
-                  <div id="idCapture">
-                    <div class="d-flex justify-content-between">
-                        <h5>Front ID Preview</h5>
-                        <button class="btn btn-submit p-3" onclick="openCapture('front')">
-                            Capture Front
-                        </button>
-                    </div>
-                    <img id="frontPreview" class="img-fluid" style="width:70%" />
-                    <div class="d-flex justify-content-between">
-                        <h5 class="mt-3">Back ID Preview</h5>
-                      <button class="btn btn-submit p-3" onclick="openCapture('back')">
-                          Capture Back
-                      </button>
-                    </div>
-                    <img id="backPreview" class="img-fluid" style="width:70%"/>    
-                  </div>
-                  <div id="BCCapture" style="display: none">
-                    <div class="d-flex justify-content-between">
-                        <h5>Non ID Document Preview</h5>
-                        <button class="btn btn-submit p-3" onclick="openCapture('birthCertificate', 'bith_certificate')">
-                            Capture
-                        </button>
-                    </div>
-                    <img id="birthCertificatePreview" class="img-fluid" style="width:70%" />
-                  </div>
-                </div>
-            </div>
+            
         </div>
     </div>
 
@@ -593,25 +539,6 @@
       const patientDataDiv = document.getElementById("patientDataDiv");
         
 
-      isRegistration.addEventListener("change", function() {
-          if (this.checked) {
-            checkPhilhealth.style.display = "none";
-            checkPhilsys.style.display = "none";
-            attachmentDiv.style.display = "block";
-            transferDiv.style.display = "block";
-            idPreviewDiv.style.display = "block";
-            patientDataDiv.classList.remove("col-lg-7");
-            patientDataDiv.classList.add("col-lg-6");
-          } else {
-            attachmentDiv.style.display = "none";
-            transferDiv.style.display = "none";
-            checkPhilhealth.style.display = "block";
-            checkPhilsys.style.display = "block";
-            idPreviewDiv.style.display = "none";
-            patientDataDiv.classList.remove("col-lg-6");
-            patientDataDiv.classList.add("col-lg-7");
-          }
-      });
 
       document.addEventListener("DOMContentLoaded", () => {
         bsModal = new bootstrap.Modal(modalEl);
@@ -633,10 +560,6 @@
           captureFullDocument();
         });
 
-      
-        attachmentDiv.style.display = "none";
-        transferDiv.style.display = "none";
-        idPreviewDiv.style.display = "none";
 
       });
 
@@ -843,28 +766,8 @@
           .catch((err) => console.error(err));
       }
 
-      //Selecting Attachment
-      const attachment = document.getElementById("attachment");
-      attachment.addEventListener("change", function() {
-        if (this.value === "with_attachment") {
-          // Show the valid ID upload option
-          document.getElementById("BCCapture").style.display = "none";
-          document.getElementById("idCapture").style.display = "block";
-        } else {
-          // Hide the valid ID upload option
-          document.getElementById("BCCapture").style.display = "block";
-          document.getElementById("idCapture").style.display = "none";
-        }
-      });
 
-      document.addEventListener("DOMContentLoaded", function () {
-          const transferCheckbox = document.getElementById("checkTransfer");
-          const previousPCCContainer = document.getElementById("previousPCCContainer");
-
-          transferCheckbox.addEventListener("change", function () {
-              previousPCCContainer.classList.toggle("d-none", !this.checked);
-          });
-      });
+  
 
       function loadPdf(pdfUrl, title) {
         const iframe = document.getElementById("pdfFrame");
@@ -920,6 +823,7 @@
     <script src="{{ url_for('static', filename='js/sweetalert2.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/sweetalert-init.js') }}"></script>
     <script>const pdfFilePCSF = {{ (pdf_file or ekass_epress) | tojson }}</script>
+    <script>const valueToSubmit = {{ valueToSubmit | tojson }}</script>
     <script src="{{ url_for('static', filename='js/registration.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
   </body>
