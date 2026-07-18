@@ -6,6 +6,7 @@ import os
 import json
 import traceback
 import fitz
+import gc
 from waitress import serve
 from dotenv import load_dotenv
 from models.db import get_db_connection
@@ -694,6 +695,8 @@ def submitCECRegistration():
                     page.delete_widget(widget)
         doc.save(output_pdf)
         doc.close()
+        del doc          # Delete the variable
+        gc.collect()
 
         print("PDF filled and flattened successfully.")
         # --- PYPDF WRITE START ---

@@ -1,6 +1,7 @@
 import json
 import os
 import io
+import gc
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from pypdf import PdfReader, PdfWriter
@@ -114,8 +115,8 @@ def fill_PKRF_CHS(data):
     BIRTH_CERT_X = 10
     BIRTH_CERT_Y = 10
 
-    BACK_X = 420
-    BACK_Y = 200
+    BACK_X = 200
+    BACK_Y = 10
 
     BIRTH_CERT_MAX_WIDTH = 450
     BIRTH_CERT_MAX_HEIGHT = 660
@@ -299,6 +300,8 @@ def fill_PKRF_CHS(data):
                 page.delete_widget(widget)
             doc.save(output_pdf)
             doc.close()
+            del doc          # Delete the variable
+            gc.collect()
 
             attach_images_to_pdf(
                 output_pdf=output_pdf,
@@ -330,7 +333,7 @@ def fill_MCA(data):
     user_id = session.get("user_id")
 
     FRONT_X = 1220
-    FRONT_Y = 1999
+    FRONT_Y = 1100
 
     BIRTH_CERT_X = 1300
     BIRTH_CERT_Y = 300
@@ -384,7 +387,7 @@ def fill_MCA(data):
             reprelation = data['data']["otherDetails"]["otherRelationship"]
         elif data['data']["otherDetails"]["relationship"] != "-Select-":
             reprelation = data['data']["otherDetails"]["relationship"]
-
+        
         doc = fitz.open(pdf_path)
 
         mca_data = {
@@ -489,6 +492,8 @@ def fill_MCA(data):
                     page.delete_widget(widget)
             doc.save(output_pdf)
             doc.close()
+            del doc          # Delete the variable
+            gc.collect()
 
             attach_images_to_pdf(
                 output_pdf=output_pdf,

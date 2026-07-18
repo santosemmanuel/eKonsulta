@@ -9,6 +9,7 @@ import numpy as np
 import fitz
 import qrcode
 import os
+import gc
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 
@@ -241,6 +242,8 @@ def create_pdf_image_overlay(image_bytes, page_width, page_height,
     c.save()
 
     packet.seek(0)
+    del img
+    gc.collect()
     return PdfReader(packet).pages[0]
 
 def attach_images_to_pdf(
@@ -379,7 +382,8 @@ def attach_images_to_pdf(
             ph,
             x=back_x,
             y=back_y,
-            max_width=rotation_id,
+            max_width=max_width,
+            rotation=rotation_id
         )
 
         page.merge_page(overlay_front)
