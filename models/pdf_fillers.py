@@ -108,8 +108,8 @@ def fill_EKAS_EPRESS_MCA(data):
 def fill_PKRF_CHS(data):
     user_id = session.get("user_id")
 
-    FRONT_X = 420
-    FRONT_Y = 390
+    FRONT_X = 10
+    FRONT_Y = 10
 
     BIRTH_CERT_X = 10
     BIRTH_CERT_Y = 10
@@ -320,7 +320,7 @@ def fill_PKRF_CHS(data):
                 birth_max_height=BIRTH_CERT_MAX_HEIGHT,
 
                 rotation_birth=0,
-                rotation_id=-90
+                rotation_id=90
             )
     except Exception as e:
         print(f"fill_PKRF_CHS error: {e}")
