@@ -18,6 +18,7 @@ from utils.helper import (
     process_image,
     decode_image_data_url,
     create_pdf_image_overlay,
+    attach_images_to_pdf
 )
 
 TODAY = datetime.now(ZoneInfo("Asia/Manila")).date()
@@ -104,7 +105,22 @@ def fill_EKAS_EPRESS_MCA(data):
         print(f"fill_EKAS_EPRESS_MCA error: {e}")
 
 
-def fill_PKRF_CHS(data, front_image=None, back_image=None, birth_certificate=None):
+def fill_PKRF_CHS(data):
+    user_id = session.get("user_id")
+
+    FRONT_X = 420
+    FRONT_Y = 390
+
+    BIRTH_CERT_X = 10
+    BIRTH_CERT_Y = 10
+
+    BACK_X = 420
+    BACK_Y = 200
+
+    BIRTH_CERT_MAX_WIDTH = 450
+    BIRTH_CERT_MAX_HEIGHT = 660
+    MAX_WIDTH = 280
+
     try:
         pdf_path = os.path.join(
             current_app.root_path,
@@ -115,46 +131,49 @@ def fill_PKRF_CHS(data, front_image=None, back_image=None, birth_certificate=Non
             f"static/pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"
         )
         form_fields = list(fillpdfs.get_form_fields(pdf_path).keys())
+        
+        UPLOAD_FOLDER = os.path.join(
+        current_app.root_path, f"static/pdfs/user_{user_id}/uploads")
 
-        date_object = datetime.strptime(data["otherDetails"]["dob"], "%Y-%m-%d")
+        date_object = datetime.strptime(data['data']['otherDetails']['dob'], "%Y-%m-%d")
         formatted_date = date_object.strftime('%m-%d-%Y')
         initials = session.get('initials')
-        age = get_age_display(data["otherDetails"]["dob"])
+        age = get_age_display(data["data"]["otherDetails"]["dob"])
 
-        gender = data["otherDetails"]['sex']
+        gender = data["data"]["otherDetails"]['sex']
         patientMiddleName = (
-            data["personalInfo"]["middleName"][0] if data["personalInfo"]["middleName"] else ""
+            data["data"]["personalInfo"]["middleName"][0] if data["data"]["personalInfo"]["middleName"] else ""
         )
-        patientFullName = f"{data['personalInfo']['firstName']} {patientMiddleName} {data['personalInfo']['lastName']} {data['personalInfo']['nameExt']}"
+        patientFullName = f"{data["data"]['personalInfo']['firstName']} {patientMiddleName} {data["data"]['personalInfo']['lastName']} {data["data"]['personalInfo']['nameExt']}"
 
-        member = "Yes" if data["patientIsMember"] == "member" else ""
-        dependent = "Yes" if data["patientIsMember"] == "dependent" else ""
-        barangay = data["address"]["barangay"]
-        representative = data["otherDetails"].get("representative", "") or ""
+        member = "Yes" if data["data"]["patientIsMember"] == "member" else ""
+        dependent = "Yes" if data["data"]["patientIsMember"] == "dependent" else ""
+        barangay = data["data"]["address"]["barangay"]
+        representative = data["data"]["otherDetails"].get("representative", "") or ""
         reprelation = ""
-        if data["otherDetails"]["relationship"] == "Others":
-            reprelation = data["otherDetails"]["otherRelationship"]
-        elif data["otherDetails"]["relationship"] != "-Select-":
-            reprelation = data["otherDetails"]["relationship"]
+        if data["data"]["otherDetails"]["relationship"] == "Others":
+            reprelation = data["data"]["otherDetails"]["otherRelationship"]
+        elif data["data"]["otherDetails"]["relationship"] != "-Select-":
+            reprelation = data["data"]["otherDetails"]["relationship"]
 
-        pin = data["pin"]
-        if data["patientIsMember"] == "dependent":
-            pin = data["dependentPin"]
+        pin = data["data"]["pin"]
+        if data["data"]["patientIsMember"] == "dependent":
+            pin = data["data"]["dependentPin"]
 
         doc = fitz.open(pdf_path)
 
         chs_data = {
             "DateToday": f"{TODAY.month:02}/{TODAY.day:02}/{TODAY.year}",
-            "LastName": data["personalInfo"]["lastName"],
-            "FirstName": data["personalInfo"]["firstName"],
-            "MiddleName": data["personalInfo"]["middleName"],
+            "LastName": data["data"]["personalInfo"]["lastName"],
+            "FirstName": data["data"]["personalInfo"]["firstName"],
+            "MiddleName": data["data"]["personalInfo"]["middleName"],
             "Barangay": barangay.upper(),
             "DOB": formatted_date,
             "PatientFullName": patientFullName,
-            "FullAddress": f"{barangay.upper()}, {data['address']['municipality']}, LEYTE",
+            "FullAddress": f"{barangay.upper()}, {data['data']['address']['municipality']}, LEYTE",
             "MemberPIN": data.get('pin', ''),
             "DependentPIN": data.get('dependentPin', ''),
-            "NameExt": data["personalInfo"]["nameExt"] or "",
+            "NameExt": data["data"]["personalInfo"]["nameExt"] or "",
             "Age": age,
             "Gender": gender,
             "Representative": representative,
@@ -228,14 +247,16 @@ def fill_PKRF_CHS(data, front_image=None, back_image=None, birth_certificate=Non
                             font_size -= 0.5
 
                         # Center the signature text horizontally and vertically inside the box
-                        adjusted_x = rect.x0 + \
-                            ((rect.width - text_width) / 2.0)
-                        adjusted_y = rect.y1 - \
-                            ((rect.height - font_size) / 2.0) - \
-                            (font_size * 0.05)
+                        font_size = get_auto_fontsize(value, rect)
+
+                        down_offset = 12   # Increase to move DOWN
+                        left_offset = 10    # Increase to move LEFT
+
+                        x = rect.x0 + down_offset
+                        y = rect.y1 - left_offset
 
                         page.insert_text(
-                            (adjusted_x, adjusted_y),
+                            (x, y),
                             str(value),
                             fontsize=font_size,
                             fontname=font_name,
@@ -278,6 +299,29 @@ def fill_PKRF_CHS(data, front_image=None, back_image=None, birth_certificate=Non
                 page.delete_widget(widget)
             doc.save(output_pdf)
             doc.close()
+
+            attach_images_to_pdf(
+                output_pdf=output_pdf,
+                data=data,
+                upload_folder=UPLOAD_FOLDER,
+                user_id=user_id,
+
+                front_x=FRONT_X,
+                front_y=FRONT_Y,
+
+                back_x=BACK_X,
+                back_y=BACK_Y,
+
+                birth_x=BIRTH_CERT_X,
+                birth_y=BIRTH_CERT_Y,
+
+                max_width=MAX_WIDTH,
+                birth_max_width=BIRTH_CERT_MAX_WIDTH,
+                birth_max_height=BIRTH_CERT_MAX_HEIGHT,
+
+                rotation_birth=0,
+                rotation_id=-90
+            )
     except Exception as e:
         print(f"fill_PKRF_CHS error: {e}")
 
@@ -285,25 +329,25 @@ def fill_PKRF_CHS(data, front_image=None, back_image=None, birth_certificate=Non
 def fill_MCA(data):
     user_id = session.get("user_id")
 
-    FRONT_X = 420
-    FRONT_Y = 390
+    FRONT_X = 1220
+    FRONT_Y = 1999
 
-    BIRTH_CERT_X = 420
-    BIRTH_CERT_Y = 100
+    BIRTH_CERT_X = 1300
+    BIRTH_CERT_Y = 300
 
-    BACK_X = 420
-    BACK_Y = 200
+    BACK_X = 1220
+    BACK_Y = 500
 
-    BIRTH_CERT_MAX_WIDTH = 550
-    BIRTH_CERT_MAX_HEIGHT = 550
-    MAX_WIDTH = 280
+    BIRTH_CERT_MAX_WIDTH = 1400
+    BIRTH_CERT_MAX_HEIGHT = 750
+    MAX_WIDTH = 880
     
     try:
-        philhealth = "✔" if data['transactionInfo']['philhealth'] == True else "✘"
-        philsys = "✔" if data['transactionInfo']['philsys'] == True else "✘"
+        philhealth = "✔" if data['data']['transactionInfo']['philhealth'] == True else "✘"
+        philsys = "✔" if data['data']['transactionInfo']['philsys'] == True else "✘"
         pcu = "PCU Verification Failed"
-        if data['transactionInfo']['transactionNumber'] != '' :
-            pcu = f"PCU Transaction Number: {data['transactionInfo']['transactionNumber']} \t\t PhilHealth: {philhealth} \t PhilSys: {philsys}"
+        if data['data']['transactionInfo']['transactionNumber'] != '' :
+            pcu = f"PCU Transaction Number: {data['data']['transactionInfo']['transactionNumber']} \t\t PhilHealth: {philhealth} \t PhilSys: {philsys}"
 
         pdf_path = os.path.join(
             current_app.root_path,
@@ -320,26 +364,26 @@ def fill_MCA(data):
 
         initials = session.get("initials")
 
-        pin = data['pin']
-        if data['patientIsMember'] == 'dependent':
-            pin = data['dependentPin']
+        pin = data['data']['pin']
+        if data['data']['patientIsMember'] == 'dependent':
+            pin = data['data']['dependentPin']
 
-        date_object = datetime.strptime(data["otherDetails"]["dob"], "%Y-%m-%d")
+        date_object = datetime.strptime(data['data']["otherDetails"]["dob"], "%Y-%m-%d")
         formatted_date = date_object.strftime('%m-%d-%Y')
-        cellphoneNum = data["otherDetails"]["mobile"]
+        cellphoneNum = data['data']["otherDetails"]["mobile"]
         patientMiddleName = (
-            data["personalInfo"]["middleName"][0] if data["personalInfo"]["middleName"] else ""
+            data['data']["personalInfo"]["middleName"][0] if data['data']["personalInfo"]["middleName"] else ""
         )
-        patientFullName = f"{data['personalInfo']['firstName']} {patientMiddleName} {data['personalInfo']['lastName']} {data['personalInfo']['nameExt']}"
+        patientFullName = f"{data['data']['personalInfo']['firstName']} {patientMiddleName} {data['data']['personalInfo']['lastName']} {data['data']['personalInfo']['nameExt']}"
 
-        member = "Yes" if data["patientIsMember"] == "member" else None
-        dependent = "Yes" if data["patientIsMember"] == "dependent" else None
-        representative = data["otherDetails"].get("representative", "") or ""
+        member = "Yes" if data['data']["patientIsMember"] == "member" else None
+        dependent = "Yes" if data['data']["patientIsMember"] == "dependent" else None
+        representative = data['data']["otherDetails"].get("representative", "") or ""
         reprelation = ""
-        if data["otherDetails"]["relationship"] == "Others":
-            reprelation = data["otherDetails"]["otherRelationship"]
-        elif data["otherDetails"]["relationship"] != "-Select-":
-            reprelation = data["otherDetails"]["relationship"]
+        if data['data']["otherDetails"]["relationship"] == "Others":
+            reprelation = data['data']["otherDetails"]["otherRelationship"]
+        elif data['data']["otherDetails"]["relationship"] != "-Select-":
+            reprelation = data['data']["otherDetails"]["relationship"]
 
         doc = fitz.open(pdf_path)
 
@@ -445,6 +489,29 @@ def fill_MCA(data):
                     page.delete_widget(widget)
             doc.save(output_pdf)
             doc.close()
+
+            attach_images_to_pdf(
+                output_pdf=output_pdf,
+                data=data,
+                upload_folder=UPLOAD_FOLDER,
+                user_id=user_id,
+
+                front_x=FRONT_X,
+                front_y=FRONT_Y,
+
+                back_x=BACK_X,
+                back_y=BACK_Y,
+
+                birth_x=BIRTH_CERT_X,
+                birth_y=BIRTH_CERT_Y,
+
+                max_width=MAX_WIDTH,
+                birth_max_width=BIRTH_CERT_MAX_WIDTH,
+                birth_max_height=BIRTH_CERT_MAX_HEIGHT,
+
+                rotation_birth=-90,
+                rotation_id=0
+            )
 
     except Exception as e:
         print(f"fill_MCA error: {e}")

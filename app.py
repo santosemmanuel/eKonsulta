@@ -47,16 +47,15 @@ today = datetime.now(ZoneInfo("Asia/Manila")).date()
 FRONT_X = 420
 FRONT_Y = 390
 
-BIRTH_CERT_X = 420
+BIRTH_CERT_X = 430
 BIRTH_CERT_Y = 100
 
 BACK_X = 420
 BACK_Y = 200
 
-BIRTH_CERT_MAX_WIDTH = 550
-BIRTH_CERT_MAX_HEIGHT = 550
+BIRTH_CERT_MAX_WIDTH = 490
+BIRTH_CERT_MAX_HEIGHT = 700
 MAX_WIDTH = 280
-
 
 
 
@@ -223,7 +222,6 @@ def submit_form():
                 }
             }), 200
 
-
 @app.route("/get_pdfs")
 def get_pdfs():
     return jsonify([
@@ -240,7 +238,6 @@ def get_pdfs():
             "url": url_for("static", filename=f"pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
         },
     ])
-
 
 @app.route("/gen_reports")
 def gen_reports():
@@ -330,11 +327,9 @@ def saveScanned():
             "message": str(e)
         }), 500
 
-
 @app.route("/ActivityLogs")
 def ActivityLogs():
     return render_template("activityLog.html")
-
 
 @app.route('/get_patient/<pin>')
 def get_patient(pin):
@@ -359,7 +354,6 @@ def get_patient(pin):
         return jsonify({"exists": True, **patient})
     else:
         return jsonify({"exists": False})
-
 
 @app.route('/getTransmittalData')
 def getTransmittalData():
@@ -488,7 +482,6 @@ def registration():
                     valueToSubmit=value)
 
     
-
 @app.route("/submitCECRegistration", methods=["POST"])
 def submitCECRegistration():
     # Handle registration submission logic here
@@ -505,7 +498,6 @@ def submitCECRegistration():
 
     try:
         data = dict(data)
-        print(f"this data {data}")
     except Exception as e:
         print(f"Invalid JSON payload: {e}")
         return jsonify({"status": "error", "message": "Invalid JSON payload."}), 400
@@ -726,7 +718,12 @@ def submitCECRegistration():
                              BIRTH_CERT_Y,
                              MAX_WIDTH,
                              BIRTH_CERT_MAX_WIDTH,
-                             BIRTH_CERT_MAX_HEIGHT)
+                             BIRTH_CERT_MAX_HEIGHT,
+                             rotation_birth=-90,
+                             rotation_id=0)
+        fill_MCA(data)
+        fill_PKRF_CHS(data)
+
 
     except Exception as e:
         # return jsonify({"status": "error", "message": str(e)}), 500
@@ -734,8 +731,7 @@ def submitCECRegistration():
         traceback.print_exc()
 
     #fill_PKRF_CHS(data["data"], data.get("front"), data.get("back"), data.get("birthCertificate"))
-    # fill_EKAS_EPRESS_MCA(data)
-
+    
     try:
         conn = get_db_connection()
 
@@ -826,14 +822,14 @@ def submitCECRegistration():
         conn.commit()
         
         fpe_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-        ekass_epress_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+
         mca_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
         
         return jsonify({
             "success": True,
             "message": "Record inserted successfully",
             "inserted_id": cursor.lastrowid,
-            "pdf_url": {"pcsf": pdf_url, "fpe": fpe_pdf, "ekass_epress": ekass_epress_pdf, "mca_pdf": mca_pdf}
+            "pdf_url": {"pcsf": pdf_url, "fpe": fpe_pdf, "mca_pdf": mca_pdf}
         }), 200
 
     except pymysql.MySQLError as e:

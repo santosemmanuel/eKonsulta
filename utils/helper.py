@@ -257,6 +257,9 @@ def attach_images_to_pdf(
     max_width=280,
     birth_max_width=550,
     birth_max_height=550,
+    rotation_birth=-90,
+    rotation_id=0
+
 ):
     """
     Attach Front/Back ID or Birth Certificate to an existing PDF.
@@ -280,7 +283,7 @@ def attach_images_to_pdf(
         if not birth_bytes:
             raise Exception("Invalid birth certificate image.")
 
-        processed_birth = process_image(birth_bytes)
+        processed_birth = birth_bytes
 
         with open(birth_filename, "wb") as f:
             f.write(processed_birth)
@@ -301,7 +304,7 @@ def attach_images_to_pdf(
             y=birth_y,
             max_width=birth_max_width,
             max_height=birth_max_height,
-            rotation=-90,
+            rotation=rotation_birth,
         )
 
         page.merge_page(overlay)
@@ -367,6 +370,7 @@ def attach_images_to_pdf(
             x=front_x,
             y=front_y,
             max_width=max_width,
+            rotation=rotation_id
         )
 
         overlay_back = create_pdf_image_overlay(
@@ -375,7 +379,7 @@ def attach_images_to_pdf(
             ph,
             x=back_x,
             y=back_y,
-            max_width=max_width,
+            max_width=rotation_id,
         )
 
         page.merge_page(overlay_front)
