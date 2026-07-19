@@ -1,16 +1,24 @@
 from flask import Flask, render_template, request, jsonify, current_app, url_for, session, redirect, flash
-from datetime import datetime, date
+from datetime import datetime
+import gc
+import json
+import os
+import traceback
+from collections import OrderedDict
+from zoneinfo import ZoneInfo
+
+import fitz
 import pymysql
 import pymysql.cursors
-import os
-import json
-import traceback
-import fitz
-import gc
-from waitress import serve
 from dotenv import load_dotenv
+
+try:
+    from waitress import serve
+except ImportError:  # pragma: no cover - optional in local development
+    serve = None
+
 from models.db import get_db_connection
-from models.pdf_fillers import fill_EKAS_EPRESS_MCA, fill_PKRF_CHS, fill_MCA, clean_files
+from models.pdf_fillers import fill_EKAS_EPRESS_MCA, fill_PKRF_CHS, fill_MCA
 from models.reports import (
     allPatientTable,
     allTransferPatient,
@@ -23,19 +31,8 @@ from utils.helper import (
     get_age_display,
     get_initials,
     convert_to_sql_date,
-    process_image,
-    decode_image_data_url,
-    create_pdf_image_overlay,
-    attach_images_to_pdf
+    attach_images_to_pdf,
 )
-from pypdf import PdfReader, PdfWriter
-from zoneinfo import ZoneInfo
-from collections import OrderedDict
-import io
-import base64
-from reportlab.pdfgen import canvas
-from reportlab.lib.utils import ImageReader
-
 
 app = Flask(__name__)
 app.secret_key = "MHOBurauen"
@@ -43,7 +40,7 @@ load_dotenv()
 today = datetime.now(ZoneInfo("Asia/Manila")).date()
 
 # ==========================
-# CONFIG (EDIT HERE ONLY)
+# CONFIGURATION
 # ==========================
 FRONT_X = 420
 FRONT_Y = 390
@@ -59,21 +56,39 @@ BIRTH_CERT_MAX_HEIGHT = 700
 MAX_WIDTH = 280
 
 
+def build_pdf_url(user_id, filename):
+    """Build a static URL for a generated PDF file."""
+    return url_for("static", filename=f"pdfs/user_{user_id}/output/{filename}")
+
+
+def get_current_user_pdf_urls(user_id):
+    """Return the generated PDF URLs for the current user."""
+    suffix = check_form_version(session.get("feature_enabled", False))
+    return {
+        "pcsf": build_pdf_url(user_id, f"PCSF_OUTPUT_user_{user_id}{suffix}.pdf"),
+        "ekass_epress": build_pdf_url(user_id, f"EKAS,EPRESS,MCA_OUTPUT_user_{user_id}{suffix}.pdf"),
+        "fpe": build_pdf_url(user_id, f"PKRF,Consent, Health Screening_OUTPUT_user_{user_id}{suffix}.pdf"),
+        "mca": build_pdf_url(user_id, f"EMPANELMENT_(MCA)_OUTPUT_user_{user_id}{suffix}.pdf"),
+    }
+
+
 
 @app.route("/")
 def index():
     if "user" in session and session.get("position") == "user":
+        pdf_urls = get_current_user_pdf_urls(session.get("user_id"))
         pdf_files = [
-            {"name": "EKAS EPRESS MCA",
-                "url": f"/static/pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"},
-            {"name": "PKRF CONSENT HEALTH SCREENING",
-                "url": f"/static/pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"},
-            {"name": "EMPANELMENT SLIP (MCA)",
-                "url": f"/static/pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"},
+            {"name": "EKAS EPRESS MCA", "url": pdf_urls["ekass_epress"]},
+            {"name": "PKRF CONSENT HEALTH SCREENING", "url": pdf_urls["fpe"]},
+            {"name": "EMPANELMENT SLIP (MCA)", "url": pdf_urls["mca"]},
         ]
         feature_enabled = session.get("feature_enabled", False)
-        return render_template("index.html", pdf_files=pdf_files, user=session.get("user"), feature_enabled=feature_enabled)
-        # return redirect(url_for("registration"))
+        return render_template(
+            "index.html",
+            pdf_files=pdf_files,
+            user=session.get("user"),
+            feature_enabled=feature_enabled,
+        )
     elif "position" in session and session.get("position") == "admin":
         return redirect(url_for("gen_reports"))
     elif "position" in session and session.get("position") == "scanner":
@@ -85,159 +100,32 @@ def index():
 
 @app.route("/submit_form", methods=["POST"])
 def submit_form():
-    data = request.get_json()
-    pretty_json_string = json.dumps(data, indent=4)
+    data = request.get_json(silent=True) or {}
     patient_data = dict(data)
-    print(pretty_json_string)
 
-    # clean_files([f"user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf",
-    #              f"user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf"])
+    print(json.dumps(patient_data, indent=4))
 
+    # Keep the PDF generation logic in the model layer and return the generated URL.
     fill_EKAS_EPRESS_MCA(patient_data)
-    # fill_PKRF_CHS(patient_data)
-    # fill_MCA(patient_data)
 
-    # conn = get_db_connection()
-    # cursor = conn.cursor()
-    user_id = session.get('user_id')
+    user_id = session.get("user_id") or "None"
+    pdf_urls = get_current_user_pdf_urls(user_id)
 
-    # try:
-    #     # 🔍 CHECK IF dependent_pin EXISTS
-    #     cursor.execute(
-    #         "SELECT id FROM patients WHERE dependent_pin = ? OR pin = ?",
-    #         (patient_data["dependentPin"], patient_data["pin"])
-    #     )
-
-    #     existing_patient = cursor.fetchone()
-
-    #     if not existing_patient:
-    #         # 🆕 INSERT NEW RECORD
-    #         insert_query = """
-    #             INSERT INTO patients (patient_is_member, pin, dependent_pin, created_at)
-    #             VALUES (?, ?, ?, ?)
-    #         """
-
-    #         cursor.execute(
-    #             insert_query,
-    #             (
-    #                 patient_data["patientIsMember"],
-    #                 patient_data["pin"],
-    #                 patient_data["dependentPin"],
-    #                 datetime.now()
-    #             )
-    #         )
-
-    #         patient_id = cursor.lastrowid
-
-    #         # 🧍 INSERT personal_info
-    #         cursor.execute("""
-    #             INSERT INTO personal_info
-    #             (patient_id, last_name, first_name, middle_name, name_ext,
-    #             date_of_birth, sex, mobile)
-    #             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    #         """, (
-    #             patient_id,
-    #             patient_data["personalInfo"]["lastName"],
-    #             patient_data["personalInfo"]["firstName"],
-    #             patient_data["personalInfo"]["middleName"],
-    #             patient_data["personalInfo"]["nameExt"],
-    #             patient_data["otherDetails"]["dob"],
-    #             patient_data["otherDetails"]["sex"],
-    #             patient_data["otherDetails"]["mobile"]
-    #         ))
-
-    #         # 🏠 INSERT address
-    #         cursor.execute("""
-    #             INSERT INTO addresses
-    #             (patient_id, municipality, barangay)
-    #             VALUES (?, ?, ?)
-    #         """, (
-    #             patient_id,
-    #             patient_data["address"]["municipality"],
-    #             patient_data["address"]["barangay"]
-    #         ))
-
-    #         insert_masterPatient_query = """
-    #             INSERT INTO patients_master (user_id, patient_id, date_created)
-    #             VALUES (?, ?, ?)
-    #         """
-
-    #         cursor.execute(
-    #             insert_masterPatient_query,
-    #             (user_id, patient_id, datetime.now())
-    #         )
-
-    #         conn.commit()
-
-    #     else:
-
-    #         patient_master = """
-    #             SELECT id
-    #             FROM patients_master
-    #             WHERE patient_id = ?
-    #             AND date(date_created) = date('now')
-    #         """
-
-    #         cursor.execute(
-    #             patient_master,
-    #             (existing_patient['id'],)
-    #         )
-
-    #         existing_patient_master = cursor.fetchone()
-
-    #         if not existing_patient_master:
-    #             insert_query = """
-    #                 INSERT INTO patients_master (user_id, patient_id, date_created)
-    #                 VALUES (?, ?, ?)
-    #             """
-
-    #             cursor.execute(
-    #                 insert_query,
-    #                 (user_id, existing_patient['id'], datetime.now())
-    #             )
-
-    #     conn.commit()
-
-    # except sqlite3.Error as err:
-    #     print(f"Error: {err}")
-    #     return jsonify({"status": "error", "message": "Database query failed"}), 500
-
-    # finally:
-    #     cursor.close()
-    #     conn.close()
-
-    fpe_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-    ekass_epress_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-    mca_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-
-    pdf_url = url_for(
-            'static',
-            filename=f"pdfs/user_{user_id}/output/PCSF_OUTPUT_user_{user_id}{check_form_version(session.get('feature_enabled', False))}.pdf"
-        )
-    
     return jsonify({
-                "success": True,
-                "message": "Form submitted and PDFs generated successfully.",
-                "pdf_url": {
-                    "ekass_epress": ekass_epress_pdf,
-                }
-            }), 200
+        "success": True,
+        "message": "Form submitted and PDFs generated successfully.",
+        "pdf_url": {
+            "ekass_epress": pdf_urls["ekass_epress"],
+        },
+    }), 200
 
 @app.route("/get_pdfs")
 def get_pdfs():
+    pdf_urls = get_current_user_pdf_urls(session.get("user_id"))
     return jsonify([
-        {
-            "name": "EKAS EPRESS MCA",
-            "url": url_for("static", filename=f"pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-        },
-        {
-            "name": "PKRF CONSENT HEALTH SCREENING",
-            "url": url_for("static", filename=f"pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-        },
-        {
-            "name": "EMPANELMENT SLIP (MCA)",
-            "url": url_for("static", filename=f"pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-        },
+        {"name": "EKAS EPRESS MCA", "url": pdf_urls["ekass_epress"]},
+        {"name": "PKRF CONSENT HEALTH SCREENING", "url": pdf_urls["fpe"]},
+        {"name": "EMPANELMENT SLIP (MCA)", "url": pdf_urls["mca"]},
     ])
 
 @app.route("/gen_reports")
@@ -269,64 +157,61 @@ def gen_reports():
 @app.route("/saveScanned", methods=["POST"])
 def saveScanned():
     try:
-        data = request.get_json()
-        patientData = dict(data)
+        data = request.get_json(silent=True) or {}
+        patient_data = dict(data)
         conn = get_db_connection()
 
+        if conn is None:
+            return jsonify({"success": False, "message": "Database connection is unavailable."}), 500
+
         cursor = conn.cursor(pymysql.cursors.DictCursor)
+        cursor.execute(
+            "SELECT id, pin FROM transmittal WHERE pin = %s AND DATE(dateScanned) = CURDATE()",
+            (patient_data["pin"],),
+        )
+
+        existing = cursor.fetchone()
+        if existing:
+            return jsonify({"success": False, "message": "Record already exists for today."}), 409
 
         cursor.execute(
-                "SELECT id, pin FROM transmittal WHERE pin = %s AND DATE(dateScanned) = CURDATE()",
-                (patientData["pin"],)
+            """
+            INSERT INTO transmittal
+            (
+                pin,
+                lastName,
+                firstName,
+                middleName,
+                ext,
+                birthday,
+                memberDepent,
+                generatedDate,
+                dateScanned
             )
-        
-        existing = cursor.fetchone()
-
-        if existing:
-            return jsonify({
-                "success": False,
-                "message": f"MySQL Error: {str(e)}"
-                }), 500 
-            
-        else:
-            cursor.execute("""
-                    INSERT INTO transmittal
-                    (
-                        pin,
-                        lastName,
-                        firstName,
-                        middleName,
-                        ext,
-                        birthday,
-                        memberDepent,
-                        generatedDate,
-                        dateScanned
-                    )
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                """, (
-                    patientData["pin"],
-                    patientData["ln"],
-                    patientData["fN"],
-                    patientData["mN"],
-                    patientData["ext"],
-                    patientData["bod"],
-                    patientData["MD"],
-                    convert_to_sql_date(patientData["genDate"]),
-                    datetime.now()
-                ))
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """,
+            (
+                patient_data["pin"],
+                patient_data["ln"],
+                patient_data["fN"],
+                patient_data["mN"],
+                patient_data["ext"],
+                patient_data["bod"],
+                patient_data["MD"],
+                convert_to_sql_date(patient_data["genDate"]),
+                datetime.now(),
+            ),
+        )
 
         conn.commit()
         return jsonify({
             "success": True,
             "message": "Record inserted successfully",
-            "inserted_id": patientData,
+            "inserted_id": patient_data,
         }), 200
-    except Exception as e:
-        print(str(e))
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 500
+    except Exception as exc:
+        print(str(exc))
+        return jsonify({"success": False, "message": str(exc)}), 500
 
 @app.route("/ActivityLogs")
 def ActivityLogs():
@@ -398,38 +283,37 @@ def getTransmittalData():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     try:
-       
         if request.method == "POST":
             username = request.form.get("username")
             password = request.form.get("password")
 
             conn = get_db_connection()
-            cursor = conn.cursor()
+            if conn is None:
+                flash("Database connection is unavailable.", "danger")
+                return redirect(url_for("login"))
 
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
             query = "SELECT * FROM users WHERE username=%s AND password=%s"
-            if os.getenv("USE_SQLITE") == 1:
-                query = "SELECT * FROM users WHERE username=%s AND password=%s"
-
-            cursor.execute(query, (username, password,))
+            cursor.execute(query, (username, password))
             user = cursor.fetchone()
-            print(user)
-            name = user["firstName"] + " " + user["lastName"]
 
             if user:
+                full_name = f"{user.get('firstName', '')} {user.get('lastName', '')}".strip()
                 session["user_id"] = user["id"]
                 session["user"] = user["username"]
-                session["initials"] = get_initials(name)
+                session["initials"] = get_initials(full_name)
                 session["position"] = user["position"]
                 flash("Login successful!", "success")
                 return redirect(url_for("index"))
-            else:
-                flash("Invalid username or password", "danger")
-                return redirect(url_for("login"))
-                
+
+            flash("Invalid username or password", "danger")
+            return redirect(url_for("login"))
+
         return render_template("login.html")
-    # return render_template("maintenance.html")
-    except Exception as e:
-        print(e)
+    except Exception as exc:
+        print(exc)
+        flash("An unexpected error occurred. Please try again.", "danger")
+        return redirect(url_for("login"))
 
 @app.route("/toggle", methods=["POST"])
 def toggle():
@@ -450,37 +334,36 @@ def logout():
 def registration():
     value = request.args.get('value')
     user_id = session.get('user_id')
-    pdf_url = url_for(
-            'static',
-            filename=f"pdfs/user_{user_id}/output/PCSF_OUTPUT_user_{user_id}{check_form_version(session.get('feature_enabled', False))}.pdf"
-        )
-    ekass_epress_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/EKAS,EPRESS,MCA_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-    fpe_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-    mca_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-
+    pdf_urls = get_current_user_pdf_urls(user_id)
 
     match value:
         case "registration":
             # Handle registration logic
-            return render_template("registration.html", 
-                        user=session.get("user"),
-                        pdf_file=pdf_url,
-                        fpe_file=fpe_pdf,
-                        mca_file=mca_pdf,
-                        valueToSubmit=value)
+            return render_template(
+                "registration.html",
+                user=session.get("user"),
+                pdf_file=pdf_urls["pcsf"],
+                fpe_file=pdf_urls["fpe"],
+                mca_file=pdf_urls["mca"],
+                valueToSubmit=value,
+            )
         case "first_encounter":
             # Handle first encounter logic
-            return render_template("registration.html", 
-                    user=session.get("user"),
-                    fpe_file=fpe_pdf,
-                    mca_file=mca_pdf,
-                    valueToSubmit=value)
+            return render_template(
+                "registration.html",
+                user=session.get("user"),
+                fpe_file=pdf_urls["fpe"],
+                mca_file=pdf_urls["mca"],
+                valueToSubmit=value,
+            )
         case "second_encounter":
             # Handle second encounter logic
-            return render_template("secondencounter.html", 
-                    user=session.get("user"),
-                    ekass_epress=ekass_epress_pdf,
-                    valueToSubmit=value)
+            return render_template(
+                "secondencounter.html",
+                user=session.get("user"),
+                ekass_epress=pdf_urls["ekass_epress"],
+                valueToSubmit=value,
+            )
 
     
 @app.route("/submitCECRegistration", methods=["POST"])
@@ -738,10 +621,7 @@ def submitCECRegistration():
         print(f"This is the error{e}")
         traceback.print_exc()
     
-    fpe_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-
-    mca_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-
+    pdf_urls = get_current_user_pdf_urls(session.get("user_id"))
 
     if data['valueToSubmit'] == "registration":
         try:
@@ -837,7 +717,7 @@ def submitCECRegistration():
                 "success": True,
                 "message": "Record inserted successfully",
                 "inserted_id": cursor.lastrowid,
-                "pdf_url": {"pcsf": pdf_url, "fpe": fpe_pdf, "mca_pdf": mca_pdf}
+                "pdf_url": {"pcsf": pdf_urls["pcsf"], "fpe": pdf_urls["fpe"], "mca_pdf": pdf_urls["mca"]}
             }), 200
 
         except pymysql.MySQLError as e:
@@ -862,7 +742,7 @@ def submitCECRegistration():
     return jsonify({
                 "success": True,
                 "message": "Record inserted successfully",
-                "pdf_url": {"fpe": fpe_pdf, "mca_pdf": mca_pdf}
+                "pdf_url": {"fpe": pdf_urls["fpe"], "mca_pdf": pdf_urls["mca"]}
             }), 200
 
 @app.route("/scanner")
@@ -870,6 +750,7 @@ def scannerPage():
     return render_template("scanner.html")
 
 if __name__ == '__main__':
-    # from waitress import serve
-    # serve(app, host="0.0.0.0", port=8180)
-    app.run(host='0.0.0.0', port=8180, debug=True)
+    if serve is not None:
+        serve(app, host="0.0.0.0", port=8180)
+    else:
+        app.run(host="0.0.0.0", port=8180, debug=True)

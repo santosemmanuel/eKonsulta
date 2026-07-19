@@ -1,24 +1,13 @@
-Flask
-fillpdf
-pdfrw
-pdf2image
-PyMySQL
-PyMuPDF
-qrcode
-waitress
-PyPDF2
-python-dotenv
-pypdf
-reportlab
-opencv-python
-numpy
-tzdata
+Flask>=3.0,<4.0
+PyMySQL>=1.1,<2.0
+PyMuPDF>=1.24,<2.0
+python-dotenv>=1.0,<2.0
+pypdf>=4.0,<6.0
+reportlab>=4.0,<5.0
+opencv-python>=4.0,<5.0
+numpy>=1.26,<2.0
+tzdata>=2024.1
+waitress>=3.0,<4.0
 
-# if venv is not exist create venv
-# python -m venv venv
-
-# Activation
-# venv\Scripts\activate
-
-# install command for requirements.txt
+# Optional helpers used by the project scripts
 # pip install -r requirements.txt
