@@ -34,6 +34,8 @@ function populateMunicipalities(){
 
 }
 
+
+
 document.getElementById('municipality').addEventListener("change", function () {
     const barangaySelect = document.getElementById("barangay");
     barangaySelect.innerHTML = '<option value="">-- Select Barangay --</option>';
@@ -53,11 +55,11 @@ document.getElementById('municipality').addEventListener("change", function () {
 
 const registrationform = document.getElementById('cecregistrationForm')
 
-const toggleBoxes = document.querySelectorAll('.toggle-box input');
+const toggleBoxes = document.querySelectorAll('input[name="patientIsMember"]');
 const dependentPINDiv = document.getElementById('DependentPIN');
 toggleBoxes.forEach(box => {
     box.addEventListener("change", function() {
-        dependentPINDiv.classList.toggle('d-none');
+        dependentPINDiv?.classList.toggle('d-none', this.value !== 'dependent');
     })
 });
 
@@ -82,6 +84,93 @@ function invalidate(field, message) {
 
     field.focus();
 }
+
+    
+document.addEventListener("DOMContentLoaded", function () {
+
+    const dobInput = document.querySelector('input[name="dob"]');
+    const repInput = document.querySelector('#repGuardianDiv');
+    const relationshipInput = document.querySelector('#relationshipDiv');
+
+    function calculateAge(dob) {
+        const today = new Date();
+        const birthDate = new Date(dob);
+
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
+        return age;
+    }
+
+    function toggleRepresentative() {
+        if (!dobInput.value) {
+            repInput.style.display = "none";
+            relationshipInput.style.display = "none";
+            return;
+        }
+
+        const age = calculateAge(dobInput.value);
+
+        if (age <= 21) {
+            repInput.style.display = "block";
+            relationshipInput.style.display = "block";
+        } else {
+            repInput.style.display = "none";
+            relationshipInput.style.display = "none";
+
+            // Clear values when hidden
+            document.querySelector('input[name="RepOrGuardian"]').value = "";
+            document.querySelector('select[name="relationship"]').value = "";
+        }
+    }
+
+    // Run when DOB changes
+    dobInput.addEventListener("input", toggleRepresentative);
+
+    // Run on page load (in case value already exists)
+    toggleRepresentative();
+
+
+});
+
+const relationshipSelect = document.getElementById("relationshipSelect");
+const otherDiv = document.getElementById("otherRelationshipDiv");
+const repDiv = document.getElementById("repGuardianDiv");
+const relDiv = document.getElementById("relationshipDiv");
+
+relationshipSelect.addEventListener("change", function () {
+
+    if (this.value === "Others") {
+
+        // Show Others input
+        otherDiv.style.display = "block";
+
+        // Adjust column sizes
+        repDiv.classList.remove("col-md-8");
+        repDiv.classList.add("col-md-6");
+
+        relDiv.classList.remove("col-md-4");
+        relDiv.classList.add("col-md-3");
+
+    } else {
+
+        // Hide Others input
+        otherDiv.style.display = "none";
+
+        // Restore original sizes
+        repDiv.classList.remove("col-md-6");
+        repDiv.classList.add("col-md-8");
+
+        relDiv.classList.remove("col-md-3");
+        relDiv.classList.add("col-md-4");
+    }
+});
+
+
 
 
 function buildFormData(form) {
@@ -281,8 +370,7 @@ function showError(message) {
 
 const pdfTab = document.getElementById("pdfButton");
 
-pdfTab.addEventListener("click", function() {
-    console.log(pdfFilePCSF)
+pdfTab?.addEventListener("click", function() {
     showPdfModal(pdfFilePCSF);
 })
 
@@ -304,7 +392,7 @@ registrationform.addEventListener("submit", async function(event) {
     let submissionType = "/submit_form"; // Default submission type
     let submissionData = data; // Default submission data
 
-    if(valueToSubmit != "second_encounter"){
+    if(valueFromGet != "second_encounter"){
         submissionType = "/submitCECRegistration";
 
         if (attachment.value === "with_attachment"){
@@ -328,9 +416,11 @@ registrationform.addEventListener("submit", async function(event) {
             data: data,
             front: frontImage,
             back: backImage,
-            birthCertificate: birthCertificateImage
+            birthCertificate: birthCertificateImage,
+            valueToSubmit: valueFromGet
         };
 
+    
     }
 
     try {
@@ -352,21 +442,24 @@ registrationform.addEventListener("submit", async function(event) {
         console.log(result);
         if (result.success && result.pdf_url) {
             
-            if (result.pdf_url["pcsf"]) {
-                document.querySelector('[data-title="PCSF"]').dataset.pdf = result.pdf_url["pcsf"];
-                showPdfModal(result.pdf_url["pcsf"]);
-            }
-            if (result.pdf_url["fpe"]) {
-                document.querySelector('[data-title="FPE"]').dataset.pdf = result.pdf_url["fpe"];
-                showPdfModal(result.pdf_url["fpe"]);
-            }
-            if (result.pdf_url["ekass_epress"]) {
-                document.querySelector('[data-title="EKASS, EPRESS"]').dataset.pdf = result.pdf_url["ekass_epress"];
-                showPdfModal(result.pdf_url["ekass_epress"]);
-            }
-            if (result.pdf_url["mca_pdf"]) {
-                document.querySelector('[data-title="MCA"]').dataset.pdf = result.pdf_url["mca_pdf"];
-                showPdfModal(result.pdf_url["mca_pdf"]);
+            const pdfMap = {
+                pcsf: "PCSF",
+                fpe: "FPE",
+                ekass_epress: "EKASS, EPRESS",
+                mca_pdf: "MCA"
+            };
+
+            for (const [key, title] of Object.entries(pdfMap)) {
+                if (result.pdf_url[key]) {
+                    const element = document.querySelector(`[data-title="${title}"]`);
+
+                    if (element) {
+                        element.dataset.pdf = result.pdf_url[key];
+                        showPdfModal(result.pdf_url[key]);
+                    } else {
+                        console.warn(`Element with data-title="${title}" not found.`);
+                    }
+                }
             }
             showSuccess(result.message || "Form submitted successfully.");
         }
@@ -387,33 +480,77 @@ registrationform.addEventListener("submit", async function(event) {
     }
 });
 
+const modalElement = document.getElementById('pdfViewerModal');
+
+modalElement?.addEventListener('hidden.bs.modal', function () {
+    const pdfFrame = document.getElementById('pdfFrame');
+
+    if (pdfFrame) {
+        pdfFrame.src = ""; // Stop PDF loading
+    }
+});
+
 // Function to show PDF modal
 function showPdfModal(pdfUrl) {
     const pdfFrame = document.getElementById('pdfFrame');
     const pdfLoader = document.getElementById('pdfLoader');
-    const modal = new bootstrap.Modal(document.getElementById('pdfViewerModal'));
-    
-    // Reset display states
-    pdfLoader.style.display = 'flex';
+    const modalElement = document.getElementById('pdfViewerModal');
+    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+    // 1. Reset display states and source
+    pdfLoader.style.setProperty('display', 'flex', 'important');
     pdfFrame.style.display = 'none';
-    
-    // Set PDF URL
     pdfFrame.src = pdfUrl;
-    
-    // Show modal
+
+    // 2. Synchronize the tab highlights to match the URL loaded
+    document.querySelectorAll('.pdf-tab').forEach(tab => {
+        if (tab.getAttribute('data-pdf') === pdfUrl) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
+
+    // 3. Open the modal window
     modal.show();
-    
-    // Hide loader when iframe loads
-    pdfFrame.onload = function() {
-        pdfLoader.style.display = 'none';
+
+    // 4. Hide loader once iframe completes rendering
+    pdfFrame.onload = function () {
+        pdfLoader.classList.add("d-none")
         pdfFrame.style.display = 'block';
     };
 }
 
+// 5. CRITICAL: Add click handlers for switching tabs INSIDE the modal window
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.pdf-tab').forEach(tab => {
+        tab.addEventListener('click', function (e) {
+            e.preventDefault();
+            
+            const selectedPdfUrl = this.getAttribute('data-pdf');
+            const pdfFrame = document.getElementById('pdfFrame');
+            const pdfLoader = document.getElementById('pdfLoader');
+
+            if (selectedPdfUrl) {
+                // Trigger loading state inside frame
+                pdfLoader.style.setProperty('display', 'flex', 'important');
+                pdfFrame.style.display = 'none';
+                
+                // Update active tab visuals manually
+                document.querySelectorAll('.pdf-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Load new file
+                pdfFrame.src = selectedPdfUrl;
+            }
+        });
+    });
+});
+
 // Print functionality
-document.getElementById('printPdfBtn').addEventListener('click', function() {
+document.getElementById('printPdfBtn')?.addEventListener('click', function() {
     const pdfFrame = document.getElementById('pdfFrame');
-    if (pdfFrame.src) {
+    if (pdfFrame?.src) {
         pdfFrame.contentWindow.print();
     }
 });
@@ -505,88 +642,5 @@ const toggle = document.getElementById("featureToggle");
         console.error("Toggle failed:", err);
       }
     });
-    
-document.addEventListener("DOMContentLoaded", function () {
 
-    const dobInput = document.querySelector('input[name="dob"]');
-    const repInput = document.querySelector('input[name="RepOrGuardian"]').closest('.col-md-8');
-    const relationshipInput = document.querySelector('select[name="relationship"]').closest('.col-md-4');
-
-    function calculateAge(dob) {
-        const today = new Date();
-        const birthDate = new Date(dob);
-
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const m = today.getMonth() - birthDate.getMonth();
-
-        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
-        }
-
-        return age;
-    }
-
-    function toggleRepresentative() {
-        if (!dobInput.value) {
-            repInput.style.display = "none";
-            relationshipInput.style.display = "none";
-            return;
-        }
-
-        const age = calculateAge(dobInput.value);
-
-        if (age <= 21) {
-            repInput.style.display = "";
-            relationshipInput.style.display = "";
-        } else {
-            repInput.style.display = "none";
-            relationshipInput.style.display = "none";
-
-            // Clear values when hidden
-            document.querySelector('input[name="RepOrGuardian"]').value = "";
-            document.querySelector('select[name="relationship"]').value = "";
-        }
-    }
-
-    // Run when DOB changes
-    dobInput.addEventListener("input", toggleRepresentative);
-
-    // Run on page load (in case value already exists)
-    toggleRepresentative();
-
-
-});
-
-const relationshipSelect = document.getElementById("relationshipSelect");
-const otherDiv = document.getElementById("otherRelationshipDiv");
-const repDiv = document.getElementById("repGuardianDiv");
-const relDiv = document.getElementById("relationshipDiv");
-
-relationshipSelect.addEventListener("change", function () {
-
-    if (this.value === "Others") {
-
-        // Show Others input
-        otherDiv.style.display = "block";
-
-        // Adjust column sizes
-        repDiv.classList.remove("col-md-8");
-        repDiv.classList.add("col-md-6");
-
-        relDiv.classList.remove("col-md-4");
-        relDiv.classList.add("col-md-3");
-
-    } else {
-
-        // Hide Others input
-        otherDiv.style.display = "none";
-
-        // Restore original sizes
-        repDiv.classList.remove("col-md-6");
-        repDiv.classList.add("col-md-8");
-
-        relDiv.classList.remove("col-md-3");
-        relDiv.classList.add("col-md-4");
-    }
-});
 

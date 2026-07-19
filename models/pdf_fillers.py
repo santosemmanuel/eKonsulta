@@ -183,6 +183,11 @@ def fill_PKRF_CHS(data):
             "PatientSignOverPrinted": patientFullName
         }
 
+        chs_data = {
+            key: value.upper() if isinstance(value, str) else value
+            for key, value in chs_data.items()
+        }
+
         for i, page in enumerate(doc):
             print(
                 "Page:", i + 1,
@@ -400,6 +405,11 @@ def fill_MCA(data):
             "PCU": pcu,
             "UserInitial": initials,
             "PatientSignOverPrinted": patientFullName
+        }
+
+        mca_data = {
+            key: value.upper() if isinstance(value, str) else value
+            for key, value in mca_data.items()
         }
     
         for page in doc:

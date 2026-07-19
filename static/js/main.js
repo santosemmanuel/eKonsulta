@@ -319,6 +319,93 @@ async function loadPdfViewer() {
     }
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+
+    const dobInput = document.querySelector('input[name="dob"]');
+    const repInput = document.querySelector('input[name="RepOrGuardian"]').closest('.col-md-8');
+    const relationshipInput = document.querySelector('select[name="relationship"]').closest('.col-md-4');
+
+    
+    function calculateAge(dob) {
+        const today = new Date();
+        const birthDate = new Date(dob);
+
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
+        return age;
+    }
+
+    function toggleRepresentative() {
+        
+        if (!dobInput.value) {
+            repInput.style.display = "none";
+            relationshipInput.style.display = "none";
+            return;
+        }
+
+        const age = calculateAge(dobInput.value);
+
+        if (age <= 21) {
+            repInput.style.display = "block";
+            relationshipInput.style.display = "block";
+            alert("less than 21");
+        } else {
+            repInput.style.display = "none";
+            relationshipInput.style.display = "none";
+
+            // Clear values when hidden
+            document.querySelector('input[name="RepOrGuardian"]').value = "";
+            document.querySelector('select[name="relationship"]').value = "";
+        }
+    }
+
+    // Run when DOB changes
+    dobInput.addEventListener("input", toggleRepresentative);
+
+    // Run on page load (in case value already exists)
+    toggleRepresentative();
+
+
+});
+
+const relationshipSelect = document.getElementById("relationshipSelect");
+const otherDiv = document.getElementById("otherRelationshipDiv");
+const repDiv = document.getElementById("repGuardianDiv");
+const relDiv = document.getElementById("relationshipDiv");
+
+relationshipSelect.addEventListener("change", function () {
+
+    if (this.value === "Others") {
+
+        // Show Others input
+        otherDiv.style.display = "block";
+
+        // Adjust column sizes
+        repDiv.classList.remove("col-md-8");
+        repDiv.classList.add("col-md-6");
+
+        relDiv.classList.remove("col-md-4");
+        relDiv.classList.add("col-md-3");
+
+    } else {
+
+        // Hide Others input
+        otherDiv.style.display = "none";
+
+        // Restore original sizes
+        repDiv.classList.remove("col-md-6");
+        repDiv.classList.add("col-md-8");
+
+        relDiv.classList.remove("col-md-3");
+        relDiv.classList.add("col-md-4");
+    }
+});
+
 form.addEventListener("submit", async function (event) {
     event.preventDefault();
     event.stopPropagation();
@@ -484,86 +571,4 @@ const toggle = document.getElementById("featureToggle");
       }
     });
     
-document.addEventListener("DOMContentLoaded", function () {
 
-    const dobInput = document.querySelector('input[name="dob"]');
-    const repInput = document.querySelector('input[name="RepOrGuardian"]').closest('.col-md-8');
-    const relationshipInput = document.querySelector('select[name="relationship"]').closest('.col-md-4');
-
-    function calculateAge(dob) {
-        const today = new Date();
-        const birthDate = new Date(dob);
-
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const m = today.getMonth() - birthDate.getMonth();
-
-        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
-        }
-
-        return age;
-    }
-
-    function toggleRepresentative() {
-        if (!dobInput.value) {
-            repInput.style.display = "none";
-            relationshipInput.style.display = "none";
-            return;
-        }
-
-        const age = calculateAge(dobInput.value);
-
-        if (age <= 21) {
-            repInput.style.display = "";
-            relationshipInput.style.display = "";
-        } else {
-            repInput.style.display = "none";
-            relationshipInput.style.display = "none";
-
-            // Clear values when hidden
-            document.querySelector('input[name="RepOrGuardian"]').value = "";
-            document.querySelector('select[name="relationship"]').value = "";
-        }
-    }
-
-    // Run when DOB changes
-    dobInput.addEventListener("input", toggleRepresentative);
-
-    // Run on page load (in case value already exists)
-    toggleRepresentative();
-
-
-});
-
-const relationshipSelect = document.getElementById("relationshipSelect");
-const otherDiv = document.getElementById("otherRelationshipDiv");
-const repDiv = document.getElementById("repGuardianDiv");
-const relDiv = document.getElementById("relationshipDiv");
-
-relationshipSelect.addEventListener("change", function () {
-
-    if (this.value === "Others") {
-
-        // Show Others input
-        otherDiv.style.display = "block";
-
-        // Adjust column sizes
-        repDiv.classList.remove("col-md-8");
-        repDiv.classList.add("col-md-6");
-
-        relDiv.classList.remove("col-md-4");
-        relDiv.classList.add("col-md-3");
-
-    } else {
-
-        // Hide Others input
-        otherDiv.style.display = "none";
-
-        // Restore original sizes
-        repDiv.classList.remove("col-md-6");
-        repDiv.classList.add("col-md-8");
-
-        relDiv.classList.remove("col-md-3");
-        relDiv.classList.add("col-md-4");
-    }
-});

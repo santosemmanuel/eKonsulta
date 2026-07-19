@@ -574,6 +574,11 @@ def submitCECRegistration():
             "UserInitial": initials
         }
 
+        pcsf_data = {
+            key: value.upper() if isinstance(value, str) else value
+            for key, value in pcsf_data.items()
+        }
+
         for page in doc:
             widgets = page.widgets()
 
@@ -732,127 +737,133 @@ def submitCECRegistration():
         # return jsonify({"status": "error", "message": str(e)}), 500
         print(f"This is the error{e}")
         traceback.print_exc()
-
-    #fill_PKRF_CHS(data["data"], data.get("front"), data.get("back"), data.get("birthCertificate"))
     
-    try:
-        conn = get_db_connection()
+    fpe_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
 
-        cursor = conn.cursor(pymysql.cursors.DictCursor)
-
-        pdf_url = url_for(
-            'static',
-            filename=f"pdfs/user_{user_id}/output/PCSF_OUTPUT_user_{user_id}{check_form_version(session.get('feature_enabled', False))}.pdf"
-        )
+    mca_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
 
 
-        mem_dep = (
-            "Member"
-            if pcsf_data["Member"] == "Yes"
-            else "Dependent"
-            if pcsf_data["Dependent"] == "Yes"
-            else "N/A"
-        )
+    if data['valueToSubmit'] == "registration":
+        try:
+            conn = get_db_connection()
 
-        pcu_transaction = pcsf_data.get("PCUTransactionCode") or "N/A"
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
 
-        # Check if PIN exists
-        cursor.execute(
-            "SELECT id, PIN FROM cec_registration WHERE PIN = %s",
-            (pcsf_data["PIN"],)
-        )
+            pdf_url = url_for(
+                'static',
+                filename=f"pdfs/user_{user_id}/output/PCSF_OUTPUT_user_{user_id}{check_form_version(session.get('feature_enabled', False))}.pdf"
+            )
 
-        existing = cursor.fetchone()
 
-        if existing:
+            mem_dep = (
+                "Member"
+                if pcsf_data["Member"] == "Yes"
+                else "Dependent"
+                if pcsf_data["Dependent"] == "Yes"
+                else "N/A"
+            )
+
+            pcu_transaction = pcsf_data.get("PCUTransactionCode") or "N/A"
+
+            # Check if PIN exists
+            cursor.execute(
+                "SELECT id, PIN FROM cec_registration WHERE PIN = %s",
+                (pcsf_data["PIN"],)
+            )
+
+            existing = cursor.fetchone()
+
+            if existing:
+                return jsonify({
+                    "success": False,
+                    "message": "Record already exists",
+                    "data": existing,
+                    "pdf_url": pdf_url
+                }), 409
+
+            # Insert record
+            if pcsf_data["Transfer"] == "Yes":
+                cursor.execute("""
+                    INSERT INTO cec_transfer
+                    (
+                        LastName,
+                        FirstName,
+                        MiddleName,
+                        Barangay,
+                        PIN,
+                        MemDep,
+                        PCUTransaction,
+                        DateTimeProccess
+                    )
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+                """, (
+                    pcsf_data["LastName"],
+                    pcsf_data["FirstName"],
+                    pcsf_data["MiddleName"],
+                    pcsf_data["Barangay"],
+                    pcsf_data["PIN"],
+                    mem_dep,
+                    pcu_transaction,
+                    datetime.now()
+                ))
+            else:
+                cursor.execute("""
+                    INSERT INTO cec_registration
+                    (
+                        LastName,
+                        FirstName,
+                        MiddleName,
+                        Barangay,
+                        PIN,
+                        MemDep,
+                        PCUTransaction,
+                        DateTimeProccess
+                    )
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+                """, (
+                    pcsf_data["LastName"],
+                    pcsf_data["FirstName"],
+                    pcsf_data["MiddleName"],
+                    pcsf_data["Barangay"],
+                    pcsf_data["PIN"],
+                    mem_dep,
+                    pcu_transaction,
+                    datetime.now()
+                ))
+
+            conn.commit()
+                        
+            return jsonify({
+                "success": True,
+                "message": "Record inserted successfully",
+                "inserted_id": cursor.lastrowid,
+                "pdf_url": {"pcsf": pdf_url, "fpe": fpe_pdf, "mca_pdf": mca_pdf}
+            }), 200
+
+        except pymysql.MySQLError as e:
             return jsonify({
                 "success": False,
-                "message": "Record already exists",
-                "data": existing,
-                "pdf_url": pdf_url
-            }), 409
+                "message": f"MySQL Error: {str(e)}"
+            }), 500
 
-        # Insert record
-        if pcsf_data["Transfer"] == "Yes":
-            cursor.execute("""
-                INSERT INTO cec_transfer
-                (
-                    LastName,
-                    FirstName,
-                    MiddleName,
-                    Barangay,
-                    PIN,
-                    MemDep,
-                    PCUTransaction,
-                    DateTimeProccess
-                )
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
-            """, (
-                pcsf_data["LastName"],
-                pcsf_data["FirstName"],
-                pcsf_data["MiddleName"],
-                pcsf_data["Barangay"],
-                pcsf_data["PIN"],
-                mem_dep,
-                pcu_transaction,
-                datetime.now()
-            ))
-        else:
-            cursor.execute("""
-                INSERT INTO cec_registration
-                (
-                    LastName,
-                    FirstName,
-                    MiddleName,
-                    Barangay,
-                    PIN,
-                    MemDep,
-                    PCUTransaction,
-                    DateTimeProccess
-                )
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
-            """, (
-                pcsf_data["LastName"],
-                pcsf_data["FirstName"],
-                pcsf_data["MiddleName"],
-                pcsf_data["Barangay"],
-                pcsf_data["PIN"],
-                mem_dep,
-                pcu_transaction,
-                datetime.now()
-            ))
+        except Exception as e:
+            return jsonify({
+                "success": False,
+                "message": str(e)
+            }), 500
 
-        conn.commit()
-        
-        fpe_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/PKRF,Consent, Health Screening_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
 
-        mca_pdf = url_for('static', filename=f"pdfs/user_{session.get('user_id')}/output/EMPANELMENT_(MCA)_OUTPUT_user_{session.get('user_id')}{check_form_version(session.get('feature_enabled', False))}.pdf")
-        
-        return jsonify({
-            "success": True,
-            "message": "Record inserted successfully",
-            "inserted_id": cursor.lastrowid,
-            "pdf_url": {"pcsf": pdf_url, "fpe": fpe_pdf, "mca_pdf": mca_pdf}
-        }), 200
-
-    except pymysql.MySQLError as e:
-        return jsonify({
-            "success": False,
-            "message": f"MySQL Error: {str(e)}"
-        }), 500
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 500
-
-    finally:
-        if 'cursor' in locals():
-            cursor.close()
-
-        if 'conn' in locals():
-            conn.close()
+            if 'conn' in locals():
+                conn.close()
+    
+    return jsonify({
+                "success": True,
+                "message": "Record inserted successfully",
+                "pdf_url": {"fpe": fpe_pdf, "mca_pdf": mca_pdf}
+            }), 200
 
 @app.route("/scanner")
 def scannerPage():

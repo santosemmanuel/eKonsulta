@@ -12,62 +12,193 @@
               rel="stylesheet">        <link href="{{ url_for('static', filename='css/sweetalert2.min.css') }}"
           rel="stylesheet">        
         <link rel="icon" href="{{ url_for('static', filename='img/MHOBurauen.ico') }}">
-               <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .login-card {
-            max-width: 450px;
-            margin: 50px auto;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .card-header-custom {
-            background-color: var(--green);
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 1px solid #dee2e6;
-            color: white;
-        }
-        .card-header-custom img {
-            width: 40px;
-            height: 40px;
-        }
-        .card-header-custom .title {
-            font-weight: bold;
-            line-height: 1.2;
-             font-size: 1.3rem; /* slightly bigger title */
-        }
-        .card-header-custom .title small {
-            display: block;
-            font-size: 0.7rem;
-            color: whtie;
-        }
-        .card-body {
-            padding: 20px;
-        }
-        .card-header-custom img {
-    background-color: transparent; /* ensure no CSS background */
-    border-radius: 50%; /* optional: make it circular */
+       <style>
+:root{
+    --green:#0fa36b;
+    --green2:#35d0a1;
 }
-    </style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:#ececec;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    padding:20px;
+    overflow:auto;
+}
+.container-fluid{
+    padding:0 !important;
+}
+
+.login-wrapper{
+    width:100%;
+    max-width:1100px;
+    min-height:500px;
+
+    display:flex;
+
+    background:#fff;
+    border-radius:18px;
+    overflow:hidden;
+
+    box-shadow:0 25px 50px rgba(0,0,0,.15);
+
+    margin:auto;
+}
+
+/* LEFT SIDE */
+
+.login-card{
+    width:50%;
+    border:none;
+    border-radius:0;
+    box-shadow:none;
+    margin:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:45px;
+}
+
+.card-header-custom{
+    background:none;
+    border:none;
+    padding-bottom:35px;
+    text-align:left;
+}
+
+.card-header-custom h1{
+    font-size:48px;
+    font-weight:700;
+    margin:0;
+}
+
+.card-body{
+    padding:0;
+}
+
+.form-label{
+    font-weight:600;
+}
+
+.form-control{
+    height:60px;
+    border:none;
+    background:#f2f2f2;
+    border-radius:8px;
+    font-size:18px;
+    padding-left:20px;
+}
+
+.form-control:focus{
+    background:#f2f2f2;
+    box-shadow:none;
+    border:2px solid var(--green);
+}
+
+.btn-submit{
+    margin-top:15px;
+    height:58px;
+    border:none;
+    border-radius:8px;
+    background:var(--green);
+    color:#fff;
+    font-size:20px;
+    transition:.3s;
+}
+
+.btn-submit:hover{
+    background:#0c8f5d;
+}
+
+/* RIGHT PANEL */
+
+.login-right{
+    width:50%;
+    background:linear-gradient(135deg,#3fd6a7,#0ea36b);
+    color:#fff;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+
+    padding:35px;   /* reduced from 60px */
+}
+
+.login-right h2{
+    font-size:42px;
+    font-weight:700;
+    margin-bottom:8px;
+}
+
+.login-right h4{
+    font-size:18px;
+    font-weight:400;
+    margin-bottom:30px;
+    opacity:.95;
+}
+
+.login-right p{
+    font-size:18px;
+    line-height:1.8;
+    opacity:.95;
+}
+
+.login-right-content img{
+    width:220px;
+    height:220px;
+    object-fit:contain;
+    margin-bottom:20px;
+
+    background:none;
+    border:none;
+    box-shadow:none;
+    border-radius:0;
+    padding:0;
+}
+
+@media(max-width:991px){
+
+    .login-wrapper{
+        flex-direction:column;
+        max-width:500px;
+    }
+
+    .login-card,
+    .login-right{
+        width:100%;
+    }
+
+    .login-right{
+        padding:40px;
+    }
+
+    .login-right h1{
+        font-size:34px;
+    }
+}
+</style>
     </head>
     <body>
 
         <!-- MAIN CONTENT -->
-        <div class="container-fluid py-4">
+        <div class="container-fluid">
+    <div class="login-wrapper">
            <!-- Login Card -->
 <div class="login-card card">
     <!-- Header mimicking navbar -->
     <div class="card-header-custom">
-        <img src="{{ url_for('static', filename='img/MHO_Logo.jpg') }}" alt="MHO Logo">
-        <div class="title">
-            <i class="fa-solid fa-notes-medical me-1"></i> eYakapForms
-            <small>Electronic Yakap Forms Processing System</small>
-        </div>
+        <h2><i class="fa fa-sign-in" aria-hidden="true"></i> Account Login</h2>
+        <p class="text-muted">Please enter your username and password.</p>
     </div>
 
     <!-- Card Body -->
@@ -93,10 +224,24 @@
                 <label for="password" class="form-label">Password</label>
                 <input type="password" class="form-control" id="password" name="password">
             </div>
-            <button type="submit" class="btn btn-submit w-100">Login</button>
+            <button type="submit" class="btn btn-submit w-100">Log In</button>
         </form>
         <div id="error-msg" class="text-danger mt-2"></div>
     </div>
+</div>
+<div class="login-right">
+
+    <div class="login-right-content">
+
+        <img src="{{ url_for('static', filename='img/MHO_Logo.png') }}" alt="Logo">
+
+        <h2><i class="fa-solid fa-notes-medical me-1"></i> eYakapForms</h2>
+
+        <h4>Electronic Yakap Forms Processing System</h4>
+
+    </div>
+
+</div>
 </div>
         </div>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
