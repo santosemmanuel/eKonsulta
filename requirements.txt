@@ -9,5 +9,16 @@ numpy>=1.26,<2.0
 tzdata>=2024.1
 waitress>=3.0,<4.0
 
+# Create venv file
+# python -m venv .venv
+
+# Start venv file
+# .venv\Scripts\Activate.ps1
+
 # Optional helpers used by the project scripts
 # pip install -r requirements.txt
+
+# Start Application
+# flask --app app run or python -m flask run
+
+# Start Application 

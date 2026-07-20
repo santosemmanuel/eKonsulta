@@ -14,6 +14,8 @@ from dotenv import load_dotenv
 
 try:
     from waitress import serve
+    # comment out if in production if not or in developement do not comment out
+    serve = None
 except ImportError:  # pragma: no cover - optional in local development
     serve = None
 
