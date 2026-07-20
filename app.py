@@ -317,6 +317,15 @@ def login():
         flash("An unexpected error occurred. Please try again.", "danger")
         return redirect(url_for("login"))
 
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    try:
+        
+      
+        return render_template("signup.html")
+    except Exception as exc:
+        print(exc)
+
 @app.route("/toggle", methods=["POST"])
 def toggle():
     enabled = bool(request.json.get("enabled"))

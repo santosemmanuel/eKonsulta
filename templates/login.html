@@ -119,6 +119,24 @@ body{
     background:#0c8f5d;
 }
 
+.btn-outline-submit {
+    margin-top: 15px;
+    height: 58px;
+    border: 2px solid var(--green); /* Added border using your green variable */
+    border-radius: 8px;
+    background: transparent;        /* Removed solid background fill */
+    color: var(--green);           /* Changed text color to your green variable */
+    font-size: 20px;
+    font-weight: 500;              /* Optional: adds weight since outline text can look thin */
+    transition: .3s;
+    cursor: pointer;               /* Adds a clickable hand icon on hover */
+}
+
+.btn-outline-submit:hover {
+    background: var(--green);      /* Fills the button with green on hover */
+    color: #fff;                   /* Inverts text to white on hover */
+}
+
 /* RIGHT PANEL */
 
 .login-right{
@@ -186,6 +204,29 @@ body{
         font-size:34px;
     }
 }
+/* CSS Styling */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #666;          /* Color of the text */
+  font-weight: bold;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;              /* Makes the lines grow to fill available space */
+  border-bottom: 1px solid #ccc; /* Line thickness and color */
+}
+
+.divider::before {
+  margin-right: 15px;   /* Space between left line and text */
+}
+
+.divider::after {
+  margin-left: 15px;    /* Space between right line and text */
+}
 </style>
     </head>
     <body>
@@ -225,6 +266,8 @@ body{
                 <input type="password" class="form-control" id="password" name="password">
             </div>
             <button type="submit" class="btn btn-submit w-100">Log In</button>
+            <div class="divider mt-3">OR</div>
+            <a type="submit" href="{{ url_for('signup') }}" class="btn btn-outline-submit w-100">Create Account</a>
         </form>
         <div id="error-msg" class="text-danger mt-2"></div>
     </div>

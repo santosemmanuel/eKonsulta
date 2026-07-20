@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>EKonsulta Forms</title>
+        <link href="{{ url_for('static', filename='css/all.min.css') }}"
+              rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}"
+              rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/styles.css') }}"
+              rel="stylesheet">        <link href="{{ url_for('static', filename='css/sweetalert2.min.css') }}"
+          rel="stylesheet">        
+        <link rel="icon" href="{{ url_for('static', filename='img/MHOBurauen.ico') }}">
+       <style>
+:root{
+    --green:#0fa36b;
+    --green2:#35d0a1;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:#ececec;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    padding:20px;
+    overflow:auto;
+}
+.container-fluid{
+    padding:0 !important;
+}
+
+.login-wrapper{
+    width:50%;
+    max-width:1100px;
+    min-height:500px;
+
+    display:flex;
+
+    background:#fff;
+    border-radius:18px;
+    overflow:hidden;
+
+    box-shadow:0 25px 50px rgba(0,0,0,.15);
+
+    margin:auto;
+}
+
+/* LEFT SIDE */
+
+.login-card{
+    width:100%;
+    border:none;
+    border-radius:0;
+    box-shadow:none;
+    margin:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:45px;
+}
+
+.card-header-custom{
+    background:none;
+    border:none;
+    padding-bottom:35px;
+    text-align:left;
+}
+
+.card-header-custom h1{
+    font-size:48px;
+    font-weight:700;
+    margin:0;
+}
+
+.card-body{
+    padding:0;
+}
+
+.form-label{
+    font-weight:600;
+}
+
+.form-control{
+    height:60px;
+    border:none;
+    background:#f2f2f2;
+    border-radius:8px;
+    font-size:18px;
+    padding-left:20px;
+}
+
+.form-control:focus{
+    background:#f2f2f2;
+    box-shadow:none;
+    border:2px solid var(--green);
+}
+
+.btn-submit{
+    margin-top:15px;
+    height:58px;
+    border:none;
+    border-radius:8px;
+    background:var(--green);
+    color:#fff;
+    font-size:20px;
+    transition:.3s;
+}
+
+.btn-submit:hover{
+    background:#0c8f5d;
+}
+
+.btn-outline-submit {
+    margin-top: 15px;
+    height: 58px;
+    border: 2px solid var(--green); /* Added border using your green variable */
+    border-radius: 8px;
+    background: transparent;        /* Removed solid background fill */
+    color: var(--green);           /* Changed text color to your green variable */
+    font-size: 20px;
+    font-weight: 500;              /* Optional: adds weight since outline text can look thin */
+    transition: .3s;
+    cursor: pointer;               /* Adds a clickable hand icon on hover */
+}
+
+.btn-outline-submit:hover {
+    background: var(--green);      /* Fills the button with green on hover */
+    color: #fff;                   /* Inverts text to white on hover */
+}
+
+/* RIGHT PANEL */
+
+.login-right{
+    width:50%;
+    background:linear-gradient(135deg,#3fd6a7,#0ea36b);
+    color:#fff;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+
+    padding:35px;   /* reduced from 60px */
+}
+
+.login-right h2{
+    font-size:42px;
+    font-weight:700;
+    margin-bottom:8px;
+}
+
+.login-right h4{
+    font-size:18px;
+    font-weight:400;
+    margin-bottom:30px;
+    opacity:.95;
+}
+
+.login-right p{
+    font-size:18px;
+    line-height:1.8;
+    opacity:.95;
+}
+
+.login-right-content img{
+    width:220px;
+    height:220px;
+    object-fit:contain;
+    margin-bottom:20px;
+
+    background:none;
+    border:none;
+    box-shadow:none;
+    border-radius:0;
+    padding:0;
+}
+
+@media(max-width:991px){
+
+    .login-wrapper{
+        flex-direction:column;
+        max-width:500px;
+    }
+
+    .login-card,
+    .login-right{
+        width:100%;
+    }
+
+    .login-right{
+        padding:40px;
+    }
+
+    .login-right h1{
+        font-size:34px;
+    }
+}
+/* CSS Styling */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #666;          /* Color of the text */
+  font-weight: bold;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;              /* Makes the lines grow to fill available space */
+  border-bottom: 1px solid #ccc; /* Line thickness and color */
+}
+
+.divider::before {
+  margin-right: 15px;   /* Space between left line and text */
+}
+
+.divider::after {
+  margin-left: 15px;    /* Space between right line and text */
+}
+</style>
+    </head>
+    <body>
+
+ <!-- MAIN CONTENT -->
+<div class="container-fluid">
+    <div class="login-wrapper">
+        <!-- Register Card -->
+        <div class="login-card card">
+            <!-- Header mimicking navbar -->
+            <div class="card-header-custom">
+                <h2><i class="fa fa-user-plus" aria-hidden="true"></i> Create Account</h2>
+                <p class="text-muted">Please fill in your details to register.</p>
+            </div>
+
+            <!-- Card Body -->
+            <div class="card-body">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                          {{ message }}
+                          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+
+                <form id="registerForm" method="POST" action="{{ url_for('signup') }}" novalidate>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="firstName" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="firstName" name="first_name">
+                            <div class="invalid-feedback">Please enter your first name.</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="lastName" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="lastName" name="last_name">
+                            <div class="invalid-feedback">Please enter your last name.</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username">
+                        <div class="invalid-feedback" id="usernameFeedback">Username must be at least 4 characters long.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password">
+                        <div class="invalid-feedback" id="passwordFeedback">Password must be at least 6 characters long.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirm_password">
+                        <div class="invalid-feedback" id="confirmPasswordFeedback">Passwords do not match.</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-submit w-100">Sign Up</button>
+                    <div class="divider mt-3">OR</div>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-submit w-100 text-center d-flex align-items-center justify-content-center" style="text-decoration: none;">
+                        Back to Login
+                    </a>
+                </form>
+                <div id="error-msg" class="text-danger mt-2"></div>
+            </div>
+        </div>
+        
+      
+    </div>
+</div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script src="{{ url_for('static', filename='js/sweetalert2.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/sweetalert-init.js') }}"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('registerForm');
+    const firstName = document.getElementById('firstName');
+    const lastName = document.getElementById('lastName');
+    const username = document.getElementById('username');
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const errorMsgDiv = document.getElementById('error-msg');
+
+    form.addEventListener('submit', function (event) {
+        let isValid = true;
+        errorMsgDiv.textContent = ""; // Clear previous error messages
+
+        // 1. First Name Validation
+        if (firstName.value.trim() === '') {
+            showError(firstName);
+            isValid = false;
+        } else {
+            showSuccess(firstName);
+        }
+
+        // 2. Last Name Validation
+        if (lastName.value.trim() === '') {
+            showError(lastName);
+            isValid = false;
+        } else {
+            showSuccess(lastName);
+        }
+
+        // 3. Username Validation (Min 4 characters)
+        if (username.value.trim().length < 4) {
+            showError(username);
+            isValid = false;
+        } else {
+            showSuccess(username);
+        }
+
+        // 4. Password Validation (Min 6 characters)
+        if (password.value.length < 6) {
+            showError(password);
+            isValid = false;
+        } else {
+            showSuccess(password);
+        }
+
+        // 5. Confirm Password Validation (Must match password)
+        if (confirmPassword.value === '' || confirmPassword.value !== password.value) {
+            showError(confirmPassword);
+            isValid = false;
+        } else {
+            showSuccess(confirmPassword);
+        }
+
+        // Prevent submission if validation fails
+        if (!isValid) {
+            event.preventDefault();
+            errorMsgDiv.textContent = "Please correct the highlighted errors before submitting.";
+        }
+    });
+
+    // Helper functions to toggle Bootstrap classes
+    function showError(inputElement) {
+        inputElement.classList.remove('is-valid');
+        inputElement.classList.add('is-invalid');
+    }
+
+    function showSuccess(inputElement) {
+        inputElement.classList.remove('is-invalid');
+        inputElement.classList.add('is-valid');
+    }
+
+    // Optional: Real-time validation listener for password matching
+    confirmPassword.addEventListener('input', function() {
+        if (confirmPassword.value === password.value && password.value.length >= 6) {
+            showSuccess(confirmPassword);
+        } else {
+            showError(confirmPassword);
+        }
+    });
+});
+        </script>
+        <script src="{{ url_for('static', filename='js/main.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    </body>
+</html>

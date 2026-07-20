@@ -136,6 +136,10 @@ def fill_PKRF_CHS(data):
         UPLOAD_FOLDER = os.path.join(
         current_app.root_path, f"static/pdfs/user_{user_id}/uploads")
 
+        pcu = "PCU Verification Failed"
+        if data['data']['transactionInfo']['transactionNumber'] != '' :
+            pcu = f"PCU Transaction Number: {data['data']['transactionInfo']['transactionNumber']}"
+
         date_object = datetime.strptime(data['data']['otherDetails']['dob'], "%Y-%m-%d")
         formatted_date = date_object.strftime('%m-%d-%Y')
         initials = session.get('initials')
@@ -180,7 +184,8 @@ def fill_PKRF_CHS(data):
             "Representative": representative,
             "RepRelation": reprelation,
             "UserInitial": initials,
-            "PatientSignOverPrinted": patientFullName
+            "PatientSignOverPrinted": patientFullName,
+            "PCU": pcu
         }
 
         chs_data = {
