@@ -96,15 +96,17 @@ def index():
     elif "position" in session and session.get("position") == "scanner":
         return redirect(url_for("scannerPage"))
     else:
-        return render_template("maintenance.html")
-        # flash("Please login first", "warning")
-        # return redirect(url_for("login"))
+        # return render_template("maintenance.html")
+        flash("Please login first", "warning")
+        return redirect(url_for("login"))
 
 
 @app.route("/submit_form", methods=["POST"])
 def submit_form():
     data = request.get_json(silent=True) or {}
     patient_data = dict(data)
+
+    print(patient_data)
 
     print(json.dumps(patient_data, indent=4))
 
@@ -313,13 +315,13 @@ def login():
             return redirect(url_for("login"))
         
         # For Maintenance
-        elif request.method == "GET":
-            value = request.args.get('value')
-            if value == "tempLogin":
-                return render_template("login.html")
+        # elif request.method == "GET":
+        #     value = request.args.get('value')
+        #     if value == "tempLogin":
+        #         return render_template("login.html")
 
-        # return render_template("login.html")
-        return render_template("maintenance.html")
+        return render_template("login.html")
+        # return render_template("maintenance.html")
     except Exception as exc:
         print(exc)
         flash("An unexpected error occurred. Please try again.", "danger")
@@ -401,6 +403,7 @@ def submitCECRegistration():
 
     try:
         data = dict(data)
+        print(data['data'])
     except Exception as e:
         print(f"Invalid JSON payload: {e}")
         return jsonify({"status": "error", "message": "Invalid JSON payload."}), 400
@@ -430,9 +433,9 @@ def submitCECRegistration():
         patientFullName = f"{data['data']['personalInfo']['firstName']} {patientMiddleName} {data['data']['personalInfo']['lastName']} {data['data']['personalInfo']['nameExt']}"
 
         # NOTE: Checkboxes in pypdf require formatting like "/Yes" or "/Off"
-        member = "Yes" if data["data"]["patientIsMember"] == "member" else ""
-        dependent = "Yes" if data["data"]["patientIsMember"] == "dependent" else ""
-        transfer = "Yes" if data["data"]["transfer"]["transfer"] == True else ""
+        member = True if data["data"]["patientIsMember"] == "member" else ""
+        dependent = True if data["data"]["patientIsMember"] == "dependent" else ""
+        transfer = True if data["data"]["transfer"]["transfer"] == True else ""
 
         initials = session.get("initials")
 
@@ -480,6 +483,8 @@ def submitCECRegistration():
             key: value.upper() if isinstance(value, str) else value
             for key, value in pcsf_data.items()
         }
+
+        print(pcsf_data)
 
         for page in doc:
             widgets = page.widgets()
@@ -532,6 +537,7 @@ def submitCECRegistration():
 
                     # 1. Handle Checkbox Fields
                     if widget.field_type == fitz.PDF_WIDGET_TYPE_CHECKBOX:
+                        print(f"check checkBox {value}")
                         if value == "Yes":
                             check_symbol = "X"
                             font_name = "helv"
@@ -681,7 +687,7 @@ def submitCECRegistration():
                 }), 409
 
             # Insert record
-            if pcsf_data["Transfer"] == "Yes":
+            if pcsf_data["Transfer"]:
                 cursor.execute("""
                     INSERT INTO cec_transfer
                     (
