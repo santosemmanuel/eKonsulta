@@ -96,8 +96,9 @@ def index():
     elif "position" in session and session.get("position") == "scanner":
         return redirect(url_for("scannerPage"))
     else:
-        flash("Please login first", "warning")
-        return redirect(url_for("login"))
+        return render_template("maintenance.html")
+        # flash("Please login first", "warning")
+        # return redirect(url_for("login"))
 
 
 @app.route("/submit_form", methods=["POST"])
@@ -310,8 +311,15 @@ def login():
 
             flash("Invalid username or password", "danger")
             return redirect(url_for("login"))
+        
+        # For Maintenance
+        elif request.method == "GET":
+            value = request.args.get('value')
+            if value == "tempLogin":
+                return render_template("login.html")
 
-        return render_template("login.html")
+        # return render_template("login.html")
+        return render_template("maintenance.html")
     except Exception as exc:
         print(exc)
         flash("An unexpected error occurred. Please try again.", "danger")
