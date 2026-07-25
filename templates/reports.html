@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>EKonsulta Forms</title>
+        <title>eYakap Forms</title>
         <link href="{{ url_for('static', filename='css/all.min.css') }}"
               rel="stylesheet">
         <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}"
@@ -16,7 +16,13 @@
         <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css"
               rel="stylesheet">
         <link rel="icon" href="{{ url_for('static', filename='img/MHOBurauen.ico') }}">
-       
+    <style>
+        #reportTable2 th, td {
+            border: 1px solid #dddddd; /* Adds light gray outer lines */
+            padding: 8px;              /* Creates breathing room inside cells */
+            text-align: left;          /* Aligns text evenly to the left side */
+        }
+    </style>
     </head>
     <body>
         <!-- NAVBAR -->
@@ -26,8 +32,8 @@
                     <img src="{{ url_for('static', filename='img/MHO_Logo.jpg') }}"
                          class="mho-logo mr-2">
                     <div>
-                        <i class="fa-solid fa-notes-medical me-1"></i>eKonsultaForms
-                        <small>Electronic Konsulta Forms Processing System</small>
+                        <i class="fa-solid fa-notes-medical me-1"></i>eYakapForms
+                        <small>Electronic Yakap Forms Processing System</small>
                     </div>
                 </a>
                 <!-- Hamburger button for small screens -->
@@ -123,7 +129,7 @@
 
                                         <div class="d-flex justify-content-end">
                                             <button class="btn btn-sm btn-submit p-2"
-                                                    onclick="printPatientsTable()">
+                                                    onclick="printPatientsTableRegistration()">
                                                 <i class="fa-solid fa-print"></i>
                                             </button>
                                         </div>
@@ -142,6 +148,7 @@
                                                     <th>PIN</th>
                                                     <th>Member / Dependent</th>
                                                     <th>PCU Transaction Code</th>
+                                                    <th>Action</th>
                                                 </tr>
                                             </thead>
                                         </table>
@@ -208,7 +215,7 @@
 
                             <div class="d-flex justify-content-end">
                                 <button class="btn btn-sm btn-submit p-2"
-                                        onclick="printPatientsTable()">
+                                        onclick="printPatientsTableTransfer()">
                                     <i class="fa-solid fa-print"></i>
                                 </button>
                             </div>
@@ -247,11 +254,11 @@
 
                             <div class="d-flex justify-content-end">
                                 <button class="btn btn-sm btn-submit p-2 mx-1"
-                                        onclick="printPatientsTable()">
+                                        onclick="printPatientsTableTransfer()">
                                     <i class="fa-solid fa-print"></i>
                                 </button>
                                 <button class="btn btn-sm btn-submit p-2 mx-1"
-                                        onclick="printPatientsTable()">
+                                        onclick="printTableEkassEpress()">
                                     Generate Transmittal
                                 </button>
                             </div>
@@ -276,50 +283,98 @@
                             
                         </div>
                     </div>
-                    <div class="title">
-EKAS & EPRESS TRANSMITTAL
+                    <div id="printArea" class="d-none">
+                         <p style="font-size: 0.83em; font-weight: bold; margin: 0">Municipal Health Office - Burauen, Leyte</p>
+        <p style="font-size: 0.67em; fonrt-weight: bold; margin:0">Accreditation Number: 07195</p><br>
+    <div class="title">
+        EKASS & EPRESS TRANSMITTAL
+    </div>
+
+    <table id="reportTable2">
+        <thead>
+            <tr>
+                <th rowspan="2" class="date-col">DATE</th>
+                <th colspan="2" class="text-center">EKAS</th>
+                <th colspan="2" class="text-center">EPRESS</th>
+            </tr>
+            <tr>
+                <th class="no-col">#</th>
+                <th class="name-col">NAME</th>
+                <th class="no-col">#</th>
+                <th class="name-col">NAME</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
 </div>
 
-<table id="reportTable2">
-
-<thead>
-
-<tr>
-
-<th rowspan="2" class="date-col">
-DATE
-</th>
-
-<th colspan="2" class="text-center">
-EKAS
-</th>
-
-<th colspan="2" class="text-center">
-EPRESS
-</th>
-
-</tr>
-
-<tr>
-
-<th class="no-col">#</th>
-<th class="name-col">NAME</th>
-
-<th class="no-col">#</th>
-<th class="name-col">NAME</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-</tbody>
-
-</table>
                 </div>
             </div>
         </div>
+        <div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Patient</h5>
+                <button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="editId">
+
+                <div class="mb-3">
+                    <label>PIN</label>
+                    <input type="text" id="editPin" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>Member / Dependent</label>
+                    <select id="editMemDept" class="form-control" >
+                        <option value="Member">Member</option>
+                        <option value="Dependent">Dependent</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label>Last Name</label>
+                    <input type="text" id="editLastname" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>First Name</label>
+                    <input type="text" id="editFirstname" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>Middle Name</label>
+                    <input type="text" id="editMiddlename" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>Barangay</label>
+                    <input type="text" id="editBarangay" class="form-control">
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Close
+                </button>
+
+                <button class="btn btn-success" id="saveEdit">
+                    Save Changes
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
         <script>
             const maleCount = {{ cecRegCount }};
             const femaleCount = {{ transferreeCount }};
@@ -342,7 +397,23 @@ EPRESS
         <script>
             document.getElementById("CECCount").innerHTML = maleCount;
             document.getElementById("FemaleCount").innerHTML = femaleCount;
-            function printPatientsTable() {
+
+            const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+
+            $('#patientsTable').on('click', '.edit-btn', function () {
+
+                $('#editId').val($(this).data('id'));
+                $('#editPin').val($(this).data('pin'));
+                $('#editLastname').val($(this).data('lastname'));
+                $('#editFirstname').val($(this).data('firstname'));
+                $('#editMiddlename').val($(this).data('middlename'));
+                $('#editBarangay').val($(this).data('barangay'));
+                $('#editMemDept').val($(this).data('memdep'));
+
+                editModal.show();
+            });
+
+            function printPatientsTableRegistration() {
                 const table = $('#patientsTable').DataTable();
 
                 // Get visible rows only
@@ -353,7 +424,9 @@ EPRESS
                 let html = `
                     <html>
                     <head>
-                        <title>Patient List</title>
+                       <p style="font-size: 0.83em; font-weight: bold; margin: 0">Municipal Health Office - Burauen, Leyte</p>
+                       <p style="font-size: 0.67em; fonrt-weight: bold; margin:0">Accreditation Number: 07195</p>
+                       <h2>Patient List for CEC Registration</h2>
                         <style>
                             body {
                                 font-family: Arial, sans-serif;
@@ -393,7 +466,7 @@ EPRESS
                         </style>
                     </head>
                     <body>
-                        <h2>Patient List</h2>
+                        
                         <table>
                             <thead>
                                 <tr>
@@ -439,6 +512,177 @@ EPRESS
                 printWindow.close();
             }
 
+            function printPatientsTableTransfer() {
+                const table = $('#transferreePatientsTable').DataTable();
+
+                const data = table.rows({ search: 'applied' }).data();
+
+                let printWindow = window.open('', '', 'height=700,width=1000');
+
+                let html = `
+                    <html>
+                    <head>
+                       <p style="font-size: 0.83em; font-weight: bold; margin: 0">Municipal Health Office - Burauen, Leyte</p>
+                       <p style="font-size: 0.67em; fonrt-weight: bold; margin:0">Accreditation Number: 07195</p>
+                       <h2>Patient List for Transfer</h2>
+                        <style>
+                            body {
+                                font-family: Arial, sans-serif;
+                                padding: 20px;
+                            }
+
+                            h2 {
+                                text-align: center;
+                                margin-bottom: 15px;
+                            }
+
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                font-size: 12px;
+                            }
+
+                            th {
+                                padding: 2px;
+                                border: 1px solid #000000;
+                                text-align: center;
+                            }
+
+                            td {
+                                border: 1px solid #000000;
+                                text-align: center;
+                                padding: 2px;
+                            }
+
+                            tr:nth-child(even) {
+                                background-color: #f2f2f2;
+                            }
+
+                            @media print {
+                                button { display: none; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Last Name</th>
+                                    <th>First Name</th>
+                                    <th>Middle Name</th>
+                                    <th>Barangay</th>
+                                    <th>PIN</th>
+                                    <th>Member / Dependent</th>
+                                    <th>PCU Transaction Code</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                data.each(function (row, index) {
+                    html += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${row.LastName ?? ''}</td>
+                            <td>${row.FirstName ?? ''}</td>
+                            <td>${row.MiddleName ?? ''}</td>
+                            <td>${row.Barangay ?? ''}</td>
+                            <td>${row.PIN ?? ''}</td>
+                            <td>${row.MemDep ?? ''}</td>
+                            <td>${row.PCUTransaction ?? ''}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+                    </body>
+                    </html>
+                `;
+
+                printWindow.document.write(html);
+                printWindow.document.close();
+                printWindow.focus();
+                printWindow.print();
+                printWindow.close();
+            }
+
+            function printTableEkassEpress() {
+                const printContents = document.getElementById("printArea").innerHTML;
+
+                const printWindow = window.open("", "", "width=1000,height=700");
+
+                printWindow.document.write(`
+                    <html>
+                    <head>
+                        <title>EKAS & EPRESS TRANSMITTAL</title>
+                        <style>
+                            body{
+                                font-family: Arial, sans-serif;
+                                margin:20px;
+                            }
+
+                            .title{
+                                text-align:center;
+                                font-size:22px;
+                                font-weight:bold;
+                                margin-bottom:15px;
+                            }
+
+                            table{
+                                width:100%;
+                                border-collapse:collapse;
+                            }
+
+                            th, td{
+                                border:1px solid #000;
+                                padding:6px;
+                                text-align:center;
+                            }
+
+                            th{
+                                background:#f2f2f2;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        ${printContents}
+                    </body>
+                    </html>
+                `);
+
+                printWindow.document.close();
+                printWindow.focus();
+
+                // Wait until everything is rendered
+                printWindow.onload = function () {
+                    printWindow.print();
+                    printWindow.close();
+                };
+            }
+
+            $('#patientsTable').on('click', '.delete-btn', function () {
+                
+                const id = $(this).data('id');
+
+                if (confirm("Are you sure you want to delete this record?")) {
+                    fetch(`/delete/${id}`, {
+                        method: "DELETE"
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        alert(data.message);
+
+                        // Reload DataTable
+                        window.location.reload();
+                    });
+                    
+                }
+            });
+
             $(document).ready(function () {
                 $('#patientsTable').DataTable({
                     data: cecPatients,
@@ -455,11 +699,36 @@ EPRESS
                         { data: 'Barangay' },
                         { data: 'PIN' },
                         { data: 'MemDep' },
-                        { data: 'PCUTransaction' }
+                        { data: 'PCUTransaction' },
+                        {
+            data: "id",
+            orderable: false,
+            searchable: false,
+            render: function(data, type, row) {
+                return `
+                            <button class="btn btn-sm btn-primary edit-btn"
+            data-id="${row.id}"
+            data-pin="${row.PIN}"
+            data-lastname="${row.LastName}"
+            data-firstname="${row.FirstName}"
+            data-middlename="${row.MiddleName}"
+            data-barangay="${row.Barangay}"
+            data-memdep="${row.MemDep}">
+            <i class="bi bi-pencil-square"></i> Edit
+        </button>
+
+                    <button class="btn btn-sm btn-danger delete-btn"
+                            data-id="${data}">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                `;
+            }
+        }
                     ],
                     pageLength: 10,
                     responsive: true,
                     scrollX: true
+                    
                 });
 
                 $('#transferreePatientsTable').DataTable({

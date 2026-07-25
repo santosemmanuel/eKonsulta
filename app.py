@@ -96,9 +96,9 @@ def index():
     elif "position" in session and session.get("position") == "scanner":
         return redirect(url_for("scannerPage"))
     else:
-        return render_template("maintenance.html")
+        # return render_template("maintenance.html")
         # flash("Please login first", "warning")
-        # return redirect(url_for("login"))
+        return redirect(url_for("login"))
 
 
 @app.route("/submit_form", methods=["POST"])
@@ -156,6 +156,7 @@ def gen_reports():
         transferreeCount = transferreeCount,
         ekassEpressTransmittal = ekassEpressTransmittal
     )
+
 
 @app.route("/saveScanned", methods=["POST"])
 def saveScanned():
@@ -313,13 +314,13 @@ def login():
             return redirect(url_for("login"))
         
         # For Maintenance
-        elif request.method == "GET":
-            value = request.args.get('value')
-            if value == "tempLogin":
-                return render_template("login.html")
+        # elif request.method == "GET":
+        #     value = request.args.get('value')
+        #     if value == "tempLogin":
+        #         return render_template("login.html")
 
-        # return render_template("login.html")
-        return render_template("maintenance.html")
+        return render_template("login.html")
+        # return render_template("maintenance.html")
     except Exception as exc:
         print(exc)
         flash("An unexpected error occurred. Please try again.", "danger")
@@ -384,7 +385,6 @@ def registration():
                 valueToSubmit=value,
             )
 
-    
 @app.route("/submitCECRegistration", methods=["POST"])
 def submitCECRegistration():
     # Handle registration submission logic here
@@ -763,6 +763,19 @@ def submitCECRegistration():
                 "message": "Record inserted successfully",
                 "pdf_url": {"fpe": pdf_urls["fpe"], "mca_pdf": pdf_urls["mca"]}
             }), 200
+
+@app.route("/delete/<int:id>", methods=["DELETE"])
+def delete_record(id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM cec_registration WHERE id = %s", (id,))
+    conn.commit()
+
+    return jsonify({
+        "status": "success",
+        "message": "Record deleted successfully."
+    })
 
 @app.route("/scanner")
 def scannerPage():

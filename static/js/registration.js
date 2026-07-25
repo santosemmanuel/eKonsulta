@@ -498,7 +498,7 @@ function showPdfModal(pdfUrl) {
     const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
 
     // 1. Reset display states and source
-    pdfLoader.style.setProperty('display', 'flex', 'important');
+    // pdfLoader.style.setProperty('display', 'flex', 'important');
     pdfFrame.style.display = 'none';
     pdfFrame.src = pdfUrl;
 
@@ -516,7 +516,7 @@ function showPdfModal(pdfUrl) {
 
     // 4. Hide loader once iframe completes rendering
     pdfFrame.onload = function () {
-        pdfLoader.classList.add("d-none")
+        // pdfLoader.classList.add("d-none")
         pdfFrame.style.display = 'block';
     };
 }
@@ -533,7 +533,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (selectedPdfUrl) {
                 // Trigger loading state inside frame
-                pdfLoader.style.setProperty('display', 'flex', 'important');
+                // pdfLoader.style.setProperty('display', 'flex', 'important');
                 pdfFrame.style.display = 'none';
                 
                 // Update active tab visuals manually
@@ -572,7 +572,6 @@ function hideLoader(tabId) {
 
     loader.style.display = "none";
     iframe.classList.remove("d-none");
-
     
 }
 
