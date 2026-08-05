@@ -117,8 +117,25 @@
                                     </i>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="startDate" class="form-label">Select Date</label>
-                                    <input type="date" class="form-control" id="startDate" name="startDate">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label for="startDate" class="form-label">Select Date</label>
+                                            <input type="date" class="form-control" id="startDate" name="startDate">
+                                        </div>
+                                         <div class="col-md-4">
+                                            <label for="startDate" class="form-label">Select Barangay</label>
+                                            <select class="form-control" id="barangay" name="barangay">
+                                                <option>Select Barangay..</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button class="btn btn-submit p-2 mt-4"
+                                                    onclick="printPatientsTableRegistration()">
+                                                    <i class="fa-solid fa-filter"></i>&nbsp;
+                                                    Generate Filter
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="card mb-4">
                                     
