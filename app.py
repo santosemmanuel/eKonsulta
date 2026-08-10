@@ -777,6 +777,140 @@ def delete_record(id):
         "message": "Record deleted successfully."
     })
 
+@app.route("/deleteTransfer/<int:id>", methods=["DELETE"])
+def delete_transfer_record(id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM cec_transfer WHERE id = %s", (id,))
+    conn.commit()
+
+    return jsonify({
+        "status": "success",
+        "message": "Transfer record deleted successfully."
+    })
+
+@app.route("/Update/<int:id>", methods=["PUT"])
+def update_record(id):
+    data = request.get_json()
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE cec_registration
+        SET LastName=%s, FirstName=%s, MiddleName=%s, Barangay=%s, PIN=%s, MemDep=%s, PCUTransaction=%s
+        WHERE id=%s
+    """, (
+        data['LastName'],
+        data['FirstName'],
+        data['MiddleName'],
+        data['Barangay'],
+        data['PIN'],
+        data['MemDep'],
+        data['PCUTransaction'],
+        id
+    ))
+
+    conn.commit()
+
+    return jsonify({
+        "status": "success",
+        "message": "Record updated successfully."
+    })
+
+@app.route("/UpdateTransfer/<int:id>", methods=["PUT"])
+def update_transfer_record(id):
+    data = request.get_json()
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE cec_transfer
+        SET LastName=%s, FirstName=%s, MiddleName=%s, Barangay=%s, PIN=%s, MemDep=%s, PCUTransaction=%s
+        WHERE id=%s
+    """, (
+        data['LastName'],
+        data['FirstName'],
+        data['MiddleName'],
+        data['Barangay'],
+        data['PIN'],
+        data['MemDep'],
+        data['PCUTransaction'],
+        id
+    ))
+
+    conn.commit()
+
+    return jsonify({
+        "status": "success",
+        "message": "Record updated successfully."
+    })
+
+@app.route("/registrationToTransfer/<int:id>", methods=["POST"])
+def registration_to_transfer(id):
+    conn = get_db_connection()
+
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    cursor.execute("SELECT * FROM cec_registration WHERE id = %s", (id,))
+
+    existing = cursor.fetchone()
+
+    print(existing)
+
+    cursor.execute("""
+        INSERT INTO cec_transfer (LastName, FirstName, MiddleName, Barangay, PIN, MemDep, PCUTransaction)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """, (
+        existing['LastName'],
+        existing['FirstName'],
+        existing['MiddleName'],
+        existing['Barangay'],
+        existing['PIN'],
+        existing['MemDep'],
+        existing['PCUTransaction']
+    ))
+
+    cursor.execute("DELETE FROM cec_registration WHERE id = %s", (id,))
+
+    conn.commit()
+
+    return jsonify({
+        "status": "success",
+        "message": "Record transferred successfully."
+    })
+
+@app.route("/transferToRegistration/<int:id>", methods=["POST"])
+def transfer_to_registration(id):
+    conn = get_db_connection()
+    
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    cursor.execute("SELECT * FROM cec_transfer WHERE id = %s", (id,))
+
+    existing = cursor.fetchone()
+    print(id)
+
+    cursor.execute("""
+        INSERT INTO cec_registration (LastName, FirstName, MiddleName, Barangay, PIN, MemDep, PCUTransaction)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """, (
+        existing['LastName'],
+        existing['FirstName'],
+        existing['MiddleName'],
+        existing['Barangay'],
+        existing['PIN'],
+        existing['MemDep'],
+        existing['PCUTransaction']
+    ))
+
+    cursor.execute("DELETE FROM cec_transfer WHERE id = %s", (id,))
+
+    conn.commit()
+
+    return jsonify({
+        "status": "success",
+        "message": "Record transferred successfully."
+    })
+
 @app.route("/scanner")
 def scannerPage():
     return render_template("scanner.html")
