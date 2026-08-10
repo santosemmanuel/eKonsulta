@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>eYakap Forms</title>
+        <link href="{{ url_for('static', filename='css/all.min.css') }}"
+              rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}"
+              rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/styles.css') }}"
+              rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/sweetalert2.min.css') }}"
+              rel="stylesheet">
+        
+        <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css"
+              rel="stylesheet">
+        <link rel="icon" href="{{ url_for('static', filename='img/MHOBurauen.ico') }}">
+    </head>
+    <style>
+               .table-container {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Password field */
+        .password-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            min-width: 150px;
+        }
+
+        .password-text {
+            letter-spacing: 2px;
+        }
+
+        .password-toggle {
+            border: none;
+            background: transparent;
+            padding: 0;
+            margin-left: 8px;
+            color: #6c757d;
+            cursor: pointer;
+        }
+
+        .password-toggle:hover {
+            color: #0d6efd;
+        }
+
+        /* Bootstrap-style switch */
+        .form-switch .form-check-input {
+            width: 2.5em;
+            height: 1.3em;
+            cursor: pointer;
+        }
+
+        /* Three-dot button */
+        .action-btn {
+            border: none;
+            background: transparent;
+            color: #6c757d;
+            font-size: 20px;
+            padding: 3px 8px;
+        }
+
+        .action-btn:hover {
+            color: #212529;
+            background-color: #f1f3f5;
+            border-radius: 5px;
+        }
+
+        .dropdown-menu {
+            min-width: 130px;
+        }
+
+        .dropdown-item {
+            cursor: pointer;
+        }
+
+        .dropdown-item i {
+            width: 20px;
+        }
+
+        /* Center specific columns */
+        #usersTable th:nth-child(5),
+        #usersTable td:nth-child(5),
+        #usersTable th:nth-child(6),
+        #usersTable td:nth-child(6) {
+            text-align: center;
+        }
+    </style>
+    </style>
+    <body>
+        <!-- NAVBAR -->
+        <nav class="navbar navbar-expand-lg navbar-mho shadow-sm">
+            <div class="container-fluid px-4">
+                <a class="navbar-brand d-flex align-items-center" href="#">
+                    <img src="{{ url_for('static', filename='img/MHO_Logo.jpg') }}"
+                         class="mho-logo mr-2">
+                    <div>
+                        <i class="fa-solid fa-notes-medical me-1"></i>eYakapForms
+                        <small>Electronic Yakap Forms Processing System</small>
+                    </div>
+                </a>
+                <!-- Hamburger button for small screens -->
+                <button class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#navbarMenu"
+                        aria-controls="navbarMenu"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <!-- Collapsible menu -->
+                <div class="collapse navbar-collapse" id="navbarMenu">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/gen_reports">
+                                <i class="fa-solid fa-chart-line me-1"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/users">
+                                <i class="fa-solid fa-users me-1"></i> Users
+                            </a>
+                        </li>
+                        <!-- <li class="nav-item">
+                            <a class="nav-link text-white" href="/ActivityLogs">
+                                <i class="fa-solid fa-history me-1"></i> Activity Logs
+                            </a>
+                        </li> -->
+                        <li class="nav-item">
+                            {% if session.get('user') %}
+                                <a class="nav-link text-white" href="/logout">
+                                    <i class="fa-solid fa-right-to-bracket me-1"></i> Logout
+                                </a>
+                            {% else %}
+                                <a class="nav-link text-white" href="/login">
+                                    <i class="fa-solid fa-right-to-bracket me-1"></i> Login
+                                </a>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- MAIN CONTENT -->
+        <div class="container py-4">
+            <div class="table-container">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="mb-1">Users</h4>
+                <p class="text-muted mb-0">
+                    Manage your users
+                </p>
+            </div>
+
+            <button class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                Add User
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table
+                id="usersTable"
+                class="table table-hover align-middle"
+                style="width:100%"
+            >
+                <thead class="table-light">
+                    <tr>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Username</th>
+                        <th>Password</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td>John</td>
+                        <td>Doe</td>
+                        <td>johndoe</td>
+                        <td>
+                            <div class="password-wrapper">
+                                <span
+                                    class="password-text"
+                                    data-password="John@123"
+                                >
+                                    ••••••••
+                                </span>
+
+                                <button
+                                    type="button"
+                                    class="password-toggle"
+                                    title="Show password"
+                                >
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="form-check form-switch d-flex justify-content-center">
+                                <input
+                                    class="form-check-input status-toggle"
+                                    type="checkbox"
+                                    checked
+                                >
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="dropdown">
+                                <button
+                                    class="action-btn"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                                >
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item edit-user">
+                                            <i class="bi bi-pencil"></i>
+                                            Edit
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item text-danger delete-user">
+                                            <i class="bi bi-trash"></i>
+                                            Delete
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td>Jane</td>
+                        <td>Smith</td>
+                        <td>janesmith</td>
+                        <td>
+                            <div class="password-wrapper">
+                                <span
+                                    class="password-text"
+                                    data-password="Jane@456"
+                                >
+                                    ••••••••
+                                </span>
+
+                                <button
+                                    type="button"
+                                    class="password-toggle"
+                                    title="Show password"
+                                >
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="form-check form-switch d-flex justify-content-center">
+                                <input
+                                    class="form-check-input status-toggle"
+                                    type="checkbox"
+                                >
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="dropdown">
+                                <button
+                                    class="action-btn"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                                >
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item edit-user">
+                                            <i class="bi bi-pencil"></i>
+                                            Edit
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item text-danger delete-user">
+                                            <i class="bi bi-trash"></i>
+                                            Delete
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td>Michael</td>
+                        <td>Johnson</td>
+                        <td>mjohnson</td>
+                        <td>
+                            <div class="password-wrapper">
+                                <span
+                                    class="password-text"
+                                    data-password="Mike@789"
+                                >
+                                    ••••••••
+                                </span>
+
+                                <button
+                                    type="button"
+                                    class="password-toggle"
+                                    title="Show password"
+                                >
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="form-check form-switch d-flex justify-content-center">
+                                <input
+                                    class="form-check-input status-toggle"
+                                    type="checkbox"
+                                    checked
+                                >
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="dropdown">
+                                <button
+                                    class="action-btn"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                                >
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item edit-user">
+                                            <i class="bi bi-pencil"></i>
+                                            Edit
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item text-danger delete-user">
+                                            <i class="bi bi-trash"></i>
+                                            Delete
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td>Sarah</td>
+                        <td>Williams</td>
+                        <td>swilliams</td>
+                        <td>
+                            <div class="password-wrapper">
+                                <span
+                                    class="password-text"
+                                    data-password="Sarah@321"
+                                >
+                                    ••••••••
+                                </span>
+
+                                <button
+                                    type="button"
+                                    class="password-toggle"
+                                    title="Show password"
+                                >
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="form-check form-switch d-flex justify-content-center">
+                                <input
+                                    class="form-check-input status-toggle"
+                                    type="checkbox"
+                                    checked
+                                >
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="dropdown">
+                                <button
+                                    class="action-btn"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                                >
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item edit-user">
+                                            <i class="bi bi-pencil"></i>
+                                            Edit
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item text-danger delete-user">
+                                            <i class="bi bi-trash"></i>
+                                            Delete
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+        </div>
+  
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script src="{{ url_for('static', filename='js/sweetalert2.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/sweetalert-init.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/main.js')}}"></script>
+        <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <!-- DataTables -->
+        <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+        <!-- Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+
+$(document).ready(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Initialize DataTable
+    |--------------------------------------------------------------------------
+    */
+
+    const table = $('#usersTable').DataTable({
+
+        pageLength: 5,
+
+        lengthMenu: [
+            [5, 10, 25, 50, -1],
+            [5, 10, 25, 50, "All"]
+        ],
+
+        ordering: true,
+
+        searching: true,
+
+        paging: true,
+
+        info: true,
+
+        responsive: true,
+
+        columnDefs: [
+            {
+                orderable: false,
+                targets: [4, 5]
+            }
+        ],
+
+        language: {
+            search: "",
+            searchPlaceholder: "Search users...",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ users",
+            infoEmpty: "Showing 0 to 0 of 0 users",
+            zeroRecords: "No users found"
+        }
+
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Show / Hide Password
+    |--------------------------------------------------------------------------
+    */
+
+    $('#usersTable').on('click', '.password-toggle', function () {
+
+        const button = $(this);
+        const passwordText = button
+            .closest('.password-wrapper')
+            .find('.password-text');
+
+        const icon = button.find('i');
+
+        const password = passwordText.data('password');
+
+        if (passwordText.text().trim() === '••••••••') {
+
+            passwordText.text(password);
+
+            icon
+                .removeClass('fa-eye')
+                .addClass('fa-eye-slash');
+
+            button.attr('title', 'Hide password');
+
+        } else {
+
+            passwordText.text('••••••••');
+
+            icon
+                .removeClass('fa-eye-slash')
+                .addClass('fa-eye');
+
+            button.attr('title', 'Show password');
+        }
+
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Status Toggle
+    |--------------------------------------------------------------------------
+    */
+
+    $('#usersTable').on('change', '.status-toggle', function () {
+
+        const isActive = $(this).is(':checked');
+
+        if (isActive) {
+            console.log('User status: Active');
+        } else {
+            console.log('User status: Inactive');
+        }
+
+        /*
+         * You can send an AJAX request here:
+         *
+         * $.ajax({
+         *     url: '/users/update-status',
+         *     method: 'POST',
+         *     data: {
+         *         user_id: userId,
+         *         status: isActive ? 1 : 0
+         *     }
+         * });
+         */
+
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Edit User
+    |--------------------------------------------------------------------------
+    */
+
+    $('#usersTable').on('click', '.edit-user', function (e) {
+
+        e.preventDefault();
+
+        const row = $(this).closest('tr');
+
+        const firstName = row.find('td:eq(0)').text().trim();
+        const lastName = row.find('td:eq(1)').text().trim();
+        const username = row.find('td:eq(2)').text().trim();
+
+        console.log('Edit User:', {
+            firstName: firstName,
+            lastName: lastName,
+            username: username
+        });
+
+        alert(
+            'Edit User\n\n' +
+            'Name: ' + firstName + ' ' + lastName + '\n' +
+            'Username: ' + username
+        );
+
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Delete User
+    |--------------------------------------------------------------------------
+    */
+
+    $('#usersTable').on('click', '.delete-user', function (e) {
+
+        e.preventDefault();
+
+        const row = $(this).closest('tr');
+
+        const firstName = row.find('td:eq(0)').text().trim();
+        const lastName = row.find('td:eq(1)').text().trim();
+
+        const confirmed = confirm(
+            'Are you sure you want to delete ' +
+            firstName + ' ' + lastName + '?'
+        );
+
+        if (confirmed) {
+
+            table
+                .row(row)
+                .remove()
+                .draw(false);
+
+        }
+
+    });
+
+});
+
+</script>
+    </body>
+</html>
