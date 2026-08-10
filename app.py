@@ -781,8 +781,12 @@ def delete_record(id):
 def scannerPage():
     return render_template("scanner.html")
 
+@app.route("/users")
+def usersPage():
+    return render_template("users.html")
+
 if __name__ == '__main__':
     if serve is not None:
         serve(app, host="0.0.0.0", port=8180)
     else:
-        app.run(host="0.0.0.0", port=8180, debug=True)
+        app.run(host="0.0.0.0", port=5000, debug=True)

@@ -50,10 +50,20 @@
                 <div class="collapse navbar-collapse" id="navbarMenu">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
+                            <a class="nav-link text-white" href="/gen_reports">
+                                <i class="fa-solid fa-chart-line me-1"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/users">
+                                <i class="fa-solid fa-users me-1"></i> Users
+                            </a>
+                        </li>
+                        <!-- <li class="nav-item">
                             <a class="nav-link text-white" href="/ActivityLogs">
                                 <i class="fa-solid fa-history me-1"></i> Activity Logs
                             </a>
-                        </li>
+                        </li> -->
                         <li class="nav-item">
                             {% if session.get('user') %}
                                 <a class="nav-link text-white" href="/logout">
