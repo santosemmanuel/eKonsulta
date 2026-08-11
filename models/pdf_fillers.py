@@ -342,18 +342,18 @@ def fill_PKRF_CHS(data):
 def fill_MCA(data):
     user_id = session.get("user_id")
 
-    FRONT_X = 1220
-    FRONT_Y = 1100
+    FRONT_X = 10
+    FRONT_Y = 10
 
-    BIRTH_CERT_X = 1300
-    BIRTH_CERT_Y = 300
+    BIRTH_CERT_X = 430
+    BIRTH_CERT_Y = 100
 
-    BACK_X = 1220
-    BACK_Y = 500
+    BACK_X = 200
+    BACK_Y = 10
 
-    BIRTH_CERT_MAX_WIDTH = 1400
-    BIRTH_CERT_MAX_HEIGHT = 750
-    MAX_WIDTH = 880
+    BIRTH_CERT_MAX_WIDTH = 490
+    BIRTH_CERT_MAX_HEIGHT = 700
+    MAX_WIDTH = 280
     
     try:
         philhealth = "✔" if data['data']['transactionInfo']['philhealth'] == True else "✘"
@@ -463,7 +463,7 @@ def fill_MCA(data):
                     elif widget.field_name == "PatientSignOverPrinted":
                         if value:
                             font_name = "helv"
-                            font_size = 30.0  # Your preferred maximum starting font size
+                            font_size = 15.0  # Your preferred maximum starting font size
                             min_size = 12.0
 
                             # Auto-size logic: Reduce font size until the signature fits within the box width
@@ -492,7 +492,7 @@ def fill_MCA(data):
                     else:
                         if value:
                             # Vertically centers the text row within your fallback box height
-                            font_size = 20.0
+                            font_size = 8.0
                             adjusted_y = rect.y1 - \
                                 ((rect.height - font_size) / 2.0) - \
                                 (font_size * 0.05)
