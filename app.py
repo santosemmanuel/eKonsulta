@@ -524,9 +524,9 @@ def submitCECRegistration():
         patientFullName = f"{data['data']['personalInfo']['firstName']} {patientMiddleName} {data['data']['personalInfo']['lastName']} {data['data']['personalInfo']['nameExt']}"
 
         # NOTE: Checkboxes in pypdf require formatting like "/Yes" or "/Off"
-        member = "Yes" if data["data"]["patientIsMember"] == "member" else ""
-        dependent = "Yes" if data["data"]["patientIsMember"] == "dependent" else ""
-        transfer = "Yes" if data["data"]["transfer"]["transfer"] == True else ""
+        member = True if data["data"]["patientIsMember"] == "member" else False
+        dependent = True if data["data"]["patientIsMember"] == "dependent" else False
+        transfer = True if data["data"]["transfer"]["transfer"] == True else False
 
         initials = session.get("initials")
 
@@ -623,7 +623,7 @@ def submitCECRegistration():
                 for widget in widgets:
                     rect = widget.rect
                     value = widget.field_value or ""
-
+                    print(f"Processing field: {widget.field_name}, Type: {widget.field_type}, Value: {value}")   
                     # 1. Handle Checkbox Fields
                     if widget.field_type == fitz.PDF_WIDGET_TYPE_CHECKBOX:
                         if value == "Yes":
@@ -750,9 +750,9 @@ def submitCECRegistration():
 
             mem_dep = (
                 "Member"
-                if pcsf_data["Member"] == "Yes"
+                if pcsf_data['Member'] == True
                 else "Dependent"
-                if pcsf_data["Dependent"] == "Yes"
+                if pcsf_data["Dependent"] == True
                 else "N/A"
             )
 
