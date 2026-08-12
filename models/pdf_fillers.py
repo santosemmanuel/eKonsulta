@@ -342,8 +342,8 @@ def fill_PKRF_CHS(data):
 def fill_MCA(data):
     user_id = session.get("user_id")
 
-    FRONT_X = 3020
-    FRONT_Y = 2690
+    FRONT_X = 420
+    FRONT_Y = 390
 
     BIRTH_CERT_X = 430
     BIRTH_CERT_Y = 100
@@ -353,7 +353,7 @@ def fill_MCA(data):
 
     BIRTH_CERT_MAX_WIDTH = 490
     BIRTH_CERT_MAX_HEIGHT = 700
-    MAX_WIDTH = 980
+    MAX_WIDTH = 300
     
     try:
         philhealth = "✔" if data['data']['transactionInfo']['philhealth'] == True else "✘"

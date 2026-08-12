@@ -692,9 +692,10 @@ def submitCECRegistration():
                         PIN,
                         MemDep,
                         PCUTransaction,
+                        proccess_by,
                         DateTimeProccess
                     )
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """, (
                     pcsf_data["LastName"],
                     pcsf_data["FirstName"],
@@ -703,6 +704,7 @@ def submitCECRegistration():
                     pcsf_data["PIN"],
                     mem_dep,
                     pcu_transaction,
+                    user_id,
                     datetime.now()
                 ))
             else:
@@ -716,9 +718,10 @@ def submitCECRegistration():
                         PIN,
                         MemDep,
                         PCUTransaction,
+                        proccess_by,
                         DateTimeProccess
                     )
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """, (
                     pcsf_data["LastName"],
                     pcsf_data["FirstName"],
@@ -727,6 +730,7 @@ def submitCECRegistration():
                     pcsf_data["PIN"],
                     mem_dep,
                     pcu_transaction,
+                    user_id,
                     datetime.now()
                 ))
 
