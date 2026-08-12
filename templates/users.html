@@ -152,295 +152,268 @@
         <div class="container py-4">
             <div class="table-container">
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h4 class="mb-1">Users</h4>
-                <p class="text-muted mb-0">
-                    Manage your users
-                </p>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="mb-1">Users</h4>
+                        <p class="text-muted mb-0">
+                            Manage your users
+                        </p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table
+                        id="usersTable"
+                        class="table table-hover align-middle"
+                        style="width:100%"
+                    >
+                        <thead class="table-light">
+                            <tr>
+                                <th>First Name</th>
+                                <th>Last Name</th>
+                                <th>Username</th>
+                                <th>Password</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+        {% for user in users %}
+
+                <tr data-user-id="{{ user.id }}">
+
+                    <td>
+                        {{ user.firstName }}
+                    </td>
+
+                    <td>
+                        {{ user.lastName }}
+                    </td>
+
+                    <td>
+                        {{ user.username }}
+                    </td>
+
+                    <td>
+                        <div class="password-wrapper">
+
+                            <span class="password-text" data-password="{{ user.password }}">
+                                ••••••••
+                            </span>
+
+                            <button
+                                type="button"
+                                class="password-toggle"
+                                title="Show password"
+                            >
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+
+                        </div>
+                    </td>
+
+                    <td>
+
+                        <div class="form-check form-switch d-flex justify-content-center">
+
+                            <input
+                                class="form-check-input status-toggle"
+                                type="checkbox"
+                                {% if user.status == 1 %}
+                                    checked
+                                {% endif %}
+                            >
+
+                        </div>
+
+                    </td>
+
+                    <td>
+
+                        <div class="dropdown">
+
+                            <button
+                                class="action-btn"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+
+                            <ul class="dropdown-menu dropdown-menu-end">
+
+                                <li>
+                                    <a
+                                        href="#"
+                                        class="dropdown-item edit-user"
+                                        data-id="{{ user.id }}"
+                                        data-firstname="{{ user.firstName }}"
+                                        data-lastname="{{ user.lastName }}"
+                                        data-username="{{ user.username }}"
+                                    >
+                                        <i class="bi bi-pencil"></i>
+                                        Edit
+                                    </a>
+                                </li>
+
+                                <li>
+
+                                    <a
+                                        href="#"
+                                        class="dropdown-item text-danger delete-user"
+                                        data-id="{{ user.id }}"
+                                    >
+                                        <i class="bi bi-trash"></i>
+                                        Delete
+                                    </a>
+
+                                </li>
+
+                            </ul>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Edit User Modal -->
+
+        <div
+            class="modal fade"
+            id="editUserModal"
+            tabindex="-1"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog">
+
+                <div class="modal-content">
+
+                    <div class="modal-header">
+
+                        <h5 class="modal-title">
+                            Edit User
+                        </h5>
+
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                        ></button>
+
+                    </div>
+
+                    <div class="modal-body">
+
+                        <form id="editUserForm">
+
+                            <input
+                                type="hidden"
+                                id="editUserId"
+                            >
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+                                    First Name
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="editFirstName"
+                                    required
+                                >
+
+                            </div>
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+                                    Last Name
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="editLastName"
+                                    required
+                                >
+
+                            </div>
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+                                    Username
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="editUsername"
+                                    required
+                                >
+
+                            </div>
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+                                    New Password
+                                </label>
+
+                                <input
+                                    type="password"
+                                    class="form-control"
+                                    id="editPassword"
+                                    placeholder="Leave blank to keep current password"
+                                >
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn btn-primary"
+                            id="saveUserBtn"
+                        >
+                            Save Changes
+                        </button>
+
+                    </div>
+
+                </div>
+
             </div>
         </div>
 
-        <div class="table-responsive">
-            <table
-                id="usersTable"
-                class="table table-hover align-middle"
-                style="width:100%"
-            >
-                <thead class="table-light">
-                    <tr>
-                        <th>First Name</th>
-                        <th>Last Name</th>
-                        <th>Username</th>
-                        <th>Password</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    <tr>
-                        <td>John</td>
-                        <td>Doe</td>
-                        <td>johndoe</td>
-                        <td>
-                            <div class="password-wrapper">
-                                <span
-                                    class="password-text"
-                                    data-password="John@123"
-                                >
-                                    ••••••••
-                                </span>
-
-                                <button
-                                    type="button"
-                                    class="password-toggle"
-                                    title="Show password"
-                                >
-                                    <i class="fa-solid fa-eye"></i>
-                                </button>
-                            </div>
-                        </td>
-
-                        <td>
-                            <div class="form-check form-switch d-flex justify-content-center">
-                                <input
-                                    class="form-check-input status-toggle"
-                                    type="checkbox"
-                                    checked
-                                >
-                            </div>
-                        </td>
-
-                        <td>
-                            <div class="dropdown">
-                                <button
-                                    class="action-btn"
-                                    type="button"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false"
-                                >
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item edit-user">
-                                            <i class="bi bi-pencil"></i>
-                                            Edit
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <a class="dropdown-item text-danger delete-user">
-                                            <i class="bi bi-trash"></i>
-                                            Delete
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
-
-
-                    <tr>
-                        <td>Jane</td>
-                        <td>Smith</td>
-                        <td>janesmith</td>
-                        <td>
-                            <div class="password-wrapper">
-                                <span
-                                    class="password-text"
-                                    data-password="Jane@456"
-                                >
-                                    ••••••••
-                                </span>
-
-                                <button
-                                    type="button"
-                                    class="password-toggle"
-                                    title="Show password"
-                                >
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </div>
-                        </td>
-
-                        <td>
-                            <div class="form-check form-switch d-flex justify-content-center">
-                                <input
-                                    class="form-check-input status-toggle"
-                                    type="checkbox"
-                                >
-                            </div>
-                        </td>
-
-                        <td>
-                            <div class="dropdown">
-                                <button
-                                    class="action-btn"
-                                    type="button"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false"
-                                >
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item edit-user">
-                                            <i class="bi bi-pencil"></i>
-                                            Edit
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <a class="dropdown-item text-danger delete-user">
-                                            <i class="bi bi-trash"></i>
-                                            Delete
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
-
-
-                    <tr>
-                        <td>Michael</td>
-                        <td>Johnson</td>
-                        <td>mjohnson</td>
-                        <td>
-                            <div class="password-wrapper">
-                                <span
-                                    class="password-text"
-                                    data-password="Mike@789"
-                                >
-                                    ••••••••
-                                </span>
-
-                                <button
-                                    type="button"
-                                    class="password-toggle"
-                                    title="Show password"
-                                >
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </div>
-                        </td>
-
-                        <td>
-                            <div class="form-check form-switch d-flex justify-content-center">
-                                <input
-                                    class="form-check-input status-toggle"
-                                    type="checkbox"
-                                    checked
-                                >
-                            </div>
-                        </td>
-
-                        <td>
-                            <div class="dropdown">
-                                <button
-                                    class="action-btn"
-                                    type="button"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false"
-                                >
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item edit-user">
-                                            <i class="bi bi-pencil"></i>
-                                            Edit
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <a class="dropdown-item text-danger delete-user">
-                                            <i class="bi bi-trash"></i>
-                                            Delete
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
-
-
-                    <tr>
-                        <td>Sarah</td>
-                        <td>Williams</td>
-                        <td>swilliams</td>
-                        <td>
-                            <div class="password-wrapper">
-                                <span
-                                    class="password-text"
-                                    data-password="Sarah@321"
-                                >
-                                    ••••••••
-                                </span>
-
-                                <button
-                                    type="button"
-                                    class="password-toggle"
-                                    title="Show password"
-                                >
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </div>
-                        </td>
-
-                        <td>
-                            <div class="form-check form-switch d-flex justify-content-center">
-                                <input
-                                    class="form-check-input status-toggle"
-                                    type="checkbox"
-                                    checked
-                                >
-                            </div>
-                        </td>
-
-                        <td>
-                            <div class="dropdown">
-                                <button
-                                    class="action-btn"
-                                    type="button"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false"
-                                >
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item edit-user">
-                                            <i class="bi bi-pencil"></i>
-                                            Edit
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <a class="dropdown-item text-danger delete-user">
-                                            <i class="bi bi-trash"></i>
-                                            Delete
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
-
-                </tbody>
-            </table>
-        </div>
-
-    </div>
-
-        </div>
   
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
         <script src="{{ url_for('static', filename='js/sweetalert2.min.js') }}"></script>
@@ -550,26 +523,47 @@ $(document).ready(function () {
 
     $('#usersTable').on('change', '.status-toggle', function () {
 
-        const isActive = $(this).is(':checked');
+        const toggle = $(this);
+        const userId = toggle.closest('tr').data('user-id');
+        const isActive = toggle.is(':checked');
+        
+        $.ajax({
+            url: '/users/update-status',
+            method: 'POST',
 
-        if (isActive) {
-            console.log('User status: Active');
-        } else {
-            console.log('User status: Inactive');
-        }
+            data: {
+                user_id: userId,
+                status: isActive ? 1 : 0
+            },
 
-        /*
-         * You can send an AJAX request here:
-         *
-         * $.ajax({
-         *     url: '/users/update-status',
-         *     method: 'POST',
-         *     data: {
-         *         user_id: userId,
-         *         status: isActive ? 1 : 0
-         *     }
-         * });
-         */
+            success: function (response) {
+
+                if (response.success) {
+
+                    console.log(
+                        'User status:',
+                        response.status === 1 ? 'Active' : 'Inactive'
+                    );
+
+                } else {
+
+                    alert(response.message);
+
+                    // Revert switch
+                    toggle.prop('checked', !isActive);
+                }
+            },
+
+            error: function (xhr) {
+
+                console.error(xhr.responseText);
+
+                alert('Failed to update user status.');
+
+                // Revert switch
+                toggle.prop('checked', !isActive);
+            }
+        });
 
     });
 
@@ -584,23 +578,119 @@ $(document).ready(function () {
 
         e.preventDefault();
 
-        const row = $(this).closest('tr');
+        const button = $(this);
 
-        const firstName = row.find('td:eq(0)').text().trim();
-        const lastName = row.find('td:eq(1)').text().trim();
-        const username = row.find('td:eq(2)').text().trim();
+        const userId = button.data('id');
+        const firstName = button.data('firstname');
+        const lastName = button.data('lastname');
+        const username = button.data('username');
 
-        console.log('Edit User:', {
-            firstName: firstName,
-            lastName: lastName,
-            username: username
-        });
+        // Fill modal
+        $('#editUserId').val(userId);
+        $('#editFirstName').val(firstName);
+        $('#editLastName').val(lastName);
+        $('#editUsername').val(username);
+        $('#editPassword').val('');
 
-        alert(
-            'Edit User\n\n' +
-            'Name: ' + firstName + ' ' + lastName + '\n' +
-            'Username: ' + username
+        // Show modal
+        const modal = new bootstrap.Modal(
+            document.getElementById('editUserModal')
         );
+
+        modal.show();
+
+    });
+
+    $('#saveUserBtn').on('click', function () {
+
+        const userId = $('#editUserId').val();
+        const firstName = $('#editFirstName').val().trim();
+        const lastName = $('#editLastName').val().trim();
+        const username = $('#editUsername').val().trim();
+        const password = $('#editPassword').val();
+
+        if (!firstName || !lastName || !username) {
+
+            alert('Please fill in all required fields.');
+
+            return;
+        }
+
+        const saveButton = $(this);
+
+        saveButton.prop('disabled', true);
+        saveButton.text('Saving...');
+
+        $.ajax({
+
+            url: '/users/update',
+
+            method: 'POST',
+
+            data: {
+                user_id: userId,
+                firstName: firstName,
+                lastName: lastName,
+                username: username,
+                password: password
+            },
+
+            success: function (response) {
+
+                if (response.success) {
+
+                    const row = $(
+                        '#usersTable tbody tr[data-user-id="' +
+                        userId +
+                        '"]'
+                    );
+
+                    // Update table cells
+                    row.find('td:eq(0)').text(firstName);
+                    row.find('td:eq(1)').text(lastName);
+                    row.find('td:eq(2)').text(username);
+
+                    // Update edit button data
+                    const editButton = row.find('.edit-user');
+
+                    editButton.data('firstname', firstName);
+                    editButton.data('lastname', lastName);
+                    editButton.data('username', username);
+
+                    // Close modal
+                    const modalElement =
+                        document.getElementById('editUserModal');
+
+                    const modal =
+                        bootstrap.Modal.getInstance(modalElement);
+
+                    modal.hide();
+
+                    alert('User updated successfully.');
+
+                } else {
+
+                    alert(response.message);
+                }
+
+            },
+
+            error: function (xhr) {
+
+                console.error(xhr.responseText);
+
+                alert('Failed to update user.');
+
+            },
+
+            complete: function () {
+
+                saveButton.prop('disabled', false);
+                saveButton.text('Save Changes');
+
+            }
+
+        });
 
     });
 
@@ -615,7 +705,10 @@ $(document).ready(function () {
 
         e.preventDefault();
 
-        const row = $(this).closest('tr');
+        const button = $(this);
+        const row = button.closest('tr');
+
+        const userId = row.data('user-id');
 
         const firstName = row.find('td:eq(0)').text().trim();
         const lastName = row.find('td:eq(1)').text().trim();
@@ -625,14 +718,53 @@ $(document).ready(function () {
             firstName + ' ' + lastName + '?'
         );
 
-        if (confirmed) {
-
-            table
-                .row(row)
-                .remove()
-                .draw(false);
-
+        if (!confirmed) {
+            return;
         }
+
+        button.addClass('disabled');
+
+        $.ajax({
+
+            url: '/users/delete',
+
+            method: 'POST',
+
+            data: {
+                user_id: userId
+            },
+
+            success: function (response) {
+
+                if (response.success) {
+
+                    // Remove from DataTable
+                    table
+                        .row(row)
+                        .remove()
+                        .draw(false);
+
+                    alert('User deleted successfully.');
+
+                } else {
+
+                    alert(response.message);
+
+                    button.removeClass('disabled');
+                }
+
+            },
+
+            error: function (xhr) {
+
+                console.error(xhr.responseText);
+
+                alert('Failed to delete user.');
+
+                button.removeClass('disabled');
+            }
+
+        });
 
     });
 

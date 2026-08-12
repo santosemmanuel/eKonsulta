@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 import fitz
 import pymysql
 import pymysql.cursors
+import shutil
 from dotenv import load_dotenv
 
 try:
@@ -302,15 +303,19 @@ def login():
             user = cursor.fetchone()
 
             if user:
-                full_name = f"{user.get('firstName', '')} {user.get('lastName', '')}".strip()
-                session["user_id"] = user["id"]
-                session["user"] = user["username"]
-                session["initials"] = get_initials(full_name)
-                session["position"] = user["position"]
-                flash("Login successful!", "success")
-                return redirect(url_for("index"))
-
-            flash("Invalid username or password", "danger")
+                if user["status"] == 1:
+                    full_name = f"{user.get('firstName', '')} {user.get('lastName', '')}".strip()
+                    session["user_id"] = user["id"]
+                    session["user"] = user["username"]
+                    session["initials"] = get_initials(full_name)
+                    session["position"] = user["position"]
+                    flash("Login successful!", "success")
+                    return redirect(url_for("index"))
+                else:
+                    flash("This Account needs to be activated by Admin.", "warning")
+                    return redirect(url_for("login"))
+                        
+            flash("Invalid username or password ", "danger")
             return redirect(url_for("login"))
         
         # For Maintenance
@@ -330,8 +335,97 @@ def login():
 def signup():
     try:
         
-      
+        if request.method == "POST":
+
+            first_name = request.form.get("first_name", "").strip()
+            last_name = request.form.get("last_name", "").strip()
+            username = request.form.get("username", "").strip()
+            password = request.form.get("password", "")
+            confirm_password = request.form.get("confirm_password", "")
+
+            # Basic validation
+            if not first_name or not last_name:
+                flash("First name and last name are required.", "danger")
+                return redirect(url_for("signup"))
+
+            if len(username) < 4:
+                flash("Username must be at least 4 characters long.", "danger")
+                return redirect(url_for("signup"))
+
+            if len(password) < 6:
+                flash("Password must be at least 6 characters long.", "danger")
+                return redirect(url_for("signup"))
+
+            if password != confirm_password:
+                flash("Passwords do not match.", "danger")
+                return redirect(url_for("signup"))
+
+            conn = None
+            cursor = None
+
+            
+            conn = get_db_connection()
+            cursor = conn.cursor()
+
+            # Check if username already exists
+            cursor.execute(
+                "SELECT id FROM users WHERE username = %s",
+                (username,)
+            )
+
+            existing_user = cursor.fetchone()
+
+            if existing_user:
+                flash("Username already exists.", "danger")
+                return redirect(url_for("signup"))
+
+            # Hash password
+            # hashed_password = generate_password_hash(password)
+
+            # Default values
+            position = "user"
+            status = 0
+
+            # Insert user
+            cursor.execute("""
+                INSERT INTO users
+                (firstName, lastName, username, password, position, status)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (
+                first_name,
+                last_name,
+                username,
+                password,
+                position,
+                status
+            ))
+
+            # Get the newly created user's ID
+            user_id = cursor.lastrowid
+
+            # Create user's PDF folder
+            user_folder = os.path.join(
+                app.root_path,
+                "static",
+                "pdfs",
+                f"user_{user_id}"
+            )
+
+            os.makedirs(user_folder, exist_ok=True)
+
+            # Commit database changes
+            conn.commit()
+
+            flash(
+                "Registration successful! Your account is waiting for admin activation.",
+                "success"
+            )
+            conn.close()
+
+            return redirect(url_for("login"))
+
         return render_template("signup.html")
+    
     except Exception as exc:
         print(exc)
 
@@ -921,7 +1015,257 @@ def scannerPage():
 
 @app.route("/users")
 def usersPage():
-    return render_template("users.html")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            id,
+            firstName,
+            lastName,
+            username,
+            password,
+            status
+        FROM users
+        ORDER BY id DESC
+    """)
+
+    users = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return render_template("users.html", users=users)
+
+
+@app.route('/users/update-status', methods=['POST'])
+def update_user_status():
+
+    try:
+        user_id = request.form.get('user_id')
+        status = request.form.get('status')
+
+        if not user_id or status not in ['0', '1']:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid user ID or status.'
+            }), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            UPDATE users
+            SET status = %s
+            WHERE id = %s
+        """, (int(status), int(user_id)))
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'success': True,
+            'message': 'User status updated successfully.',
+            'status': int(status)
+        })
+
+    except Exception as e:
+
+        print("Update status error:", e)
+
+        return jsonify({
+            'success': False,
+            'message': 'Failed to update user status.'
+        }), 500
+
+
+# ---------------------------------------------------------
+# Edit User
+# ---------------------------------------------------------
+
+@app.route('/users/update', methods=['POST'])
+def update_user():
+    try:
+        user_id = request.form.get('user_id')
+        first_name = request.form.get('firstName', '').strip()
+        last_name = request.form.get('lastName', '').strip()
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+
+        if not user_id:
+            return jsonify({
+                'success': False,
+                'message': 'User ID is required.'
+            }), 400
+
+        if not first_name or not last_name or not username:
+            return jsonify({
+                'success': False,
+                'message': 'First name, last name and username are required.'
+            }), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # If password is empty, don't change the existing password
+        if password:
+
+            cursor.execute("""
+                UPDATE users
+                SET firstName = %s,
+                    lastName = %s,
+                    username = %s,
+                    password = %s
+                WHERE id = %s
+            """, (
+                first_name,
+                last_name,
+                username,
+                password,
+                int(user_id)
+            ))
+
+        else:
+
+            cursor.execute("""
+                UPDATE users
+                SET firstName = %s,
+                    lastName = %s,
+                    username = %s
+                WHERE id = %s
+            """, (
+                first_name,
+                last_name,
+                username,
+                int(user_id)
+            ))
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'success': True,
+            'message': 'User updated successfully.'
+        })
+
+   
+    except Exception as e:
+
+        print("Update user error:", e)
+
+        return jsonify({
+            'success': False,
+            'message': 'Failed to update user.'
+        }), 500
+
+
+# ---------------------------------------------------------
+# Delete User
+# ---------------------------------------------------------
+
+@app.route('/users/delete', methods=['POST'])
+def delete_user():
+
+    try:
+
+        user_id = request.form.get('user_id')
+
+        if not user_id:
+            return jsonify({
+                'success': False,
+                'message': 'User ID is required.'
+            }), 400
+
+        # Make sure user_id is an integer
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid user ID.'
+            }), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # -------------------------------------------------
+        # Check if user exists
+        # -------------------------------------------------
+
+        cursor.execute("""
+            SELECT id
+            FROM users
+            WHERE id = %s
+        """, (user_id,))
+
+        user = cursor.fetchone()
+
+        if not user:
+
+            cursor.close()
+            conn.close()
+
+            return jsonify({
+                'success': False,
+                'message': 'User not found.'
+            }), 404
+
+        # -------------------------------------------------
+        # Delete user from database
+        # -------------------------------------------------
+
+        cursor.execute("""
+            DELETE FROM users
+            WHERE id = %s
+        """, (user_id,))
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        # -------------------------------------------------
+        # Delete user's PDF folder
+        # -------------------------------------------------
+
+        user_folder = os.path.join(
+            app.root_path,
+            'static',
+            'pdfs',
+            f'user_{user_id}'
+        )
+
+        if os.path.exists(user_folder):
+
+            if os.path.isdir(user_folder):
+
+                shutil.rmtree(user_folder)
+
+                print(
+                    f"Deleted user folder: {user_folder}"
+                )
+
+        # -------------------------------------------------
+        # Success
+        # -------------------------------------------------
+
+        return jsonify({
+            'success': True,
+            'message': 'User and user PDF folder deleted successfully.'
+        })
+
+    except Exception as e:
+
+        print("Delete user error:", e)
+
+        return jsonify({
+            'success': False,
+            'message': 'Failed to delete user.'
+        }), 500
 
 if __name__ == '__main__':
     if serve is not None:
