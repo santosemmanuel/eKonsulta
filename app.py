@@ -413,6 +413,70 @@ def signup():
 
             os.makedirs(user_folder, exist_ok=True)
 
+            # User folder
+            user_folder = os.path.join(
+                app.root_path,
+                "static",
+                "pdfs",
+                f"user_{user_id}"
+            )
+
+            # Create user folder
+            os.makedirs(user_folder, exist_ok=True)
+
+            # Create output and template folders
+            user_output_folder = os.path.join(user_folder, "output")
+            user_template_folder = os.path.join(user_folder, "template")
+
+            os.makedirs(user_output_folder, exist_ok=True)
+            os.makedirs(user_template_folder, exist_ok=True)
+
+
+            # =========================
+            # SAMPLE FOLDERS
+            # =========================
+
+            sample_folder = os.path.join(
+                app.root_path,
+                "static",
+                "pdfs",
+                "sample"
+            )
+
+            sample_template_folder = os.path.join(sample_folder, "template")
+
+
+            # =========================
+            # COPY TEMPLATE PDFs
+            # =========================
+
+            if os.path.exists(sample_template_folder):
+                for filename in os.listdir(sample_template_folder):
+
+                    if filename.lower().endswith(".pdf"):
+
+                        source_file = os.path.join(
+                            sample_template_folder,
+                            filename
+                        )
+
+                        # Get original filename without .pdf
+                        original_name = os.path.splitext(filename)[0]
+
+                        # Example:
+                        # template1_123.pdf
+                        new_filename = f"{original_name}_{user_id}.pdf"
+
+                        destination_file = os.path.join(
+                            user_template_folder,
+                            new_filename
+                        )
+
+                        shutil.copy2(
+                            source_file,
+                            destination_file
+                        )
+
             # Commit database changes
             conn.commit()
 
