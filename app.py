@@ -1331,6 +1331,10 @@ def delete_user():
             'message': 'Failed to delete user.'
         }), 500
 
+@app.route('/uploadcec')
+def upload_cec():
+    return render_template("uploadcec.html")
+
 if __name__ == '__main__':
     if serve is not None:
         serve(app, host="0.0.0.0", port=8180)
