@@ -1335,6 +1335,10 @@ def delete_user():
 def upload_cec():
     return render_template("uploadcec.html")
 
+@app.route('/downloadcec')
+def download_cec():
+    return render_template("downloadcec.html")
+
 if __name__ == '__main__':
     if serve is not None:
         serve(app, host="0.0.0.0", port=8180)
