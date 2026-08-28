@@ -43,6 +43,7 @@ app = Flask(__name__)
 app.secret_key = "MHOBurauen"
 load_dotenv()
 today = datetime.now(ZoneInfo("Asia/Manila")).date()
+BACKUP_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backup')
 
 # ==========================
 # CONFIGURATION
@@ -1339,42 +1340,94 @@ def upload_cec():
 
 @app.route('/downloadcec')
 def download_cec_page():
-    return render_template("downloadcec.html")
+    cecRegistrationPatients = allPatientTable()
+    transfereePatients = allTransferPatient()
+    return render_template("downloadcec.html", cecRegistrationPatients=cecRegistrationPatients, transfereePatients=transfereePatients)
 
 
 @app.route('/api/download-cec', methods=['POST'])
 def download_cec():
-    data = request.get_json()
+    data = request.get_json() or {}
     dataset_type = data.get('cec_type')
 
     if not dataset_type or dataset_type not in ['registration', 'transfer']:
-        return jsonify({'error': 'Invalid dataset type selection'}), 400
+        return jsonify({'error': 'Invalid dataset type selected.'}), 400
 
-    # Fetch dataset records
-    records = query_cec_records(dataset_type)
-    
-    if not records:
-        return jsonify({'error': 'No records found for extraction'}), 4404
+    target_table = 'cec_registration' if dataset_type == 'registration' else 'cec_transfer'
+    connection = get_db_connection()
 
-    # Build CSV file in memory
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerows(records)
+    try:
+        with connection.cursor() as cursor:
+            # 1. Query records from target table
+            select_query = f"""
+                SELECT 
+                    id, LastName, FirstName, MiddleName, Barangay, 
+                    PIN, MemDep, PCUTransaction, DateTimeProccess
+                FROM {target_table}
+                ORDER BY id ASC
+            """
+            cursor.execute(select_query)
+            rows = cursor.fetchall()
 
-    # Convert buffer to BytesIO for send_file download
-    mem_file = io.BytesIO()
-    mem_file.write(output.getvalue().encode('utf-8'))
-    mem_file.seek(0)
-    output.close()
+            if not rows:
+                connection.close()
+                return jsonify({'error': f'No records found in {dataset_type} table to purge.'}), 404
 
-    filename = f"CEC_{dataset_type.capitalize()}_Export.csv"
+            # 2. Ensure the local backup folder exists
+            if not os.path.exists(BACKUP_FOLDER):
+                os.makedirs(BACKUP_FOLDER)
 
-    return send_file(
-        mem_file,
-        mimetype='text/csv',
-        as_attachment=True,
-        download_name=filename
-    )
+            # 3. Create a unique filename with a timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"CEC_{dataset_type.capitalize()}_Backup_{timestamp}.csv"
+            server_file_path = os.path.join(BACKUP_FOLDER, filename)
+
+            # 4. Write data to the server's backup folder
+            headers = [
+                "ID", "Last Name", "First Name", "Middle Name", 
+                "Barangay", "PIN", "MemDep", "PCU Transaction", "Date Time Processed"
+            ]
+            
+            record_ids = []
+            with open(server_file_path, mode='w', newline='', encoding='utf-8') as csv_file:
+                writer = csv.writer(csv_file)
+                writer.writerow(headers)
+                
+                for row in rows:
+                    record_ids.append(row['id'])
+                    writer.writerow([
+                        row['id'],
+                        row['LastName'],
+                        row['FirstName'],
+                        row['MiddleName'],
+                        row['Barangay'],
+                        row['PIN'],
+                        row['MemDep'],
+                        row['PCUTransaction'],
+                        row['DateTimeProccess']
+                    ])
+
+            # 5. Purge the records from the MySQL database
+            format_strings = ','.join(['%s'] * len(record_ids))
+            delete_query = f"DELETE FROM {target_table} WHERE id IN ({format_strings})"
+            cursor.execute(delete_query, tuple(record_ids))
+
+            # Commit database deletion transaction only after file is written successfully
+            connection.commit()
+
+        # 6. Send the saved backup file directly to the browser for user download
+        return send_file(
+            server_file_path,
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name=filename
+        )
+
+    except Exception as e:
+        connection.rollback()  # Undo database changes if file creation fails
+        return jsonify({'error': f'Backup & Purge failed: {str(e)}'}), 500
+    finally:
+        connection.close()
 
 def query_cec_records(dataset_type):
     # Map dataset type safely to table names
@@ -1509,7 +1562,7 @@ def preview_cec_upload():
                 'PIN': pin,
                 'MemDep': row.get('MemDep', ''),
                 'PCUTransaction': row.get('PCUTransaction', ''),
-                'DateTimeProcess': row.get('DateTimeProcess', ''),
+                'DateTimeProccess': row.get('DateTimeProccess', ''),
                 'status': status,
                 'reason': reason
             })
@@ -1534,7 +1587,7 @@ def submit_cec_upload():
 
     insert_sql = f"""
         INSERT INTO {target_table} 
-        (LastName, FirstName, MiddleName, Barangay, PIN, MemDep, PCUTransaction, DateTimeProcess)
+        (LastName, FirstName, MiddleName, Barangay, PIN, MemDep, PCUTransaction, DateTimeProccess)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     """
 
@@ -1547,7 +1600,7 @@ def submit_cec_upload():
             r.get('PIN'),
             r.get('MemDep'),
             r.get('PCUTransaction'),
-            r.get('DateTimeProcess')
+            r.get('DateTimeProccess')
         ) for r in records
     ]
 

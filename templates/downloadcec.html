@@ -226,7 +226,7 @@
                                 </div>
                                 <div class="flex-grow-1">
                                     <span class="text-muted small text-uppercase fw-bold tracking-wide">Available Registrations</span>
-                                    <h3 class="fw-bold mb-0 mt-1">312</h3>
+                                    <h3 class="fw-bold mb-0 mt-1">{{ cecRegistrationPatients|length }}</h3>
                                 </div>
                             </div>
                         </div>
@@ -238,7 +238,7 @@
                                 </div>
                                 <div class="flex-grow-1">
                                     <span class="text-muted small text-uppercase fw-bold tracking-wide">Available Transfers</span>
-                                    <h3 class="fw-bold mb-0 mt-1">84</h3>
+                                    <h3 class="fw-bold mb-0 mt-1">{{ transfereePatients|length }}</h3>
                                 </div>
                             </div>
                         </div>
@@ -335,108 +335,116 @@
             }
 
             async function startExtraction() {
-                const selectedRadio = document.querySelector('input[name="cec_type"]:checked');
+    const selectedRadio = document.querySelector('input[name="cec_type"]:checked');
 
-                if (!selectedRadio) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Selection Required',
-                        text: 'Please choose either CEC Registration or CEC Transfer to proceed.',
-                        confirmButtonColor: '#0d6efd'
-                    });
-                    return;
-                }
+    if (!selectedRadio) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Selection Required',
+            text: 'Please choose either CEC Registration or CEC Transfer.',
+            confirmButtonColor: '#0d6efd'
+        });
+        return;
+    }
 
-                const cecType = selectedRadio.value;
-                const btn = document.getElementById('btnExtractDownload');
-                const progressContainer = document.getElementById('progressContainer');
-                const progressBar = document.getElementById('progressBar');
-                const progressPercent = document.getElementById('progressPercent');
-                const progressStatus = document.getElementById('progressStatus');
-                const radioInputs = document.querySelectorAll('input[name="cec_type"]');
+    const cecType = selectedRadio.value;
 
-                // UI Lock state
-                btn.disabled = true;
-                radioInputs.forEach(i => i.disabled = true);
-                progressContainer.style.display = 'block';
+    // Safety Warning Confirmation Prompt
+    const confirm = await Swal.fire({
+        title: 'Download & Purge Data?',
+        text: `This action will download the ${cecType.toUpperCase()} dataset as a CSV backup and PERMANENTLY REMOVE all extracted records from the database.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Backup & Clear Database'
+    });
 
-                // UI Progress Updates
-                const updateProgress = (percent, statusText) => {
-                    progressBar.style.width = `${percent}%`;
-                    progressPercent.textContent = `${percent}%`;
-                    progressStatus.textContent = statusText;
-                };
+    if (!confirm.isConfirmed) return;
 
-                try {
-                    updateProgress(30, 'Querying database records...');
+    const btn = document.getElementById('btnExtractDownload');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressStatus = document.getElementById('progressStatus');
+    const radioInputs = document.querySelectorAll('input[name="cec_type"]');
 
-                    // Fetch request to Flask backend
-                    const response = await fetch('/api/download-cec', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ cec_type: cecType })
-                    });
+    btn.disabled = true;
+    radioInputs.forEach(i => i.disabled = true);
+    progressContainer.style.display = 'block';
 
-                    updateProgress(70, 'Compiling dataset payload...');
+    const updateProgress = (percent, statusText) => {
+        progressBar.style.width = `${percent}%`;
+        progressPercent.textContent = `${percent}%`;
+        progressStatus.textContent = statusText;
+    };
 
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Server processing error');
-                    }
+    try {
+        updateProgress(30, 'Backing up records from database...');
 
-                    updateProgress(90, 'Generating file download...');
+        const response = await fetch('/api/download-cec', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cec_type: cecType })
+        });
 
-                    // Extract filename from response headers or fallback
-                    let filename = `CEC_${cecType}_export.csv`;
-                    const disposition = response.headers.get('Content-Disposition');
-                    if (disposition && disposition.includes('filename=')) {
-                        filename = disposition.split('filename=')[1].replace(/["']/g, '');
-                    }
+        updateProgress(70, 'Purging backed-up data from server...');
 
-                    // Convert response payload into Blob link to trigger browser download
-                    const blob = await response.blob();
-                    const downloadUrl = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = downloadUrl;
-                    a.download = filename;
-                    document.body.appendChild(a);
-                    a.click();
-                    
-                    // Clean up memory
-                    a.remove();
-                    window.URL.revokeObjectURL(downloadUrl);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Server operation failed.');
+        }
 
-                    updateProgress(100, 'Complete!');
+        updateProgress(90, 'Preparing backup CSV file...');
 
-                    setTimeout(() => {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Extraction Complete',
-                            text: 'Your file download has started.',
-                            confirmButtonColor: '#0d6efd'
-                        });
-                        resetUI();
-                    }, 400);
+        // Read filename or default
+        let filename = `CEC_${cecType}_Backup.csv`;
+        const disposition = response.headers.get('Content-Disposition');
+        if (disposition && disposition.includes('filename=')) {
+            filename = disposition.split('filename=')[1].replace(/["']/g, '');
+        }
 
-                } catch (error) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Extraction Failed',
-                        text: error.message,
-                        confirmButtonColor: '#0d6efd'
-                    });
-                    resetUI();
-                }
+        // Trigger Browser Download
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
 
-                function resetUI() {
-                    btn.disabled = false;
-                    radioInputs.forEach(i => i.disabled = false);
-                    progressContainer.style.display = 'none';
-                    updateProgress(0, '');
-                }
-            }
+        updateProgress(100, 'Complete!');
+
+        setTimeout(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Data Backed Up & Purged',
+                text: 'The CSV backup file has been saved to your device and the database table was safely cleared.',
+                confirmButtonColor: '#0d6efd'
+            });
+            resetUI();
+        }, 400);
+
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Operation Failed',
+            text: error.message,
+            confirmButtonColor: '#0d6efd'
+        });
+        resetUI();
+    }
+
+    function resetUI() {
+        btn.disabled = false;
+        radioInputs.forEach(i => i.disabled = false);
+        progressContainer.style.display = 'none';
+        updateProgress(0, '');
+    }
+}
         </script>
     </body>
 </html>
