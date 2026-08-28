@@ -3,119 +3,122 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>eYakap Forms</title>
-        <link href="{{ url_for('static', filename='css/all.min.css') }}"
-              rel="stylesheet">
-        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}"
-              rel="stylesheet">
-        <link href="{{ url_for('static', filename='css/styles.css') }}"
-              rel="stylesheet">
-        <link href="{{ url_for('static', filename='css/sweetalert2.min.css') }}"
-              rel="stylesheet">
+        <title>Download CEC - eYakap Forms</title>
         
-        <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css"
-              rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/all.min.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+        <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/sweetalert2.min.css') }}" rel="stylesheet">
         <link rel="icon" href="{{ url_for('static', filename='img/MHOBurauen.ico') }}">
+
+        <style>
+            :root {
+                --primary-gradient: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+                --card-bg: #ffffff;
+                --surface-bg: #f8f9fa;
+            }
+
+            body {
+                background-color: #f4f6f9;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            }
+
+            .main-card {
+                background: var(--card-bg);
+                border: 1px solid rgba(0, 0, 0, 0.06);
+                border-radius: 16px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .stat-card {
+                border-radius: 16px;
+                border: 1px solid rgba(0,0,0,0.05);
+                background: #ffffff;
+                transition: all 0.25s ease;
+            }
+
+            .stat-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            }
+
+            .icon-shape {
+                width: 48px;
+                height: 48px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* Custom Select Option Styling */
+            .select-tile {
+                border: 2px solid #e9ecef;
+                border-radius: 12px;
+                padding: 16px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                background: #fff;
+            }
+
+            .select-tile:hover {
+                border-color: #b6d4fe;
+                background: #f8faff;
+            }
+
+            .select-tile.active {
+                border-color: #0d6efd;
+                background: #f0f5ff;
+            }
+
+            .select-tile input[type="radio"] {
+                display: none;
+            }
+
+            /* Progress Bar Styling */
+            .custom-progress {
+                height: 10px;
+                border-radius: 20px;
+                background-color: #e9ecef;
+                overflow: hidden;
+            }
+
+            .custom-progress .progress-bar {
+                border-radius: 20px;
+                background: var(--primary-gradient);
+            }
+
+            .btn-gradient {
+                background: var(--primary-gradient);
+                border: none;
+                color: #fff;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+                transition: all 0.2s ease;
+            }
+
+            .btn-gradient:hover:not(:disabled) {
+                box-shadow: 0 6px 16px rgba(13, 110, 253, 0.35);
+                transform: translateY(-1px);
+                color: #fff;
+            }
+        </style>
     </head>
-    <style>
-        .table-container {
-            background: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        /* Password field */
-        .password-wrapper {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            min-width: 150px;
-        }
-
-        .password-text {
-            letter-spacing: 2px;
-        }
-
-        .password-toggle {
-            border: none;
-            background: transparent;
-            padding: 0;
-            margin-left: 8px;
-            color: #6c757d;
-            cursor: pointer;
-        }
-
-        .password-toggle:hover {
-            color: #0d6efd;
-        }
-
-        /* Bootstrap-style switch */
-        .form-switch .form-check-input {
-            width: 2.5em;
-            height: 1.3em;
-            cursor: pointer;
-        }
-
-        /* Three-dot button */
-        .action-btn {
-            border: none;
-            background: transparent;
-            color: #6c757d;
-            font-size: 20px;
-            padding: 3px 8px;
-        }
-
-        .action-btn:hover {
-            color: #212529;
-            background-color: #f1f3f5;
-            border-radius: 5px;
-        }
-
-        .dropdown-menu {
-            min-width: 130px;
-        }
-
-        .dropdown-item {
-            cursor: pointer;
-        }
-
-        .dropdown-item i {
-            width: 20px;
-        }
-
-        /* Center specific columns */
-        #usersTable th:nth-child(5),
-        #usersTable td:nth-child(5),
-        #usersTable th:nth-child(6),
-        #usersTable td:nth-child(6) {
-            text-align: center;
-        }
-    </style>
-    </style>
     <body>
-        <!-- NAVBAR -->
         <nav class="navbar navbar-expand-lg navbar-mho shadow-sm">
             <div class="container-fluid px-4">
                 <a class="navbar-brand d-flex align-items-center" href="#">
-                    <img src="{{ url_for('static', filename='img/MHO_Logo.jpg') }}"
-                         class="mho-logo mr-2">
+                    <img src="{{ url_for('static', filename='img/MHO_Logo.jpg') }}" class="mho-logo me-2" alt="Logo">
                     <div>
                         <i class="fa-solid fa-notes-medical me-1"></i>eYakapForms
-                        <small>Electronic Yakap Forms Processing System</small>
+                        <small class="d-block opacity-75">Electronic Yakap Forms Processing System</small>
                     </div>
                 </a>
-                <!-- Hamburger button for small screens -->
-                <button class="navbar-toggler"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#navbarMenu"
-                        aria-controls="navbarMenu"
-                        aria-expanded="false"
-                        aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <!-- Collapsible menu -->
                 <div class="collapse navbar-collapse" id="navbarMenu">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
@@ -133,17 +136,11 @@
                                 <i class="fa-solid fa-upload me-1"></i> Upload CEC
                             </a>
                         </li>
-                        </li>
-                           <li class="nav-item">
-                            <a class="nav-link text-white" href="/uploadcec">
+                        <li class="nav-item">
+                            <a class="nav-link text-white fw-bold active" href="/downloadcec">
                                 <i class="fa-solid fa-download me-1"></i> Download CEC
                             </a>
                         </li>
-                        <!-- <li class="nav-item">
-                            <a class="nav-link text-white" href="/ActivityLogs">
-                                <i class="fa-solid fa-history me-1"></i> Activity Logs
-                            </a>
-                        </li> -->
                         <li class="nav-item">
                             {% if session.get('user') %}
                                 <a class="nav-link text-white" href="/logout">
@@ -159,23 +156,287 @@
                 </div>
             </div>
         </nav>
-        <!-- MAIN CONTENT -->
-        <div class="container py-4">
-            <div class="row g-4 mb-5">
-            <!-- Upload Card -->
-                
+
+        <div class="container py-5">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h3 class="fw-bold mb-1">Download CEC Data</h3>
+                    <p class="text-muted mb-0">Extract real-time record sets directly from the centralized database.</p>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="main-card p-4">
+                        <h5 class="fw-bold mb-3 d-flex align-items-center">
+                            <i class="bi bi-database-down text-primary me-2 fs-4"></i>Select Dataset Type
+                        </h5>
+                        <p class="text-muted small mb-4">Choose the specific dataset category you wish to query and compile into a downloadable file.</p>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-6">
+                                <label class="select-tile d-flex align-items-center w-100 h-100" id="tile-reg">
+                                    <input type="radio" name="cec_type" value="registration" onchange="updateTileSelection(this)">
+                                    <div class="icon-shape bg-primary-subtle text-primary me-3 flex-shrink-0">
+                                        <i class="bi bi-person-plus-fill fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold d-block text-dark">CEC Registration</span>
+                                        <small class="text-muted">New registration records</small>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <label class="select-tile d-flex align-items-center w-100 h-100" id="tile-trn">
+                                    <input type="radio" name="cec_type" value="transfer" onchange="updateTileSelection(this)">
+                                    <div class="icon-shape bg-info-subtle text-info me-3 flex-shrink-0">
+                                        <i class="bi bi-arrow-left-right fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold d-block text-dark">CEC Transfer</span>
+                                        <small class="text-muted">Transferred member data</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="progressContainer" class="mb-4" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-semibold text-secondary" id="progressStatus">Querying database...</span>
+                                <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1" id="progressPercent">0%</span>
+                            </div>
+                            <div class="progress custom-progress">
+                                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <button type="button" id="btnExtractDownload" class="btn btn-gradient w-100 py-3 fw-semibold fs-6" onclick="startExtraction()">
+                            <i class="bi bi-cloud-arrow-down me-2 fs-5 align-middle"></i>Extract & Download Dataset
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="stat-card p-4">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-shape bg-primary-subtle text-primary me-3">
+                                    <i class="bi bi-file-earmark-person fs-4"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <span class="text-muted small text-uppercase fw-bold tracking-wide">Available Registrations</span>
+                                    <h3 class="fw-bold mb-0 mt-1">312</h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card p-4">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-shape bg-info-subtle text-info me-3">
+                                    <i class="bi bi-arrow-repeat fs-4"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <span class="text-muted small text-uppercase fw-bold tracking-wide">Available Transfers</span>
+                                    <h3 class="fw-bold mb-0 mt-1">84</h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="main-card p-4 bg-light border-0">
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-info-circle-fill text-primary me-3 fs-5 mt-1"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-1">System Note</h6>
+                                    <p class="text-muted small mb-0">Extraction times vary depending on system payload. Downloads begin automatically once database query packaging finishes.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
         <script src="{{ url_for('static', filename='js/sweetalert2.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/sweetalert-init.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/main.js')}}"></script>
         <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
-        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-        <!-- DataTables -->
-        <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-        <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
-        <!-- Chart.js -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+        <script>
+            function updateTileSelection(radio) {
+                document.querySelectorAll('.select-tile').forEach(tile => tile.classList.remove('active'));
+                radio.closest('.select-tile').classList.add('active');
+            }
+
+            function startExtraction() {
+                const selectedRadio = document.querySelector('input[name="cec_type"]:checked');
+
+                if (!selectedRadio) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Selection Required',
+                        text: 'Please choose either CEC Registration or CEC Transfer to proceed.',
+                        confirmButtonColor: '#0d6efd'
+                    });
+                    return;
+                }
+
+                const btn = document.getElementById('btnExtractDownload');
+                const progressContainer = document.getElementById('progressContainer');
+                const progressBar = document.getElementById('progressBar');
+                const progressPercent = document.getElementById('progressPercent');
+                const progressStatus = document.getElementById('progressStatus');
+                const radioInputs = document.querySelectorAll('input[name="cec_type"]');
+
+                // Disable interactive UI during extraction
+                btn.disabled = true;
+                radioInputs.forEach(i => i.disabled = true);
+                progressContainer.style.display = 'block';
+
+                let width = 0;
+                const interval = setInterval(() => {
+                    if (width >= 100) {
+                        clearInterval(interval);
+                        progressStatus.textContent = 'Extraction complete! Generating file...';
+                        
+                        setTimeout(() => {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Download Started',
+                                text: 'Your file is ready and downloading now.',
+                                confirmButtonColor: '#0d6efd'
+                            });
+
+                            // Reset UI state
+                            btn.disabled = false;
+                            radioInputs.forEach(i => i.disabled = false);
+                            progressContainer.style.display = 'none';
+                            progressBar.style.width = '0%';
+                            progressPercent.textContent = '0%';
+                        }, 600);
+                    } else {
+                        width += 10;
+                        progressBar.style.width = width + '%';
+                        progressPercent.textContent = width + '%';
+                        
+                        if (width < 40) {
+                            progressStatus.textContent = 'Querying database tables...';
+                        } else if (width < 80) {
+                            progressStatus.textContent = 'Compiling data structure...';
+                        } else {
+                            progressStatus.textContent = 'Preparing download payload...';
+                        }
+                    }
+                }, 180);
+            }
+
+            function updateTileSelection(radio) {
+                document.querySelectorAll('.select-tile').forEach(tile => tile.classList.remove('active'));
+                radio.closest('.select-tile').classList.add('active');
+            }
+
+            async function startExtraction() {
+                const selectedRadio = document.querySelector('input[name="cec_type"]:checked');
+
+                if (!selectedRadio) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Selection Required',
+                        text: 'Please choose either CEC Registration or CEC Transfer to proceed.',
+                        confirmButtonColor: '#0d6efd'
+                    });
+                    return;
+                }
+
+                const cecType = selectedRadio.value;
+                const btn = document.getElementById('btnExtractDownload');
+                const progressContainer = document.getElementById('progressContainer');
+                const progressBar = document.getElementById('progressBar');
+                const progressPercent = document.getElementById('progressPercent');
+                const progressStatus = document.getElementById('progressStatus');
+                const radioInputs = document.querySelectorAll('input[name="cec_type"]');
+
+                // UI Lock state
+                btn.disabled = true;
+                radioInputs.forEach(i => i.disabled = true);
+                progressContainer.style.display = 'block';
+
+                // UI Progress Updates
+                const updateProgress = (percent, statusText) => {
+                    progressBar.style.width = `${percent}%`;
+                    progressPercent.textContent = `${percent}%`;
+                    progressStatus.textContent = statusText;
+                };
+
+                try {
+                    updateProgress(30, 'Querying database records...');
+
+                    // Fetch request to Flask backend
+                    const response = await fetch('/api/download-cec', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ cec_type: cecType })
+                    });
+
+                    updateProgress(70, 'Compiling dataset payload...');
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Server processing error');
+                    }
+
+                    updateProgress(90, 'Generating file download...');
+
+                    // Extract filename from response headers or fallback
+                    let filename = `CEC_${cecType}_export.csv`;
+                    const disposition = response.headers.get('Content-Disposition');
+                    if (disposition && disposition.includes('filename=')) {
+                        filename = disposition.split('filename=')[1].replace(/["']/g, '');
+                    }
+
+                    // Convert response payload into Blob link to trigger browser download
+                    const blob = await response.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    // Clean up memory
+                    a.remove();
+                    window.URL.revokeObjectURL(downloadUrl);
+
+                    updateProgress(100, 'Complete!');
+
+                    setTimeout(() => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Extraction Complete',
+                            text: 'Your file download has started.',
+                            confirmButtonColor: '#0d6efd'
+                        });
+                        resetUI();
+                    }, 400);
+
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Extraction Failed',
+                        text: error.message,
+                        confirmButtonColor: '#0d6efd'
+                    });
+                    resetUI();
+                }
+
+                function resetUI() {
+                    btn.disabled = false;
+                    radioInputs.forEach(i => i.disabled = false);
+                    progressContainer.style.display = 'none';
+                    updateProgress(0, '');
+                }
+            }
+        </script>
     </body>
 </html>

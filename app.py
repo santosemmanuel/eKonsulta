@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, current_app, url_for, session, redirect, flash
+from flask import Flask, render_template, request, jsonify, current_app, url_for, session, redirect, flash, send_file
 from datetime import datetime
 import gc
 import json
@@ -7,6 +7,8 @@ import traceback
 from collections import OrderedDict
 from zoneinfo import ZoneInfo
 
+import csv
+import io
 import fitz
 import pymysql
 import pymysql.cursors
@@ -1336,8 +1338,229 @@ def upload_cec():
     return render_template("uploadcec.html")
 
 @app.route('/downloadcec')
-def download_cec():
+def download_cec_page():
     return render_template("downloadcec.html")
+
+
+@app.route('/api/download-cec', methods=['POST'])
+def download_cec():
+    data = request.get_json()
+    dataset_type = data.get('cec_type')
+
+    if not dataset_type or dataset_type not in ['registration', 'transfer']:
+        return jsonify({'error': 'Invalid dataset type selection'}), 400
+
+    # Fetch dataset records
+    records = query_cec_records(dataset_type)
+    
+    if not records:
+        return jsonify({'error': 'No records found for extraction'}), 4404
+
+    # Build CSV file in memory
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerows(records)
+
+    # Convert buffer to BytesIO for send_file download
+    mem_file = io.BytesIO()
+    mem_file.write(output.getvalue().encode('utf-8'))
+    mem_file.seek(0)
+    output.close()
+
+    filename = f"CEC_{dataset_type.capitalize()}_Export.csv"
+
+    return send_file(
+        mem_file,
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name=filename
+    )
+
+def query_cec_records(dataset_type):
+    # Map dataset type safely to table names
+    if dataset_type == 'registration':
+        table_name = 'cec_registration'
+    elif dataset_type == 'transfer':
+        table_name = 'cec_transfer'
+    else:
+        return []
+
+    # Execute PyMySQL query
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            query = f"""
+                SELECT 
+                    id,
+                    LastName,
+                    FirstName,
+                    MiddleName,
+                    Barangay,
+                    PIN,
+                    MemDep,
+                    PCUTransaction,
+                    DateTimeProccess
+                FROM {table_name}
+                ORDER BY DateTimeProccess DESC
+            """
+            cursor.execute(query)
+            rows = cursor.fetchall()
+    finally:
+        connection.close()
+
+    if not rows:
+        return []
+
+    # CSV Headers matching table schema
+    headers = [
+        "ID", 
+        "Last Name", 
+        "First Name", 
+        "Middle Name", 
+        "Barangay", 
+        "PIN", 
+        "MemDep", 
+        "PCU Transaction", 
+        "Date Time Processed"
+    ]
+    
+    # Map dictionary rows to CSV list format
+    data = [headers]
+    for row in rows:
+        data.append([
+            row['id'],
+            row['LastName'],
+            row['FirstName'],
+            row['MiddleName'],
+            row['Barangay'],
+            row['PIN'],
+            row['MemDep'],
+            row['PCUTransaction'],
+            row['DateTimeProccess']
+        ])
+
+    return data
+
+@app.route('/api/preview-cec-upload', methods=['POST'])
+def preview_cec_upload():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+    
+    file = request.files['file']
+    dataset_type = request.form.get('cec_type', 'registration')
+    
+    if dataset_type not in ['registration', 'transfer']:
+        return jsonify({'error': 'Invalid target dataset'}), 400
+
+    target_table = 'cec_registration' if dataset_type == 'registration' else 'cec_transfer'
+
+    try:
+        # Read CSV file contents
+        stream = io.StringIO(file.stream.read().decode("UTF-8"), newline=None)
+        csv_reader = csv.DictReader(stream)
+        
+        records = [row for row in csv_reader]
+        if not records:
+            return jsonify({'error': 'CSV file is empty'}), 400
+
+        # Fetch existing PINs from database to identify duplicates
+        pins_in_csv = [row.get('PIN') for row in records if row.get('PIN')]
+        
+        connection = get_db_connection()
+        existing_pins = set()
+        
+        try:
+            with connection.cursor() as cursor:
+                if pins_in_csv:
+                    format_strings = ','.join(['%s'] * len(pins_in_csv))
+                    cursor.execute(f"SELECT PIN FROM {target_table} WHERE PIN IN ({format_strings})", tuple(pins_in_csv))
+                    existing_pins = {row['PIN'] for row in cursor.fetchall()}
+        finally:
+            connection.close()
+
+        # Tag each record as Uploaded (valid) or Rejected (duplicate/missing PIN)
+        processed_data = []
+        seen_in_batch = set()
+
+        print(records)
+
+        for row in records:
+            pin = row.get('PIN', '').strip()
+            
+            if not pin:
+                status = 'Rejected'
+                reason = 'Missing PIN'
+            elif pin in existing_pins:
+                status = 'Rejected'
+                reason = 'Already exists in database'
+            elif pin in seen_in_batch:
+                status = 'Rejected'
+                reason = 'Duplicate within CSV file'
+            else:
+                status = 'Uploaded'
+                reason = 'Ready for import'
+                seen_in_batch.add(pin)
+
+            processed_data.append({
+                'LastName': row.get('Last Name', ''),
+                'FirstName': row.get('First Name', ''),
+                'MiddleName': row.get('Middle Name', ''),
+                'Barangay': row.get('Barangay', ''),
+                'PIN': pin,
+                'MemDep': row.get('MemDep', ''),
+                'PCUTransaction': row.get('PCUTransaction', ''),
+                'DateTimeProcess': row.get('DateTimeProcess', ''),
+                'status': status,
+                'reason': reason
+            })
+
+        return jsonify({'data': processed_data}), 200
+
+    except Exception as e:
+        return jsonify({'error': f'Processing error: {str(e)}'}), 500
+
+
+# 2. FINAL SUBMIT ROUTE (INSERTS CHECKED RECORDS ONLY)
+@app.route('/api/submit-cec-upload', methods=['POST'])
+def submit_cec_upload():
+    data = request.get_json() or {}
+    records = data.get('records', [])
+    dataset_type = data.get('cec_type', 'registration')
+
+    if not records:
+        return jsonify({'error': 'No valid records selected for submission'}), 400
+
+    target_table = 'cec_registration' if dataset_type == 'registration' else 'cec_transfer'
+
+    insert_sql = f"""
+        INSERT INTO {target_table} 
+        (LastName, FirstName, MiddleName, Barangay, PIN, MemDep, PCUTransaction, DateTimeProcess)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    """
+
+    values_to_insert = [
+        (
+            r.get('LastName'),
+            r.get('FirstName'),
+            r.get('MiddleName'),
+            r.get('Barangay'),
+            r.get('PIN'),
+            r.get('MemDep'),
+            r.get('PCUTransaction'),
+            r.get('DateTimeProcess')
+        ) for r in records
+    ]
+
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.executemany(insert_sql, values_to_insert)
+        connection.commit()
+        return jsonify({'message': f'Successfully saved {len(values_to_insert)} records to {dataset_type}.'}), 200
+    except Exception as e:
+        return jsonify({'error': f'Database insert failed: {str(e)}'}), 500
+    finally:
+        connection.close()
 
 if __name__ == '__main__':
     if serve is not None:
