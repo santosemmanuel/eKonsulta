@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, current_app, url_for, session, redirect, flash, send_file
-from datetime import datetime
+from datetime import datetime, timedelta
 import gc
 import json
 import os
@@ -1345,8 +1345,34 @@ def download_cec_page():
     return render_template("downloadcec.html", cecRegistrationPatients=cecRegistrationPatients, transfereePatients=transfereePatients)
 
 
+# CLEANUP FUNCTION: Removes files older than X days
+def cleanup_old_backups(days_to_keep=7):
+    try:
+        if not os.path.exists(BACKUP_FOLDER):
+            return
+
+        # Calculate cutoff time (e.g., 7 days ago from today)
+        cutoff_time = datetime.now() - timedelta(days=days_to_keep)
+
+        for filename in os.listdir(BACKUP_FOLDER):
+            file_path = os.path.join(BACKUP_FOLDER, filename)
+
+            # Check if it's a file (and specifically a CSV backup)
+            if os.path.isfile(file_path) and filename.endswith('.csv'):
+                # Get the file's last modified timestamp
+                file_modified_time = datetime.fromtimestamp(os.path.getmtime(file_path))
+
+                # Delete if older than the cutoff date
+                if file_modified_time < cutoff_time:
+                    os.remove(file_path)
+                    print(f"[BACKUP CLEANUP] Removed old backup: {filename}")
+
+    except Exception as e:
+        # Log cleanup error without crashing the main application flow
+        print(f"[BACKUP CLEANUP ERROR] Failed to clean old backups: {str(e)}")
+
 @app.route('/api/download-cec', methods=['POST'])
-def download_cec():
+def download_and_purge_cec():
     data = request.get_json() or {}
     dataset_type = data.get('cec_type')
 
@@ -1358,7 +1384,7 @@ def download_cec():
 
     try:
         with connection.cursor() as cursor:
-            # 1. Query records from target table
+            # 1. Fetch current database records
             select_query = f"""
                 SELECT 
                     id, LastName, FirstName, MiddleName, Barangay, 
@@ -1373,16 +1399,16 @@ def download_cec():
                 connection.close()
                 return jsonify({'error': f'No records found in {dataset_type} table to purge.'}), 404
 
-            # 2. Ensure the local backup folder exists
+            # 2. Ensure backup directory exists
             if not os.path.exists(BACKUP_FOLDER):
                 os.makedirs(BACKUP_FOLDER)
 
-            # 3. Create a unique filename with a timestamp
+            # 3. Create timestamped file for new backup
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"CEC_{dataset_type.capitalize()}_Backup_{timestamp}.csv"
             server_file_path = os.path.join(BACKUP_FOLDER, filename)
 
-            # 4. Write data to the server's backup folder
+            # 4. Write records to CSV on server
             headers = [
                 "ID", "Last Name", "First Name", "Middle Name", 
                 "Barangay", "PIN", "MemDep", "PCU Transaction", "Date Time Processed"
@@ -1407,15 +1433,17 @@ def download_cec():
                         row['DateTimeProccess']
                     ])
 
-            # 5. Purge the records from the MySQL database
+            # 5. Purge exported rows from database
             format_strings = ','.join(['%s'] * len(record_ids))
             delete_query = f"DELETE FROM {target_table} WHERE id IN ({format_strings})"
             cursor.execute(delete_query, tuple(record_ids))
 
-            # Commit database deletion transaction only after file is written successfully
             connection.commit()
 
-        # 6. Send the saved backup file directly to the browser for user download
+        # 6. TRIGGER CLEANUP: Delete backups older than 7 days
+        cleanup_old_backups(days_to_keep=7)
+
+        # 7. Stream file download to browser
         return send_file(
             server_file_path,
             mimetype='text/csv',
@@ -1424,7 +1452,7 @@ def download_cec():
         )
 
     except Exception as e:
-        connection.rollback()  # Undo database changes if file creation fails
+        connection.rollback()
         return jsonify({'error': f'Backup & Purge failed: {str(e)}'}), 500
     finally:
         connection.close()

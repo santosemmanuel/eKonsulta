@@ -91,180 +91,71 @@
             </div>
         </nav>
         <!-- MAIN CONTENT -->
-        <div class="container py-4">
-            <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+<div class="container-fluid px-4 py-4" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa;">
+    <div class="row g-4">
+        
+        <!-- LEFT COLUMN: TABS, FILTERS & TABLES -->
+        <div class="col-lg-8">
+            <!-- MAIN NAVIGATION TABS -->
+            <ul class="nav nav-pills mb-3 p-1 rounded-3 bg-white" id="pills-tab" role="tablist" style="box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid #e9ecef;">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">CEC Registration</button>
+                    <button class="nav-link active fw-semibold" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true" style="border-radius: 6px;">CEC Registration</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">Transferees</button>
+                    <button class="nav-link fw-semibold" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false" style="border-radius: 6px;">Transferees</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="pills-contact-tab" data-bs-toggle="pill" data-bs-target="#pills-contact" type="button" role="tab" aria-controls="pills-contact" aria-selected="false">EKASS, EPRESS Transmittal</button>
+                    <button class="nav-link fw-semibold" id="pills-contact-tab" data-bs-toggle="pill" data-bs-target="#pills-contact" type="button" role="tab" aria-controls="pills-contact" aria-selected="false" style="border-radius: 6px;">EKASS, EPRESS Transmittal</button>
                 </li>
             </ul>
+
             <div class="tab-content" id="pills-tabContent">
+                <!-- TAB 1: CEC REGISTRATION -->
                 <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab" tabindex="0">
-                    <div class="col-lg-12">
-                        <div class="tab-content" id="myTabContent">
-                            <div class="tab-pane fade show active" id="cec-tab-pane" role="tabpanel" aria-labelledby="cec-tab" tabindex="0">
-                                <div class="card mb-3"style="border-left: 10px solid #1f7a5a;padding: 18px; display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start; flex-wrap: nowrap">
-                                    <div>
-                                        <h1 style="color: #166447;
-                                            margin-bottom: 4px;
-                                            font-weight: bolder"
-                                        id="CECCount">0</h1>
-
-                                        <button
-                                            class="nav-link border-0 bg-transparent p-0 text-start"
-                                            id="cec-tab"
-                                            data-bs-toggle="tab"
-                                            data-bs-target="#cec-tab-pane"
-                                            type="button"
-                                            role="tab"
-                                            aria-controls="cec-tab-pane"
-                                            aria-selected="true"
-                                            style="color:#6c757d;font-size:14px;cursor:pointer;">
-                                            CEC Registration
-                                        </button>
-                                    </div>
-
-                                    <i class="fa-solid fa-file-pen"
-                                    style="font-size:56px;
-                                            color:#6c757d;
-                                            opacity:.2;
-                                            line-height:1;
-                                            flex-shrink:0">
-                                    </i>
-                                </div>
-                                <div class="mb-3">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <label for="startDate" class="form-label">Select Date</label>
-                                            <input type="date" class="form-control" id="startDate" name="startDate">
-                                        </div>
-                                         <div class="col-md-4">
-                                            <label for="startDate" class="form-label">Select Barangay</label>
-                                            <select class="form-control" id="barangay" name="barangay">
-                                                <option>Select Barangay..</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <button class="btn btn-submit p-2 mt-4"
-                                                    onclick="printPatientsTableRegistration()">
-                                                    <i class="fa-solid fa-filter"></i>&nbsp;
-                                                    Generate Filter
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card mb-4">
-                                    
-                                    <div class="card-header position-relative">
-                                        <p class="fw-semibold mb-0 text-center position-absolute top-50 start-50 translate-middle">
-                                            Patient List
-                                        </p>
-
-                                        <div class="d-flex justify-content-end">
-                                            <button class="btn btn-sm btn-submit p-2"
-                                                    onclick="printPatientsTableRegistration()">
-                                                <i class="fa-solid fa-print"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="card-body">
-                                        <table id="patientsTable"
-                                            class="table table-striped table-bordered table-sm"
-                                            style="width:100%">
-                                            <thead>
-                                                <tr>
-                                                    <td>No.</td>
-                                                    <th>Last Name</th>
-                                                    <th>First Name</th>
-                                                    <th>Middle Name</th>
-                                                    <th>Barangay</th>
-                                                    <th>PIN</th>
-                                                    <th>Member / Dependent</th>
-                                                    <th>PCU Transaction Code</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                        </table>
-                                    </div>
-                                </div>
-                                <!-- 📈 CHART CARD -->
-                                <!-- <div class="card">
-                                    <div class="card-header fw-semibold">Patient Trend</div>
-                                    <div class="card-body">
-                                        <canvas id="patientChart" height="120"></canvas>
-                                    </div>
-                                </div> -->
+                    <!-- FILTER SECTION -->
+                    <div class="card border-0 mb-3 rounded-3" style="box-shadow: 0 2px 8px rgba(0,0,0,0.03); background: #ffffff; padding: 18px;">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label for="startDate" class="form-label fw-semibold text-secondary" style="font-size: 13px;">Select Date</label>
+                                <input type="date" class="form-control" id="startDate" name="startDate" style="border-color: #dee2e6; border-radius: 6px; padding: 8px 12px;">
                             </div>
-                        </div>
-                    </div>
-                </div>              
-                 <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">
-                    <div class="card mb-3"
-                    style="border-left: 10px solid #1f7a5a;
-                            padding: 18px;
-                            display: flex;
-                            flex-direction: row;
-                            justify-content: space-between;
-                            align-items: flex-start;
-                            flex-wrap: nowrap">
-                        <div>
-                            <h1 style="color:#166447;
-                                    margin-bottom:4px;
-                                    font-weight:bolder"
-                                id="FemaleCount">0</h1>
-
-                            <button
-                                class="nav-link border-0 bg-transparent p-0 text-start"
-                                id="transfer-tab"
-                                data-bs-toggle="tab"
-                                data-bs-target="#transfer-tab-pane"
-                                type="button"
-                                role="tab"
-                                aria-controls="transfer-tab-pane"
-                                aria-selected="false"
-                                style="color:#6c757d;font-size:14px;cursor:pointer;">
-                                Transfer
-                            </button>
-                        </div>
-
-                        <i class="fa-solid fa-arrow-right-arrow-left"
-                        style="font-size:56px;
-                                color:#6c757d;
-                                opacity:.2;
-                                line-height:1;
-                                flex-shrink:0">
-                        </i>
-                    </div>
-                    <div class="mb-3">
-                                    <label for="startDate" class="form-label">Select Date</label>
-                                    <input type="date" class="form-control" id="startDateTransferree" name="startDateTransfer">
-                                </div>   
-                    <div class="card mb-4">
-                                 
-                        <div class="card-header position-relative">
-                            <p class="fw-semibold mb-0 text-center position-absolute top-50 start-50 translate-middle">
-                                Patient List
-                            </p>
-
-                            <div class="d-flex justify-content-end">
-                                <button class="btn btn-sm btn-submit p-2"
-                                        onclick="printPatientsTableTransfer()">
-                                    <i class="fa-solid fa-print"></i>
+                            <div class="col-md-3">
+                                <label for="barangay" class="form-label fw-semibold text-secondary" style="font-size: 13px;">Select Barangay</label>
+                                <select class="form-select" id="barangay" name="barangay" style="border-color: #dee2e6; border-radius: 6px; padding: 8px 12px;">
+                                    <option selected>Select Barangay...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-success w-100 fw-semibold" onclick="printPatientsTableRegistration()">
+                                    <i class="fa-solid fa-filter me-1"></i> Generate Filter
+                                </button>
+                                
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-success w-100 fw-semibold" onclick="printPatientsTableRegistration()">
+                                    <i class="fa-solid fa-arrow-rotate-left me-1"></i> Back to Default
                                 </button>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <table id="transferreePatientsTable"
-                                class="table table-striped table-bordered table-sm"
-                                style="width:100%">
-                                <thead>
-                                    <tr>
-                                        <td>No.</td>
+                    </div>
+
+                    <!-- DATA TABLE CARD -->
+                    <div class="card border-0 rounded-3 mb-4" style="box-shadow: 0 4px 12px rgba(0,0,0,0.04); overflow: hidden; background: #ffffff;">
+                        <div class="card-header bg-white py-3 border-bottom position-relative d-flex justify-content-between align-items-center">
+                            <p class="fw-bold mb-0 text-dark position-absolute top-50 start-50 translate-middle" style="letter-spacing: 0.5px; font-size: 15px;">
+                                PATIENT LIST
+                            </p>
+                            <div class="ms-auto">
+                                <button class="btn btn-outline-secondary btn-sm rounded-2" onclick="printPatientsTableRegistration()" style="padding: 6px 12px;">
+                                    <i class="fa-solid fa-print me-1"></i> Print
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-3">
+                            <table id="patientsTable" class="table table-hover table-striped align-middle border-0" style="width:100%; font-size: 13px;">
+                                <thead style="background-color: #f8f9fa;">
+                                    <tr class="text-uppercase text-muted" style="font-size: 11px; letter-spacing: 0.5px;">
+                                        <th>No.</th>
                                         <th>Last Name</th>
                                         <th>First Name</th>
                                         <th>Middle Name</th>
@@ -272,153 +163,376 @@
                                         <th>PIN</th>
                                         <th>Member / Dependent</th>
                                         <th>PCU Transaction Code</th>
-                                        <th>Action</th>
+                                        <th class="text-center">Action</th>
                                     </tr>
                                 </thead>
                             </table>
                         </div>
                     </div>
-                 </div>
-                <div class="tab-pane fade" id="pills-contact" role="tabpanel" aria-labelledby="pills-contact-tab" tabindex="0">
-                    <div class="mb-3">
-                                    <label for="startDate" class="form-label">Select Date</label>
-                                    <input type="date" class="form-control" id="startDateTransferree" name="startDateTransfer">
-                                </div>   
-                    <div class="card mb-4">
-                                 
-                        <div class="card-header position-relative">
-                            <p class="fw-semibold mb-0 text-center position-absolute top-50 start-50 translate-middle">
-                                Patient List
-                            </p>
+                </div>
 
-                            <div class="d-flex justify-content-end">
-                                <button class="btn btn-sm btn-submit p-2 mx-1"
-                                        onclick="printPatientsTableTransfer()">
-                                    <i class="fa-solid fa-print"></i>
-                                </button>
-                                <button class="btn btn-sm btn-submit p-2 mx-1"
-                                        onclick="printTableEkassEpress()">
-                                    Generate Transmittal
+                <!-- TAB 2: TRANSFEREES -->
+                <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">
+                    <div class="card border-0 mb-3 rounded-3" style="box-shadow: 0 2px 8px rgba(0,0,0,0.03); background: #ffffff; padding: 18px;">
+                        <div class="row align-items-end">
+                            <div class="col-md-5">
+                                <label for="startDateTransferree" class="form-label fw-semibold text-secondary" style="font-size: 13px;">Select Date</label>
+                                <input type="date" class="form-control" id="startDateTransferree" name="startDateTransfer" style="border-color: #dee2e6; border-radius: 6px;">
+                            </div>
+                        </div>
+                    </div>   
+
+                    <div class="card border-0 rounded-3 mb-4" style="box-shadow: 0 4px 12px rgba(0,0,0,0.04); overflow: hidden; background: #ffffff;">
+                        <div class="card-header bg-white py-3 border-bottom position-relative d-flex justify-content-between align-items-center">
+                            <p class="fw-bold mb-0 text-dark position-absolute top-50 start-50 translate-middle" style="letter-spacing: 0.5px; font-size: 15px;">
+                                PATIENT LIST
+                            </p>
+                            <div class="ms-auto">
+                                <button class="btn btn-outline-secondary btn-sm rounded-2" onclick="printPatientsTableTransfer()" style="padding: 6px 12px;">
+                                    <i class="fa-solid fa-print me-1"></i> Print
                                 </button>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <table id="transmittalTable"
-                                class="table table-striped table-bordered table-sm"
-                                style="width:100%">
-                                <thead>
-                                    <tr>
-                                        <td>No.</td>
+                        <div class="card-body p-3">
+                            <table id="transferreePatientsTable" class="table table-hover table-striped align-middle border-0" style="width:100%; font-size: 13px;">
+                                <thead style="background-color: #f8f9fa;">
+                                    <tr class="text-uppercase text-muted" style="font-size: 11px; letter-spacing: 0.5px;">
+                                        <th>No.</th>
+                                        <th>Last Name</th>
+                                        <th>First Name</th>
+                                        <th>Middle Name</th>
+                                        <th>Barangay</th>
+                                        <th>PIN</th>
+                                        <th>Member / Dependent</th>
+                                        <th>PCU Transaction Code</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: TRANSMITTAL -->
+                <div class="tab-pane fade" id="pills-contact" role="tabpanel" aria-labelledby="pills-contact-tab" tabindex="0">
+                    <div class="card border-0 mb-3 rounded-3" style="box-shadow: 0 2px 8px rgba(0,0,0,0.03); background: #ffffff; padding: 18px;">
+                        <div class="row align-items-end">
+                            <div class="col-md-5">
+                                <label for="startDateTransmittal" class="form-label fw-semibold text-secondary" style="font-size: 13px;">Select Date</label>
+                                <input type="date" class="form-control" id="startDateTransmittal" name="startDateTransfer" style="border-color: #dee2e6; border-radius: 6px;">
+                            </div>
+                        </div>
+                    </div>   
+
+                    <div class="card border-0 rounded-3 mb-4" style="box-shadow: 0 4px 12px rgba(0,0,0,0.04); overflow: hidden; background: #ffffff;">
+                        <div class="card-header bg-white py-3 border-bottom position-relative d-flex justify-content-between align-items-center">
+                            <p class="fw-bold mb-0 text-dark position-absolute top-50 start-50 translate-middle" style="letter-spacing: 0.5px; font-size: 15px;">
+                                PATIENT LIST
+                            </p>
+                            <div class="ms-auto d-flex gap-2">
+                                <button class="btn btn-outline-secondary btn-sm rounded-2" onclick="printPatientsTableTransfer()" style="padding: 6px 12px;">
+                                    <i class="fa-solid fa-print me-1"></i> Print
+                                </button>
+                                <button class="btn text-white btn-sm fw-semibold rounded-2" onclick="printTableEkassEpress()" style="background-color: #009E60; padding: 6px 14px;">
+                                    <i class="fa-solid fa-file-export me-1"></i> Generate Transmittal
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-3">
+                            <table id="transmittalTable" class="table table-hover table-striped align-middle border-0" style="width:100%; font-size: 13px;">
+                                <thead style="background-color: #f8f9fa;">
+                                    <tr class="text-uppercase text-muted" style="font-size: 11px; letter-spacing: 0.5px;">
+                                        <th>No.</th>
                                         <th>PIN</th>
                                         <th>Last Name</th>
                                         <th>First Name</th>
                                         <th>Middle Name</th>
-                                        <th>Extension
+                                        <th>Extension</th>
                                         <th>Member / Dependent</th>
                                         <th>Birthday</th>
                                     </tr>
                                 </thead>
                             </table>
-                            
                         </div>
                     </div>
-                    <div id="printArea" class="d-none">
-                         <p style="font-size: 0.83em; font-weight: bold; margin: 0">Municipal Health Office - Burauen, Leyte</p>
-        <p style="font-size: 0.67em; fonrt-weight: bold; margin:0">Accreditation Number: 07195</p><br>
-    <div class="title">
-        EKASS & EPRESS TRANSMITTAL
-    </div>
 
-    <table id="reportTable2">
-        <thead>
-            <tr>
-                <th rowspan="2" class="date-col">DATE</th>
-                <th colspan="2" class="text-center">EKAS</th>
-                <th colspan="2" class="text-center">EPRESS</th>
-            </tr>
-            <tr>
-                <th class="no-col">#</th>
-                <th class="name-col">NAME</th>
-                <th class="no-col">#</th>
-                <th class="name-col">NAME</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
-</div>
+                    <!-- PRINTABLE REPORT AREA -->
+                    <div id="printArea" class="d-none" style="font-family: Arial, sans-serif; padding: 20px;">
+                        <p style="font-size: 14px; font-weight: bold; margin: 0; color: #212529;">Municipal Health Office - Burauen, Leyte</p>
+                        <p style="font-size: 11px; font-weight: bold; margin: 0; color: #6c757d;">Accreditation Number: 07195</p>
+                        <br>
+                        <div class="title" style="font-size: 16px; font-weight: 800; margin-bottom: 15px; border-bottom: 2px solid #009E60; padding-bottom: 5px;">
+                            EKASS & EPRESS TRANSMITTAL
+                        </div>
 
+                        <table id="reportTable2" style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                            <thead>
+                                <tr style="background-color: #f2f2f2;">
+                                    <th rowspan="2" class="date-col" style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">DATE</th>
+                                    <th colspan="2" class="text-center" style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">EKAS</th>
+                                    <th colspan="2" class="text-center" style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">EPRESS</th>
+                                </tr>
+                                <tr style="background-color: #f8f9fa;">
+                                    <th class="no-col" style="border: 1px solid #dee2e6; padding: 6px; text-align: center; width: 40px;">#</th>
+                                    <th class="name-col" style="border: 1px solid #dee2e6; padding: 6px; text-align: left;">NAME</th>
+                                    <th class="no-col" style="border: 1px solid #dee2e6; padding: 6px; text-align: center; width: 40px;">#</th>
+                                    <th class="name-col" style="border: 1px solid #dee2e6; padding: 6px; text-align: left;">NAME</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="modal fade" id="editModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
 
-            <div class="modal-header">
-                <h5 class="modal-title">Edit Patient</h5>
-                <button type="button" class="btn-close"
-                        data-bs-dismiss="modal"></button>
+        <!-- RIGHT COLUMN: METRIC CARDS & CHARTS -->
+        <div class="col-lg-4">
+            <div class="d-flex flex-column gap-3">
+                <!-- CEC REGISTRATION CARD -->
+                <div class="card border-0 rounded-3" style="border-left: 6px solid #009E60 !important; padding: 18px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); background: #ffffff;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted fw-semibold d-block mb-1" style="font-size: 12px; letter-spacing: 0.3px;">CEC REGISTRATION</span>
+                            <h2 style="color: #009E60; margin-bottom: 0; font-weight: 800; font-size: 2rem; line-height: 1;" id="CECCount">0</h2>
+                        </div>
+                        <div class="d-flex align-items-center gap-3 bg-light px-3 py-2 rounded-3 border">
+                            <div class="text-center">
+                                <div class="fw-bold text-dark" style="font-size: 1rem;" id="cecMemberCount">0</div>
+                                <small class="text-muted fw-medium" style="font-size: 10px;">Members</small>
+                            </div>
+                            <div class="border-end" style="height: 24px;"></div>
+                            <div class="text-center">
+                                <div class="fw-bold text-dark" style="font-size: 1rem;" id="cecDependentCount">0</div>
+                                <small class="text-muted fw-medium" style="font-size: 10px;">Dependents</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TRANSFEREES CARD -->
+                <div class="card border-0 rounded-3" style="border-left: 6px solid #009E60 !important; padding: 18px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); background: #ffffff;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted fw-semibold d-block mb-1" style="font-size: 12px; letter-spacing: 0.3px;">TRANSFEREES</span>
+                            <h2 style="color: #009E60; margin-bottom: 0; font-weight: 800; font-size: 2rem; line-height: 1;" id="FemaleCount">0</h2>
+                        </div>
+                        <div class="d-flex align-items-center gap-3 bg-light px-3 py-2 rounded-3 border">
+                            <div class="text-center">
+                                <div class="fw-bold text-dark" style="font-size: 1rem;" id="transferredMemberCount">0</div>
+                                <small class="text-muted fw-medium" style="font-size: 10px;">Members</small>
+                            </div>
+                            <div class="border-end" style="height: 24px;"></div>
+                            <div class="text-center">
+                                <div class="fw-bold text-dark" style="font-size: 1rem;" id="transferredDependentCount">0</div>
+                                <small class="text-muted fw-medium" style="font-size: 10px;">Dependents</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PIE CHART: MEMBER VS DEPENDENT -->
+                <div class="card border-0 rounded-3" style="box-shadow: 0 4px 12px rgba(0,0,0,0.04); background: #ffffff;">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 13px;">
+                            <i class="fa-solid fa-chart-pie me-2" style="color: #009E60;"></i> Patient Type Ratio
+                        </h6>
+                    </div>
+                    <div class="card-body d-flex align-items-center justify-content-center p-3" style="position: relative; height: 220px;">
+                        <canvas id="demographicsPieChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- COMBINED TREND LINE CHART CARD (Aligned vertically with left side) -->
+                <div class="card border-0 rounded-3 flex-grow-1 d-flex flex-column" style="box-shadow: 0 4px 12px rgba(0,0,0,0.04); background: #ffffff;">
+                    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 13px;">
+                            <i class="fa-solid fa-chart-line me-2" style="color: #009E60;"></i> Trends Overview
+                        </h6>
+                        <!-- TIMEFRAME SELECTOR DROPDOWN -->
+                        <select class="form-select form-select-sm border-light-subtle fw-semibold text-secondary" id="timeframeSelect" style="width: auto; font-size: 11px; border-radius: 6px; background-color: #f8f9fa;">
+                            <option value="day">Per Day</option>
+                            <option value="week">Per Week</option>
+                            <option value="month" selected>Per Month</option>
+                            <option value="year">Per Year</option>
+                        </select>
+                    </div>
+                    <div class="card-body p-3 flex-grow-1 d-flex align-items-center" style="position: relative; min-height: 380px;">
+                        <canvas id="trendLineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT PATIENT MODAL -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-3" style="box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+            <div class="modal-header text-white" style="background-color: #009E60; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                <h5 class="modal-title fw-bold" style="font-size: 16px;"><i class="fa-solid fa-user-pen me-2"></i>Edit Patient Information</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <div class="modal-body">
-
+            <div class="modal-body p-4" style="background-color: #fdfdfd;">
                 <input type="hidden" id="editId">
                 <input type="text" id="type" class="form-control" hidden>
-                <div class="mb-3">
-                    <label>PIN</label>
-                    <input type="text" id="editPin" class="form-control">
-                </div>
 
-                <div class="mb-3">
-                    <label>Member / Dependent</label>
-                    <select id="editMemDept" class="form-control" >
-                        <option value="Member">Member</option>
-                        <option value="Dependent">Dependent</option>
-                    </select>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-secondary" style="font-size: 13px;">PIN</label>
+                        <input type="text" id="editPin" class="form-control" style="border-radius: 6px;">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-secondary" style="font-size: 13px;">Member / Dependent</label>
+                        <select id="editMemDept" class="form-select" style="border-radius: 6px;">
+                            <option value="Member">Member</option>
+                            <option value="Dependent">Dependent</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-secondary" style="font-size: 13px;">Last Name</label>
+                        <input type="text" id="editLastname" class="form-control" style="border-radius: 6px;">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-secondary" style="font-size: 13px;">First Name</label>
+                        <input type="text" id="editFirstname" class="form-control" style="border-radius: 6px;">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-secondary" style="font-size: 13px;">Middle Name</label>
+                        <input type="text" id="editMiddlename" class="form-control" style="border-radius: 6px;">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-secondary" style="font-size: 13px;">Barangay</label>
+                        <input type="text" id="editBarangay" class="form-control" style="border-radius: 6px;">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-secondary" style="font-size: 13px;">PCU Transaction</label>
+                        <input type="text" id="editPcuTransaction" class="form-control" style="border-radius: 6px;">
+                    </div>
                 </div>
-
-                <div class="mb-3">
-                    <label>Last Name</label>
-                    <input type="text" id="editLastname" class="form-control">
-                </div>
-
-                <div class="mb-3">
-                    <label>First Name</label>
-                    <input type="text" id="editFirstname" class="form-control">
-                </div>
-
-                <div class="mb-3">
-                    <label>Middle Name</label>
-                    <input type="text" id="editMiddlename" class="form-control">
-                </div>
-
-                <div class="mb-3">
-                    <label>Barangay</label>
-                    <input type="text" id="editBarangay" class="form-control">
-                </div>
-
-                <div class="mb-3">
-                    <label>PCU Transaction</label>
-                    <input type="text" id="editPcuTransaction" class="form-control">
-                </div>
-
             </div>
 
-            <div class="modal-footer">
-                <button class="btn btn-secondary"
-                        data-bs-dismiss="modal">
-                    Close
+            <div class="modal-footer bg-light border-top-0 px-4 py-3" style="border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
+                <button class="btn btn-outline-secondary fw-semibold px-4" data-bs-dismiss="modal" style="border-radius: 6px;">
+                    Cancel
                 </button>
-
-                <button class="btn btn-success" id="saveEdit">
+                <button class="btn text-white fw-semibold px-4" id="saveEdit" style="background-color: #009E60; border-radius: 6px;">
                     Save Changes
                 </button>
             </div>
-
         </div>
     </div>
 </div>
+
+<!-- Chart.js Script to initialize the Pie and Bar charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Pie Chart: Member vs Dependent
+        const pieCtx = document.getElementById('demographicsPieChart').getContext('2d');
+        new Chart(pieCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Members', 'Dependents'],
+                datasets: [{
+                    data: [120, 85], // Replace with dynamic data
+                    backgroundColor: ['#009E60', '#34d399'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 12, padding: 12, font: { size: 11 } }
+                    }
+                }
+            }
+        });
+
+        const ctx = document.getElementById('trendLineChart').getContext('2d');
+        
+        const trendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], // Dynamic time labels
+                datasets: [
+                    {
+                        label: 'CEC Registration',
+                        data: [65, 78, 90, 81, 95, 110], // Registration data points
+                        borderColor: '#009E60',
+                        backgroundColor: 'rgba(0, 158, 96, 0.08)',
+                        borderWidth: 2.5,
+                        tension: 0.35,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#009E60',
+                        fill: true
+                    },
+                    {
+                        label: 'Transferees',
+                        data: [28, 35, 40, 32, 45, 52], // Transferee data points
+                        borderColor: ' #c7a302',
+                        backgroundColor: 'rgba(234, 179, 8, 0.08)',
+                        borderWidth: 2.5,
+                        tension: 0.35,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#c7a302',
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            boxWidth: 10,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: { size: 11, weight: '600' },
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        padding: 10,
+                        cornerRadius: 6
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9' },
+                        ticks: { font: { size: 11 }, color: '#64748b' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 11 }, color: '#64748b' }
+                    }
+                }
+            }
+        });
+
+        // Dynamic Timeframe Selector Listener
+        document.getElementById('timeframeSelect').addEventListener('change', function(e) {
+            const timeframe = e.target.value;
+            // Fetch/Update dataset variables based on selected frame ('day', 'week', 'month', 'year')
+            console.log("Selected timeframe:", timeframe);
+        });
+        
+    });
+</script>
+   
         <script>
             const maleCount = {{ cecRegCount }};
             const femaleCount = {{ transferreeCount }};
@@ -802,105 +916,147 @@
 
             $(document).ready(function () {
                 $('#patientsTable').DataTable({
-                    data: cecPatients,
-                    columns: [
-                        { 
-                            data: null,
-                            render: function (data, type, row, meta) {
-                                return meta.row + meta.settings._iDisplayStart + 1;
-                            }
-                        },
-                        { data: 'LastName' },
-                        { data: 'FirstName' },
-                        { data: 'MiddleName' },
-                        { data: 'Barangay' },
-                        { data: 'PIN' },
-                        { data: 'MemDep' },
-                        { data: 'PCUTransaction' },
-                        {
+    data: cecPatients,
+    columns: [
+        { 
+            data: null,
+            render: function (data, type, row, meta) {
+                return meta.row + meta.settings._iDisplayStart + 1;
+            }
+        },
+        { data: 'LastName' },
+        { data: 'FirstName' },
+        { data: 'MiddleName' },
+        { data: 'Barangay' },
+        { data: 'PIN' },
+        { data: 'MemDep' },
+        { data: 'PCUTransaction' },
+        {
             data: "id",
             orderable: false,
             searchable: false,
+            className: "text-center",
             render: function(data, type, row) {
                 return `
-                            <button class="btn btn-sm btn-primary edit-btn"
-            data-id="${row.id}"
-            data-pin="${row.PIN}"
-            data-lastname="${row.LastName}"
-            data-firstname="${row.FirstName}"
-            data-middlename="${row.MiddleName}"
-            data-barangay="${row.Barangay}"
-            data-memdep="${row.MemDep}"
-            data-pcutransaction="${row.PCUTransaction}">
-            <i class="fa-solid fa-pencil-square"></i> Edit
-        </button>
-                     <button class="btn btn-sm btn-warning transfer-btn"
-                            data-id="${data}">
-                        <i class="fa-solid fa-exchange-alt"></i> Transfer
-                    </button>
-                    <button class="btn btn-sm btn-danger delete-btn"
-                            data-id="${data}">
-                        <i class="fa-solid fa-trash"></i> Delete
-                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-light border-0 rounded-circle" 
+                                type="button" 
+                                data-bs-toggle="dropdown" 
+                                aria-expanded="false"
+                                style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-ellipsis-vertical text-secondary"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="font-size: 13px;">
+                            <li>
+                                <button type="button" 
+                                        class="dropdown-item py-2 edit-btn"
+                                        data-id="${row.id}"
+                                        data-pin="${row.PIN}"
+                                        data-lastname="${row.LastName}"
+                                        data-firstname="${row.FirstName}"
+                                        data-middlename="${row.MiddleName}"
+                                        data-barangay="${row.Barangay}"
+                                        data-memdep="${row.MemDep}"
+                                        data-pcutransaction="${row.PCUTransaction}">
+                                    <i class="fa-solid fa-pen-to-square me-2" style="color: #009E60;"></i> Edit
+                                </button>
+                            </li>
+                            <li>
+                                <button type="button" 
+                                        class="dropdown-item py-2 transfer-btn" 
+                                        data-id="${data}">
+                                    <i class="fa-solid fa-arrows-rotate me-2 text-warning"></i> Transfer
+                                </button>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <button type="button" 
+                                        class="dropdown-item py-2 text-danger delete-btn" 
+                                        data-id="${data}">
+                                    <i class="fa-solid fa-trash me-2"></i> Delete
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
                 `;
             }
         }
-                    ],
-                    pageLength: 10,
-                    responsive: true,
-                    scrollX: true
-                    
-                });
-
+    ],
+    pageLength: 10,
+    responsive: true,
+    scrollX: true
+});
                 $('#transferreePatientsTable').DataTable({
-        data: transferreePatients,
-        columns: [
-            { 
-                data: null,
-                render: function (data, type, row, meta) {
-                    return meta.row + meta.settings._iDisplayStart + 1;
-                }
-            },
-            { data: 'LastName' },
-            { data: 'FirstName' },
-            { data: 'MiddleName' },
-            { data: 'Barangay' },
-            { data: 'PIN' },
-            { data: 'MemDep' },
-            { data: 'PCUTransaction' },
-            {
-                data: "id",
-                orderable: false,
-                searchable: false,
-                render: function(data, type, row) {
-                    return `
-                    <button class="btn btn-sm btn-primary edit-transfer-btn"
-        
-            data-id="${row.id}"
-            data-pin="${row.PIN}"
-            data-lastname="${row.LastName}"
-            data-firstname="${row.FirstName}"
-            data-middlename="${row.MiddleName}"
-            data-barangay="${row.Barangay}"
-            data-memdep="${row.MemDep}"
-            data-pcutransaction="${row.PCUTransaction}">
-            <i class="fa-solid fa-pencil-square"></i> Edit
-        </button>
-                        <button class="btn btn-sm btn-warning transfer-transfer-btn" data-id="${data}">
-                            <i class="fa-solid fa-exchange-alt"></i> Transfer
-                        </button>
-                        <button class="btn btn-sm btn-danger delete-transfer-btn" data-id="${data}">
-                            <i class="fa-solid fa-trash"></i> Delete
-                        </button>
-                    `;
-                }
+    data: transferreePatients,
+    columns: [
+        { 
+            data: null,
+            render: function (data, type, row, meta) {
+                return meta.row + meta.settings._iDisplayStart + 1;
             }
-        ],
-        pageLength: 10,
-        responsive: true,
-        scrollX: true
-    });
-
+        },
+        { data: 'LastName' },
+        { data: 'FirstName' },
+        { data: 'MiddleName' },
+        { data: 'Barangay' },
+        { data: 'PIN' },
+        { data: 'MemDep' },
+        { data: 'PCUTransaction' },
+        {
+            data: "id",
+            orderable: false,
+            searchable: false,
+            className: "text-center",
+            render: function(data, type, row) {
+                return `
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-light border-0 rounded-circle" 
+                                type="button" 
+                                data-bs-toggle="dropdown" 
+                                aria-expanded="false"
+                                style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-ellipsis-vertical text-secondary"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="font-size: 13px;">
+                            <li>
+                                <button type="button" 
+                                        class="dropdown-item py-2 edit-transfer-btn"
+                                        data-id="${row.id}"
+                                        data-pin="${row.PIN}"
+                                        data-lastname="${row.LastName}"
+                                        data-firstname="${row.FirstName}"
+                                        data-middlename="${row.MiddleName}"
+                                        data-barangay="${row.Barangay}"
+                                        data-memdep="${row.MemDep}"
+                                        data-pcutransaction="${row.PCUTransaction}">
+                                    <i class="fa-solid fa-pen-to-square me-2" style="color: #009E60;"></i> Edit
+                                </button>
+                            </li>
+                            <li>
+                                <button type="button" 
+                                        class="dropdown-item py-2 transfer-transfer-btn" 
+                                        data-id="${data}">
+                                    <i class="fa-solid fa-arrows-rotate me-2 text-warning"></i> Transfer
+                                </button>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <button type="button" 
+                                        class="dropdown-item py-2 text-danger delete-transfer-btn" 
+                                        data-id="${data}">
+                                    <i class="fa-solid fa-trash me-2"></i> Delete
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                `;
+            }
+        }
+    ],
+    pageLength: 10,
+    responsive: true,
+    scrollX: true
+});
                 $('#transmittalTable').DataTable({
                     data: forTransmittalPatients,
                     columns: [
