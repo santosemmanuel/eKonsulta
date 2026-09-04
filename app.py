@@ -850,6 +850,7 @@ def submitCECRegistration():
                         FirstName,
                         MiddleName,
                         Barangay,
+                        Birthday,
                         PIN,
                         MemDep,
                         PCUTransaction,
@@ -862,6 +863,7 @@ def submitCECRegistration():
                     pcsf_data["FirstName"],
                     pcsf_data["MiddleName"],
                     pcsf_data["Barangay"],
+                    date_object,
                     pcsf_data["PIN"],
                     mem_dep,
                     pcu_transaction,
@@ -876,6 +878,7 @@ def submitCECRegistration():
                         FirstName,
                         MiddleName,
                         Barangay,
+                        Birthday,
                         PIN,
                         MemDep,
                         PCUTransaction,
@@ -888,6 +891,7 @@ def submitCECRegistration():
                     pcsf_data["FirstName"],
                     pcsf_data["MiddleName"],
                     pcsf_data["Barangay"],
+                    date_object,
                     pcsf_data["PIN"],
                     mem_dep,
                     pcu_transaction,
@@ -963,13 +967,14 @@ def update_record(id):
 
     cur.execute("""
         UPDATE cec_registration
-        SET LastName=%s, FirstName=%s, MiddleName=%s, Barangay=%s, PIN=%s, MemDep=%s, PCUTransaction=%s
+        SET LastName=%s, FirstName=%s, MiddleName=%s, Barangay=%s, Birthday=%s, PIN=%s, MemDep=%s, PCUTransaction=%s
         WHERE id=%s
     """, (
         data['LastName'],
         data['FirstName'],
         data['MiddleName'],
         data['Barangay'],
+        data['DOB'],
         data['PIN'],
         data['MemDep'],
         data['PCUTransaction'],
@@ -1023,13 +1028,14 @@ def registration_to_transfer(id):
     print(existing)
 
     cursor.execute("""
-        INSERT INTO cec_transfer (LastName, FirstName, MiddleName, Barangay, PIN, MemDep, PCUTransaction)
+        INSERT INTO cec_transfer (LastName, FirstName, MiddleName, Barangay, Birthday, PIN, MemDep, PCUTransaction)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
     """, (
         existing['LastName'],
         existing['FirstName'],
         existing['MiddleName'],
         existing['Barangay'],
+        existing['Birthday'],
         existing['PIN'],
         existing['MemDep'],
         existing['PCUTransaction']
@@ -1055,13 +1061,14 @@ def transfer_to_registration(id):
     print(id)
 
     cursor.execute("""
-        INSERT INTO cec_registration (LastName, FirstName, MiddleName, Barangay, PIN, MemDep, PCUTransaction)
+        INSERT INTO cec_registration (LastName, FirstName, MiddleName, Barangay, Birthday, PIN, MemDep, PCUTransaction)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
     """, (
         existing['LastName'],
         existing['FirstName'],
         existing['MiddleName'],
         existing['Barangay'],
+        existing['Birthday'],
         existing['PIN'],
         existing['MemDep'],
         existing['PCUTransaction']
@@ -1387,7 +1394,7 @@ def download_and_purge_cec():
             # 1. Fetch current database records
             select_query = f"""
                 SELECT 
-                    id, LastName, FirstName, MiddleName, Barangay, 
+                    id, LastName, FirstName, MiddleName, Barangay, Birthday
                     PIN, MemDep, PCUTransaction, DateTimeProccess
                 FROM {target_table}
                 ORDER BY id ASC
@@ -1411,7 +1418,7 @@ def download_and_purge_cec():
             # 4. Write records to CSV on server
             headers = [
                 "ID", "Last Name", "First Name", "Middle Name", 
-                "Barangay", "PIN", "MemDep", "PCU Transaction", "Date Time Processed"
+                "Barangay", "Birthday", "PIN", "MemDep", "PCU Transaction", "Date Time Processed"
             ]
             
             record_ids = []
@@ -1427,6 +1434,7 @@ def download_and_purge_cec():
                         row['FirstName'],
                         row['MiddleName'],
                         row['Barangay'],
+                        row['Birthday'],
                         row['PIN'],
                         row['MemDep'],
                         row['PCUTransaction'],
@@ -1477,6 +1485,7 @@ def query_cec_records(dataset_type):
                     FirstName,
                     MiddleName,
                     Barangay,
+                    Birthday,
                     PIN,
                     MemDep,
                     PCUTransaction,
@@ -1499,6 +1508,7 @@ def query_cec_records(dataset_type):
         "First Name", 
         "Middle Name", 
         "Barangay", 
+        "Birthday",
         "PIN", 
         "MemDep", 
         "PCU Transaction", 
@@ -1514,6 +1524,7 @@ def query_cec_records(dataset_type):
             row['FirstName'],
             row['MiddleName'],
             row['Barangay'],
+            row['Birthday'],
             row['PIN'],
             row['MemDep'],
             row['PCUTransaction'],
@@ -1587,6 +1598,7 @@ def preview_cec_upload():
                 'FirstName': row.get('First Name', ''),
                 'MiddleName': row.get('Middle Name', ''),
                 'Barangay': row.get('Barangay', ''),
+                'Birthday': row.get('Birthday',''),
                 'PIN': pin,
                 'MemDep': row.get('MemDep', ''),
                 'PCUTransaction': row.get('PCUTransaction', ''),
@@ -1615,7 +1627,7 @@ def submit_cec_upload():
 
     insert_sql = f"""
         INSERT INTO {target_table} 
-        (LastName, FirstName, MiddleName, Barangay, PIN, MemDep, PCUTransaction, DateTimeProccess)
+        (LastName, FirstName, MiddleName, Barangay, Brithday, PIN, MemDep, PCUTransaction, DateTimeProccess)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     """
 
@@ -1625,6 +1637,7 @@ def submit_cec_upload():
             r.get('FirstName'),
             r.get('MiddleName'),
             r.get('Barangay'),
+            r.get('Birthday'),
             r.get('PIN'),
             r.get('MemDep'),
             r.get('PCUTransaction'),

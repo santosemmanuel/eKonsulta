@@ -572,7 +572,7 @@
                 editModal.show();
             });
 
-             $('#transferreePatientsTable').on('click', '.edit-transfer-btn', function () {
+            $('#transferreePatientsTable').on('click', '.edit-transfer-btn', function () {
 
                 $('#type').val('transfer');
                 $('#editId').val($(this).data('id'));
@@ -585,6 +585,17 @@
                 $('#editPcuTransaction').val($(this).data('pcutransaction'));
                 editModal.show();
             });
+
+            function formatDateToMMDDYYYY(dateString) {
+                const dateObj = new Date(dateString);
+
+                // Extract UTC components to prevent timezone shifts
+                const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+                const day = String(dateObj.getUTCDate()).padStart(2, '0');
+                const year = dateObj.getUTCFullYear();
+
+                return `${month}-${day}-${year}`;
+            }
 
             function printPatientsTableRegistration() {
                 const table = $('#patientsTable').DataTable();
@@ -648,6 +659,7 @@
                                     <th>First Name</th>
                                     <th>Middle Name</th>
                                     <th>Barangay</th>
+                                    <th>Birthday</th>
                                     <th>PIN</th>
                                     <th>Member / Dependent</th>
                                     <th>PCU Transaction Code</th>
@@ -664,6 +676,7 @@
                             <td>${row.FirstName ?? ''}</td>
                             <td>${row.MiddleName ?? ''}</td>
                             <td>${row.Barangay ?? ''}</td>
+                            <td>${formatDateToMMDDYYYY(row.Birthday) ?? ''}</td>
                             <td>${row.PIN ?? ''}</td>
                             <td>${row.MemDep ?? ''}</td>
                             <td>${row.PCUTransaction ?? ''}</td>
@@ -680,9 +693,9 @@
 
                 printWindow.document.write(html);
                 printWindow.document.close();
-                printWindow.focus();
+                // printWindow.focus();
                 printWindow.print();
-                printWindow.close();
+                // printWindow.close();
             }
 
             function printPatientsTableTransfer() {
@@ -746,6 +759,7 @@
                                     <th>First Name</th>
                                     <th>Middle Name</th>
                                     <th>Barangay</th>
+                                    <th>Brithday</th>
                                     <th>PIN</th>
                                     <th>Member / Dependent</th>
                                     <th>PCU Transaction Code</th>
@@ -762,6 +776,7 @@
                             <td>${row.FirstName ?? ''}</td>
                             <td>${row.MiddleName ?? ''}</td>
                             <td>${row.Barangay ?? ''}</td>
+                            <td>${formatDateToMMDDYYYY(row.Birthday) ?? ''}</td>
                             <td>${row.PIN ?? ''}</td>
                             <td>${row.MemDep ?? ''}</td>
                             <td>${row.PCUTransaction ?? ''}</td>
@@ -778,9 +793,9 @@
 
                 printWindow.document.write(html);
                 printWindow.document.close();
-                printWindow.focus();
+                // printWindow.focus();
                 printWindow.print();
-                printWindow.close();
+                // printWindow.close();
             }
 
             function printTableEkassEpress() {
